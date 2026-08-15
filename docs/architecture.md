@@ -56,7 +56,15 @@ mechanic resolution has been introduced in Stage 4A.
    and distinct Learn 2D and Train 3D adapters (`FR-072`).
 4. Stabilize focused component, runtime, browser, accessibility, and build
    coverage before any second boss begins.
-5. Address API `/v2` and public systems only in their later milestone
+5. Retire inherited L'ura and Season 1 product residue without deleting the
+   immutable source baseline, handover evidence, or repository lineage
+   (`CR-235`).
+6. Apply the restrained token-driven Season 2 visual theme without replacing
+   the shared shell or weakening its accessibility contract (`CR-236`).
+7. Publish the isolated static trainer, then measure and perform the first
+   optimization pass before opening work on another boss (`FR-074`, `CR-234`,
+   `FR-075`).
+8. Address API `/v2` and public systems only in their later milestone
    (`FR-073`).
 
 No step changes the inherited leaderboard season or authorizes a public

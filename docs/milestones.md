@@ -39,7 +39,15 @@ encounter development into an independently deployed Season 2 repository.
   discovery, and Entombed Sentinels as the sole non-playable first encounter
   package. The Helical Toxins Learn 2D vertical slice is next.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
-- `FR-074` — deferred until the first trainable Sentinels release candidate:
+- `CR-235` — deferred until the first trainable Sentinels release candidate:
+  remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
+  and branding residue from the active product while preserving the immutable
+  baseline tag, privacy-safe history, handover evidence, and README lineage.
+- `CR-236` — deferred until the legacy-retirement pass: give the retained shell
+  a restrained token-driven troll, nature, venom, and spirit-realm palette while
+  preserving its structure, accessibility, responsiveness, and semantics.
+- `FR-074` — deferred until the trainable Sentinels release candidate and both
+  pre-publication cleanup passes are accepted:
   enable an isolated GitHub Pages workflow and `midnight.asgard.website` with
   an explicit production gate and legacy-domain safety checks.
 - `CR-234` — deferred until the first static publication: perform a measured
@@ -48,7 +56,8 @@ encounter development into an independently deployed Season 2 repository.
 - `FR-075` — deferred until Sentinels and the optimization pass are stable:
   open individually ticketed, isolated encounter packages one boss at a time.
 
-The near-term execution order is `FR-072` → `FR-074` → `CR-234` → `FR-075`.
+The near-term execution order is `FR-072` → `CR-235` → `CR-236` → `FR-074` →
+`CR-234` → `FR-075`.
 `FR-073` remains a separate later online-platform milestone and does not block
 the static trainer sequence.
 
