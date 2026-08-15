@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added a separately selectable provisional Nek'zali Mythic full fight in both
+  Learn 2D and Train 3D: alternating raid halves enter an isolated Well realm,
+  contribute 20 Main hits, interrupt an assigned Drowned Echo cast, dodge
+  orbiting/outward spirits, read seeded variable non-wipe Main disruption, and
+  return after a five-second cast. Interrupt is a persisted configurable action.
+- Accepted the supplied Vash'nik three-well raid plan and documented `FR-085`
+  as the next planned encounter contract without beginning its runtime.
 - Completed Entombed Sentinels Heroic full-fight training in Learn 2D and
   Train 3D with boss separation, side marks, droplets/returning venom,
   Miasma pools, dual energy bars, Stasis matching, side swaps, and repeat cycles.
@@ -16,8 +23,8 @@
   tank swaps, killable Amani waves, the two-Echo intermission, corpse burning,
   and Phase 2 Invoke hazard movement.
 - Separated fixed raid mechanics from Easy, Normal, and Hard trainer assistance
-  profiles. Mythic Nek'zali remains a separate planned scenario and is not
-  mixed into the Heroic implementation.
+  profiles. Mythic Nek'zali remains a separate scenario and is not mixed into
+  the Heroic implementation.
 - Restored centered terminal drill cards with dismiss, expandable corrective
   details, retry, and setup-exit actions while retaining clickable failures.
 - Added four development-only raid world markers to the Train 3D contract room

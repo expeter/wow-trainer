@@ -112,6 +112,12 @@ function refreshAuras(group: THREE.Group, actor: ActorSnapshot) {
 }
 
 function effectObject(effect: EffectSnapshot) {
+  if (effect.kind === 'dome') {
+    return new THREE.Mesh(
+      new THREE.SphereGeometry(effect.radius, 32, 18, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: effect.color, side: THREE.BackSide, transparent: true, opacity: .16, depthWrite: false }),
+    )
+  }
   if (effect.kind === 'projectile' || effect.kind === 'cosmetic-projectile') {
     return new THREE.Mesh(
       new THREE.SphereGeometry(effect.radius, 10, 7),
@@ -432,7 +438,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         const target = effect.target ?? effect.position
         const x = THREE.MathUtils.lerp(effect.position.x, target.x, effect.progress)
         const z = THREE.MathUtils.lerp(effect.position.z, target.z, effect.progress)
-        const groundEffect = effect.kind === 'pulse' || effect.kind.startsWith('ground-')
+        const groundEffect = effect.kind === 'pulse' || effect.kind.startsWith('ground-') || effect.kind === 'dome'
         const y = groundEffect ? .08 : effect.kind === 'arrow' ? .18 : 1.1 + Math.sin(effect.progress * Math.PI) * (effect.kind === 'cosmetic-projectile' ? 1.2 : 2)
         if (object.userData.positionReady) {
           object.position.x = THREE.MathUtils.lerp(object.position.x, x, actorAlpha)

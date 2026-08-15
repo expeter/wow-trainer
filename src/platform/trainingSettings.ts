@@ -1,7 +1,7 @@
 export const TRAINING_SETTINGS_STORAGE_KEY = 'midnight-s2:training-settings:v1'
 
 export type MovementAction = 'forward' | 'backward' | 'left' | 'right' | 'turnLeft' | 'turnRight'
-export type CombatAction = 'mainAbility' | 'taunt' | 'healthPot' | 'shield' | 'dispel'
+export type CombatAction = 'mainAbility' | 'taunt' | 'healthPot' | 'shield' | 'dispel' | 'interrupt'
 export type SystemAction = 'pause'
 export type TrainingAction = MovementAction | CombatAction | SystemAction
 export type TrainingDifficulty = 'easy' | 'normal' | 'hard'
@@ -19,6 +19,7 @@ export interface MovementKeyBindings {
   healthPot: string
   shield: string
   dispel: string
+  interrupt: string
 }
 
 export interface TrainingHudSettings {
@@ -58,12 +59,12 @@ export interface TrainingCameraSettings {
 
 export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
   difficulty: 'normal',
-  keyBindings: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE', pause: 'KeyP', mainAbility: 'KeyF', taunt: 'Numpad1', healthPot: 'NumpadDecimal', shield: 'Numpad7', dispel: 'KeyR' },
+  keyBindings: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE', pause: 'KeyP', mainAbility: 'KeyF', taunt: 'Numpad1', healthPot: 'NumpadDecimal', shield: 'Numpad7', dispel: 'KeyR', interrupt: 'KeyT' },
   hud: { showPlayer: true, showAuras: true, showActions: true, showBoss: true, scale: 100, layout: DEFAULT_HUD_LAYOUT },
   camera: { invertX: false, invertY: true, sensitivity: 1, zoom: 22 },
 }
 
-const bindingActions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight', 'pause', 'mainAbility', 'taunt', 'healthPot', 'shield', 'dispel'] as const
+const bindingActions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight', 'pause', 'mainAbility', 'taunt', 'healthPot', 'shield', 'dispel', 'interrupt'] as const
 const fallbackCodes = ['KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyQ', 'KeyE', 'KeyP', 'KeyF', 'Numpad1', 'NumpadDecimal', 'Numpad7', 'KeyR', 'KeyT', 'KeyG', 'KeyH'] as const
 
 function isBoolean(value: unknown): value is boolean {

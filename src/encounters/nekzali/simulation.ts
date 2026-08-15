@@ -8,6 +8,7 @@ import { nekzaliArena } from './train3d/arenas'
 
 export type NekzaliPhase = 'phase-1' | 'echo-1' | 'echo-2' | 'phase-2'
 export type NekzaliOutcome = 'active' | 'success' | 'wipe'
+export type NekzaliRealmStage = 'none' | 'pull' | 'inside' | 'returning'
 
 export interface NekzaliHazard { id: string; position: WorldPoint; radius: number; direction: WorldPoint; kind: 'cultist' | 'burning'; createdAt?: number }
 export interface NekzaliAdd { id: string; position: WorldPoint; health: number; assignedToPlayer: boolean; playerDamage: number; corpseGroup: 1 | 2 }
@@ -40,6 +41,16 @@ export interface NekzaliState {
   mistakes: number
   failures: readonly RuntimeFailure[]
   trainingDifficulty: TrainingDifficulty
+  mythic: boolean
+  wellGroup: 1 | 2
+  wellEventIndex: number
+  realmStage: NekzaliRealmStage
+  realmStartedAt: number
+  realmAddHits: number
+  innerCastStartedAt?: number
+  innerCastInterrupted: boolean
+  disruptionIndex: number
+  soulExhausted: boolean
 }
 
 const WELL_RADIUS = 6
@@ -77,16 +88,17 @@ function groupForSlot(slotId: string): 1 | 2 {
   return contractRaidRoster.findIndex(member => member.id === slotId) % 2 === 0 ? 1 : 2
 }
 
-export function createNekzaliState(selectedSlotId = 'player', trainingDifficulty: TrainingDifficulty = 'normal'): NekzaliState {
+export function createNekzaliState(selectedSlotId = 'player', trainingDifficulty: TrainingDifficulty = 'normal', mythic = false): NekzaliState {
   const member = contractSelectedMember(selectedSlotId)
   const start = nekzaliMemberPosition(member)
   return { time: 0, phase: 'phase-1', phaseStartedAt: 0, player: { ...start, facing: 0 }, boss: { ...bossHome }, bossHealth: 100, bossEnergy: 0,
     selectedSlotId, soakGroup: groupForSlot(selectedSlotId), aggroOwner: member.role === 'tank' ? selectedSlotId : 'tank-1', addsSpawned: false, adds: [], corpses: [], hazards: [], lastRendDrop: -1,
-    barrageStarted: false, barrageResolved: false, playerAddKills: 0, mainCastRemaining: 0, invokes: 0, outcome: 'active', mistakes: 0, failures: [], trainingDifficulty }
+    barrageStarted: false, barrageResolved: false, playerAddKills: 0, mainCastRemaining: 0, invokes: 0, outcome: 'active', mistakes: 0, failures: [], trainingDifficulty,
+    mythic, wellGroup: groupForSlot(selectedSlotId), wellEventIndex: 0, realmStage: 'none', realmStartedAt: 0, realmAddHits: 0, innerCastInterrupted: false, disruptionIndex: 0, soulExhausted: false }
 }
 
 export function prepareNekzaliSlot(state: NekzaliState, selectedSlotId: string): NekzaliState {
-  return createNekzaliState(selectedSlotId, state.trainingDifficulty)
+  return createNekzaliState(selectedSlotId, state.trainingDifficulty, state.mythic)
 }
 
 export function turnNekzaliPlayer(state: NekzaliState, yawDelta: number): NekzaliState {
@@ -95,6 +107,7 @@ export function turnNekzaliPlayer(state: NekzaliState, yawDelta: number): Nekzal
 
 export function startNekzaliMainCast(state: NekzaliState): NekzaliState {
   if (state.outcome !== 'active' || state.mainCastRemaining > 0) return state
+  if (state.realmStage === 'inside' && state.realmAddHits < 20) return { ...state, mainCastRemaining: 1, mainTargetId: 'drowned-echo' }
   const assigned = state.adds.filter(add => add.assignedToPlayer && add.health > 0).sort((a, b) => distance(state.player, a.position) - distance(state.player, b.position))[0]
   return { ...state, mainCastRemaining: 1, mainTargetId: assigned?.id }
 }
@@ -112,6 +125,77 @@ function addFailure(state: NekzaliState, code: string, label: string, advice: st
   return { ...state, mistakes, failures: [failure, ...state.failures].slice(0, 5), outcome: wipe ? 'wipe' : state.outcome, outcomeReason: wipe ? label : state.outcomeReason }
 }
 
+function addPerformanceRecord(state: NekzaliState, code: string, label: string, advice: string): NekzaliState {
+  if (state.failures.some(failure => failure.code === code && state.time - failure.time < 5)) return state
+  const failure = { id: `nekzali-${code}-${state.time.toFixed(2)}`, code, time: state.time, label, advice }
+  return { ...state, failures: [failure, ...state.failures].slice(0, 5) }
+}
+
+export function interruptNekzali(state: NekzaliState): NekzaliState {
+  if (state.realmStage !== 'inside' || state.innerCastStartedAt === undefined || state.innerCastInterrupted) return state
+  if (state.time - state.innerCastStartedAt >= 5) return state
+  return { ...state, innerCastInterrupted: true }
+}
+
+function maybeStartRealm(state: NekzaliState): NekzaliState {
+  if (!state.mythic || state.realmStage !== 'none') return state
+  const phaseAge = state.time - state.phaseStartedAt
+  const eventGroup = state.phase === 'phase-1' && state.wellEventIndex === 0 && phaseAge >= 45 ? 1
+    : state.phase === 'phase-2' && state.wellEventIndex === 1 && phaseAge >= 8 ? 2
+      : undefined
+  if (!eventGroup) return state
+  if (state.wellGroup !== eventGroup) return { ...state, wellEventIndex: state.wellEventIndex + 1 }
+  return { ...state, wellEventIndex: state.wellEventIndex + 1, realmStage: 'pull', realmStartedAt: state.time, realmAddHits: 0, innerCastStartedAt: undefined, innerCastInterrupted: false, disruptionIndex: 0 }
+}
+
+function realmHazards(age: number): readonly WorldPoint[] {
+  const orbiting = Array.from({ length: 4 }, (_, index) => {
+    const angle = age * .48 + index * Math.PI / 2
+    return { x: Math.cos(angle) * 5.4, z: Math.sin(angle) * 5.4 }
+  })
+  const waveAge = age % 10
+  const radius = Math.min(12, waveAge * 1.25)
+  const outward = [{ x: radius, z: 0 }, { x: -radius, z: 0 }, { x: 0, z: radius }, { x: 0, z: -radius }]
+  return [...orbiting, ...outward]
+}
+
+function disruptionStarts(state: NekzaliState): readonly [number, number] {
+  const slotIndex = Math.max(0, contractRaidRoster.findIndex(member => member.id === state.selectedSlotId))
+  const first = 9 + (slotIndex * 3 + state.wellEventIndex) % 5
+  return [first, first + 13 + (slotIndex + state.wellGroup) % 4]
+}
+
+function stepRealm(state: NekzaliState, commands: PlayerCommandState, seconds: number): NekzaliState {
+  let next = state
+  const age = next.time - next.realmStartedAt
+  if (next.realmStage === 'pull') {
+    const pulled = moveToward(next.player, { x: 0, z: 9 }, 2.4, seconds)
+    if (age >= 3) return { ...next, realmStage: 'inside', realmStartedAt: next.time, player: { x: 0, z: 9, facing: Math.PI } }
+    return { ...next, player: { ...next.player, ...pulled } }
+  }
+  if (next.realmStage === 'returning') {
+    if (age >= 5) return { ...next, realmStage: 'none', realmStartedAt: next.time, player: { x: 0, z: 9, facing: 0 }, soulExhausted: true, mainCastRemaining: 0, mainTargetId: undefined }
+    return next
+  }
+
+  const moved = stepPlayerMovement(next.player, commands, seconds, { halfWidth: 11.5, halfDepth: 11.5 })
+  const radius = Math.hypot(moved.x, moved.z)
+  const player = radius > 11.5 ? { ...moved, x: moved.x / radius * 11.5, z: moved.z / radius * 11.5 } : moved
+  next = { ...next, player }
+  if (age >= 4 && next.innerCastStartedAt === undefined) next = { ...next, innerCastStartedAt: next.time }
+  if (next.innerCastStartedAt !== undefined && !next.innerCastInterrupted && next.time - next.innerCastStartedAt >= 5) return addFailure(next, 'missed-well-interrupt', 'Drowned Echo completed its assigned cast', 'Use the Interrupt binding during the five-second cast inside the Well.', true)
+
+  const activeDisruption = disruptionStarts(next)[next.disruptionIndex]
+  if (activeDisruption !== undefined && age >= activeDisruption + 3) {
+    if (next.mainCastRemaining > 0) next = addPerformanceRecord({ ...next, mainCastRemaining: 0, mainTargetId: undefined }, 'mythic-main-interrupted', 'Nek\'zali interrupted your Main cast', 'Watch the three-second disruption cast and avoid beginning Main just before it completes.')
+    next = { ...next, disruptionIndex: next.disruptionIndex + 1 }
+  }
+  const hazard = realmHazards(age).find(point => distance(player, point) < 1.45)
+  if (hazard) next = addFailure(next, 'well-spirit-contact', 'Touched a spirit inside Grasping Depths', 'Keep between the orbiting spirits and sidestep each cardinal outward wave.', true)
+  if (age >= 50 && next.realmAddHits < 20) next = addFailure(next, 'drowned-echo-alive', 'Drowned Echo survived the well assignment', 'Complete 20 Main casts while moving and interrupt the assigned spell.', true)
+  return resolveMainCast(next, seconds)
+}
+
 function spawnAdds(): readonly NekzaliAdd[] {
   return Array.from({ length: 9 }, (_, index) => {
     const angle = -Math.PI / 2 + index * Math.PI * 2 / 9
@@ -123,6 +207,12 @@ function resolveMainCast(state: NekzaliState, seconds: number): NekzaliState {
   if (state.mainCastRemaining <= 0) return state
   const remaining = Math.max(0, state.mainCastRemaining - seconds)
   if (remaining > 0) return { ...state, mainCastRemaining: remaining }
+  if (state.mainTargetId === 'drowned-echo') {
+    const realmAddHits = Math.min(20, state.realmAddHits + 1)
+    return { ...state, realmAddHits, mainCastRemaining: 0, mainTargetId: undefined,
+      ...(realmAddHits >= 20 ? { realmStage: 'returning' as const, realmStartedAt: state.time } : {}),
+    }
+  }
   const targetIndex = state.adds.findIndex(add => add.id === state.mainTargetId && add.health > 0)
   if (targetIndex < 0) return { ...state, mainCastRemaining: 0, mainTargetId: undefined }
   const target = state.adds[targetIndex]
@@ -232,8 +322,10 @@ function stepPhaseTwo(state: NekzaliState, seconds: number): NekzaliState {
 
 export function stepNekzaliState(state: NekzaliState, commands: PlayerCommandState, seconds: number): NekzaliState {
   if (state.outcome !== 'active') return state
-  const rawPlayer = stepPlayerMovement(state.player, commands, seconds, { halfWidth: ROOM_RADIUS, halfDepth: ROOM_RADIUS })
-  let next: NekzaliState = { ...state, time: state.time + seconds, player: clampCircle(rawPlayer) }
+  let next: NekzaliState = maybeStartRealm({ ...state, time: state.time + seconds })
+  if (next.realmStage !== 'none') return stepRealm(next, commands, seconds)
+  const rawPlayer = stepPlayerMovement(next.player, commands, seconds, { halfWidth: ROOM_RADIUS, halfDepth: ROOM_RADIUS })
+  next = { ...next, player: clampCircle(rawPlayer) }
   next = resolveMainCast(next, seconds)
   if (distance(next.player, { x: 0, z: 0 }) < WELL_RADIUS) next = addFailure(next, 'entered-well', 'Entered the Soulcoil Well', 'Keep outside the central well at all times.', true)
   if (next.outcome !== 'active') return next
@@ -286,6 +378,14 @@ function npcPosition(member: ContractRaidMember, state: NekzaliState, index: num
 }
 
 export function activeNekzaliPrompt(state: NekzaliState) {
+  if (state.realmStage === 'pull') return 'Grasping Depths — move into the centre'
+  if (state.realmStage === 'returning') return 'Return to the outer realm'
+  if (state.realmStage === 'inside') {
+    const age = state.time - state.realmStartedAt
+    if (state.innerCastStartedAt !== undefined && !state.innerCastInterrupted && state.time - state.innerCastStartedAt < 5) return 'Interrupt the Drowned Echo cast'
+    if (disruptionStarts(state).some(start => age >= start && age < start + 3)) return 'Nek\'zali disruption — hold Main'
+    return `Attack the Drowned Echo · ${state.realmAddHits}/20 hits`
+  }
   if (state.phase === 'phase-1' && state.time < 32 && state.time >= 12) return 'Take Essence Rend to the edge'
   if (state.phase === 'phase-1' && state.time >= 35 && state.time < 44) return contractSelectedMember(state.selectedSlotId).role === 'tank' ? 'Carry Barrage away from the raid' : 'Clear the tank lane'
   if (state.phase === 'phase-1' && state.time >= 60) return `Kill your marked Amani · ${state.playerAddKills}/3`
@@ -304,6 +404,14 @@ export function activeNekzaliPrompt(state: NekzaliState) {
 }
 
 export function nextNekzaliTimer(state: NekzaliState) {
+  if (state.realmStage === 'pull') return { label: 'Realm entry', seconds: 3 - (state.time - state.realmStartedAt) }
+  if (state.realmStage === 'returning') return { label: 'Return', seconds: 5 - (state.time - state.realmStartedAt) }
+  if (state.realmStage === 'inside') {
+    const age = state.time - state.realmStartedAt
+    if (state.innerCastStartedAt !== undefined && !state.innerCastInterrupted && state.time - state.innerCastStartedAt < 5) return { label: 'Interrupt', seconds: 5 - (state.time - state.innerCastStartedAt) }
+    for (const start of disruptionStarts(state)) if (age >= start && age < start + 3) return { label: 'Disruption', seconds: start + 3 - age }
+    return { label: 'Outward spirits', seconds: 10 - age % 10 }
+  }
   if (state.phase === 'phase-1') return state.time < 17 ? { label: 'Rend', seconds: 17 - state.time } : state.time < 38 ? { label: 'Barrage', seconds: 38 - state.time } : state.time < 60 ? { label: 'Adds', seconds: 60 - state.time } : { label: 'Intermission', seconds: 90 - state.time }
   if (state.phase === 'echo-1' || state.phase === 'echo-2') return { label: 'Pyre', seconds: ECHO_SECONDS - (state.time - state.phaseStartedAt) }
   const age = state.time - state.phaseStartedAt
@@ -312,7 +420,31 @@ export function nextNekzaliTimer(state: NekzaliState) {
   return { label: 'Invoke', seconds: nextInvoke - age }
 }
 
+function realmSnapshot(state: NekzaliState, playerHealth: number): Train3DSnapshot {
+  const roster = contractRosterForSlot(state.selectedSlotId)
+  const controlled = roster.find(member => member.controlled)!
+  const inside = state.realmStage === 'inside' || state.realmStage === 'returning'
+  const age = state.time - state.realmStartedAt
+  const allyActors: ActorSnapshot[] = inside ? roster.filter(member => !member.controlled && groupForSlot(member.id) === state.wellGroup).map((member, index) => {
+    const angle = index / 9 * Math.PI * 2
+    return { id: member.id, kind: 'ally', playerClass: member.playerClass, position: { x: Math.cos(angle) * 8.5, z: Math.sin(angle) * 8.5 }, facing: angle + Math.PI, color: trainingClassColors[member.playerClass], auras: [], health: 100 }
+  }) : []
+  const effects: EffectSnapshot[] = [{ id: 'well-realm-dome', kind: 'dome', position: { x: 0, z: 0 }, radius: 12, color: '#72d8db', progress: 0 }]
+  if (state.realmStage === 'inside') {
+    realmHazards(age).forEach((point, index) => effects.push({ id: `well-spirit-${index}`, kind: index < 4 ? 'ground-harmful' : 'projectile', position: point, radius: index < 4 ? 1.25 : .72, color: '#83e4dd', progress: 0, filled: true }))
+  }
+  const addHealth = Math.max(0, 100 - state.realmAddHits * 5)
+  const actors: ActorSnapshot[] = [
+    { id: 'controlled-player', kind: 'player', position: state.player, facing: state.player.facing, color: trainingClassColors[controlled.playerClass], playerClass: controlled.playerClass, auras: [{ id: 'grasping-depths', tone: 'spectral', stacks: 1 }], health: playerHealth },
+    ...(inside && addHealth > 0 ? [{ id: 'drowned-echo', kind: 'enemy' as const, position: { x: 0, z: 0 }, facing: 0, color: '#5fbec5', auras: state.innerCastStartedAt !== undefined && !state.innerCastInterrupted ? [{ id: 'assigned-interrupt', tone: 'danger' as const, stacks: 1 }] : [], health: addHealth }] : []),
+    ...allyActors,
+  ]
+  const combat = inside && addHealth > 0 ? cosmeticClassProjectiles(actors, { x: 0, z: 0 }, state.time) : []
+  return { time: state.time, arena: nekzaliArena, actors, effects: [...effects, ...combat] }
+}
+
 export function nekzaliSnapshot(state: NekzaliState, playerHealth = 100): Train3DSnapshot {
+  if (state.realmStage !== 'none') return realmSnapshot(state, playerHealth)
   const roster = contractRosterForSlot(state.selectedSlotId)
   const controlled = roster.find(member => member.controlled)!
   const npcActors: ActorSnapshot[] = roster.filter(member => !member.controlled).map((member, index) => {

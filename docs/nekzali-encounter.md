@@ -6,7 +6,8 @@ This contract separates encounter truth from trainer assistance. The playable
 baseline is the **Heroic raid encounter**. Easy, Normal, and Hard are trainer
 profiles controlling guidance and failure tolerance; they never substitute
 LFR, Normal-raid, or Mythic mechanics. Mythic is a separately selected scenario
-and remains planned until its unsupported timing gaps can be validated.
+uses a separately selectable provisional timing profile whose unsupported gaps
+remain visibly replaceable until authoritative live evidence is available.
 
 ## Evidence and confidence
 
@@ -85,15 +86,34 @@ and remains planned until its unsupported timing gaps can be validated.
 - Boss energy rises from Rites and leaked adds. Reaching 100 energy is a
   terminal failure; defeating Nek'zali is the completion condition.
 
-## Mythic scenario (planned)
+## Mythic scenario
 
 - Grasping Depths opens the Well for one assigned team.
 - The team kills the Drowned Echo while avoiding Swirling Spirits, exits once,
   and receives Soul Exhaustion. Re-entry while exhausted is invalid.
 - Mythic Invoke interrupts active casts and silences interrupters for three
   seconds while Cultists reposition.
-- These rules live in a separate Mythic scenario and timing profile. They are
-  not active in the Heroic full-fight trainer.
+- These rules live in a separate playable Mythic full-fight scenario and timing
+  profile. They are not active in the Heroic full-fight trainer; the narrower
+  focused Mythic walkthrough remains planned.
+
+### Approved trainer realization
+
+- Active phases assign alternating raid halves to Grasping Depths. Only the
+  assigned half enters; the other half and outer arena are hidden while the
+  controlled player is inside the centre dome.
+- Entry begins with a slight three-second pull toward the Well. The inner team
+  attacks one Drowned Echo; the player contributes 20 completed Main casts.
+- The Drowned Echo gives the player one readable five-second assigned cast to
+  Interrupt. Missing it is terminal.
+- Four small spirits orbit the Echo. Every ten seconds four additional spirits
+  travel outward along the cardinal directions. Contact is harmful.
+- Nek'zali schedules seeded variable three-second disruption casts inside the
+  realm. If one completes during the player's Main cast, that cast is cancelled
+  and a non-terminal performance record is emitted. It cannot wipe or deduct
+  points until scoring is explicitly implemented.
+- Killing the Echo begins a five-second return cast, after which the player
+  returns to the unchanged outer encounter state with Soul Exhaustion.
 
 ## Rendering and validation
 
@@ -104,4 +124,6 @@ and remains planned until its unsupported timing gaps can be validated.
   motion must come from simulation snapshots rather than renderer-owned logic.
 - Automated coverage must prove phase triggers, three controlled add kills,
   add leaks, distance-scaled Barrage, tank swap/boss pursuit, alternating soak
-  groups, corpse cremation, residual-corpse failure, and moving Phase 2 hazards.
+  groups, corpse cremation, residual-corpse failure, moving Phase 2 hazards,
+  alternating Mythic realm entry, isolated snapshots, 20 completed Main hits,
+  assigned interrupt failure, non-terminal disruption, and five-second return.

@@ -7,7 +7,9 @@ export const manifest = {
   defaults: [
     { mode: 'learn2d', difficulty: 'heroic', scenarioId: 'nekzali_heroic_full_fight', timingProfileId: 'nekzali_ptr_2026-08-15', tacticId: 'nekzali_default' },
     { mode: 'train3d', difficulty: 'heroic', scenarioId: 'nekzali_heroic_full_fight', timingProfileId: 'nekzali_ptr_2026-08-15', tacticId: 'nekzali_default' },
+    { mode: 'learn2d', difficulty: 'mythic', scenarioId: 'nekzali_mythic_full_fight', timingProfileId: 'nekzali_mythic_training_2026-08-15', tacticId: 'nekzali_default' },
+    { mode: 'train3d', difficulty: 'mythic', scenarioId: 'nekzali_mythic_full_fight', timingProfileId: 'nekzali_mythic_training_2026-08-15', tacticId: 'nekzali_default' },
   ],
-  capabilities: ['tank-actions', 'aggro', 'group-soaks', 'spread', 'target-switching', 'assignment-aware-bots'],
+  capabilities: ['tank-actions', 'aggro', 'interrupts', 'group-soaks', 'spread', 'target-switching', 'assignment-aware-bots'],
   summary: 'A Heroic two-phase Soulwell defense with edge drops, tank-distance play, add control, and alternating intermission groups.',
 } as const satisfies EncounterManifest

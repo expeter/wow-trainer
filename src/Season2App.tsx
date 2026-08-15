@@ -35,6 +35,7 @@ const actionLabels = {
   healthPot: 'Health potion',
   shield: 'Shield',
   dispel: 'Dispel',
+  interrupt: 'Interrupt',
 } as const
 const trainingLabels: Record<TrainingAction, string> = { ...movementLabels, ...actionLabels }
 

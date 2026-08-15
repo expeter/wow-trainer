@@ -152,13 +152,19 @@ encounter development into an independently deployed Season 2 repository.
 - `FR-082` — completed under `FR-075`: implement the supplied Heroic Nek'zali
   two-phase full fight plus intermission in separate Learn 2D and Train 3D
   runtimes over one headless encounter contract.
-- `FR-083` — planned under `FR-075`: add the separately sourced Mythic well
-  scenario only after the Heroic simulation is stable.
+- `FR-083` — completed under `FR-075`: add the separately selectable Mythic
+  full fight with alternating well halves, isolated realm play, Drowned Echo
+  damage/interrupt duty, spirit avoidance, readable disruption, and return.
+- `CR-259` — completed under `FR-077`: add the persisted encounter Interrupt
+  binding required by Nek'zali's assigned Mythic well cast.
 - `FR-084` — completed under `FR-072`: complete the Sentinels reference package
   with Heroic full-fight cycles in both runtimes and a separately selectable
   Mythic Protovenom overlay, using the supplied split-room plan.
 - `CR-258` — completed under `FR-077`: add a persisted encounter Dispel binding
   that only healer-capable Sentinels roles can resolve.
+- `FR-085` — planned under `FR-075`: implement Vash'nik as the next isolated
+  Heroic full-fight package after Nek'zali Mythic is stable, preserving the
+  supplied three-well raid plan and provisional player/role mechanic contract.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
@@ -178,16 +184,17 @@ encounter development into an independently deployed Season 2 repository.
   the first approved full-fight package; other bosses remain metadata-only until
   individually approved.
 
-The near-term execution order is now `FR-081` → `FR-082` → `FR-083`, followed
-by the still-required pre-publication `CR-235` → `CR-236` → `FR-074` and the
-measured `CR-234` optimization pass.
+The next approved encounter is `FR-085` Vash'nik. Publication remains separate:
+the still-required pre-publication sequence is `CR-235` → `CR-236` → `FR-074`,
+followed by the measured `CR-234` optimization pass.
 `FR-073` remains a separate later online-platform milestone and does not block
 the static trainer sequence.
 
-No boss beyond Nek'zali and Entombed Sentinels may gain playable mechanics
-without a new approved ticket. Catalogue-only metadata does not authorize an
-encounter runtime. The L'ura API and leaderboard remain frozen legacy reference
-behavior and cannot deploy from this repository.
+No boss beyond Nek'zali, Entombed Sentinels, and the explicitly approved
+`FR-085` Vash'nik package may gain playable mechanics without a new approved
+ticket. Catalogue-only metadata does not authorize an encounter runtime. The
+L'ura API and leaderboard remain frozen legacy reference behavior and cannot
+deploy from this repository.
 
 The remaining milestones below are the frozen L'ura v0.9.1 delivery record.
 They are retained for source archaeology, not as the Season 2 execution order.

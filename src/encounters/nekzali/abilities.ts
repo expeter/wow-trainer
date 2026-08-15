@@ -14,5 +14,9 @@ export const abilities = [
   ability('nekzali_cremation', 'Cremation', 'Slithering Flame explosions incinerate nearby Amani corpses and leave fire.', journal, ['spread', 'corpse']),
   ability('nekzali_invoke', 'Invoke', 'Triggers Soulcoil Rite and causes Latent Cultists to reposition around the Well.', journal, ['phase-2', 'movement']),
   ability('nekzali_training_rend_trail', 'Provisional Rend trail', 'One-second edge drops create a repeatable movement drill pending live-log validation.', tactic, ['training-profile', 'provisional']),
-  ability('nekzali_grasping_depths', 'Grasping Depths', 'Mythic-only Well team defeats a Drowned Echo and exits with Soul Exhaustion.', journal, ['mythic', 'planned']),
+  ability('nekzali_grasping_depths', 'Grasping Depths', 'Mythic-only assigned raid half enters the Well to defeat a Drowned Echo.', journal, ['mythic', 'realm']),
+  ability('nekzali_drowned_echo', 'Drowned Echo', 'The inner-realm add requires player damage and one assigned interrupt.', tactic, ['mythic', 'add', 'interrupt']),
+  ability('nekzali_swirling_spirits', 'Swirling Spirits', 'Orbiting and outward-moving spirits make the inner realm a movement drill.', tactic, ['mythic', 'movement']),
+  ability('nekzali_soul_exhaustion', 'Soul Exhaustion', 'Returning players cannot immediately re-enter Grasping Depths.', journal, ['mythic', 'aura']),
+  ability('nekzali_disruption', 'Realm Disruption', 'A readable three-second cast interrupts an active Main cast as a performance mistake.', tactic, ['mythic', 'cast', 'performance']),
 ] as const satisfies readonly AbilityDefinition[]

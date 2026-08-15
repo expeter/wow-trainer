@@ -2,7 +2,7 @@ import type { TimingProfile } from '../../../platform/encounters'
 
 const ptr = { kind: 'local-tactic', confidence: 'medium', asOf: '2026-08-15', note: 'Replaceable trainer pacing pending live EU Heroic logs.' } as const
 export const ptrTiming = {
-  id: 'nekzali_ptr_2026-08-15', encounterId: 'nekzali', version: 1, status: 'ptr', difficulties: ['heroic'],
+  id: 'nekzali_ptr_2026-08-15', encounterId: 'nekzali', version: 1, status: 'ptr', difficulties: ['heroic', 'mythic'],
   values: [
     { key: 'phase_1_target', value: 90, unit: 'seconds', provenance: ptr },
     { key: 'essence_pull', value: 5, unit: 'seconds', provenance: { ...ptr, kind: 'journal', confidence: 'high' } },

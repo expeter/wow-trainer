@@ -26,6 +26,12 @@ describe('shared Season 2 training settings', () => {
     expect(normalizeTrainingSettings({ keyBindings: legacy }).keyBindings.dispel).toBe('KeyR')
   })
 
+  it('adds the encounter Interrupt binding without resetting older custom keys', () => {
+    const legacy = { ...DEFAULT_TRAINING_SETTINGS.keyBindings, forward: 'ArrowUp' } as Partial<typeof DEFAULT_TRAINING_SETTINGS.keyBindings>
+    delete legacy.interrupt
+    expect(normalizeTrainingSettings({ keyBindings: legacy }).keyBindings).toMatchObject({ forward: 'ArrowUp', interrupt: 'KeyT' })
+  })
+
   it('uses the reviewed WoW movement defaults', () => {
     expect(DEFAULT_TRAINING_SETTINGS.keyBindings).toMatchObject({
       forward: 'KeyW', backward: 'KeyS', turnLeft: 'KeyQ', turnRight: 'KeyE', left: 'KeyA', right: 'KeyD',

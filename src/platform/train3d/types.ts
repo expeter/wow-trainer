@@ -36,7 +36,7 @@ export interface ActorSnapshot {
 
 export interface EffectSnapshot {
   id: string
-  kind: 'pulse' | 'projectile' | 'cosmetic-projectile' | 'ground-harmful' | 'ground-soak' | 'ground-spread' | 'arrow'
+  kind: 'pulse' | 'projectile' | 'cosmetic-projectile' | 'ground-harmful' | 'ground-soak' | 'ground-spread' | 'arrow' | 'dome'
   position: WorldPoint
   target?: WorldPoint
   radius: number

@@ -52,6 +52,26 @@ test("discovers all raid panels and launches Nek'zali in separate 2D and 3D aren
   await expect(page.getByText('Training boss · your aggro')).toBeVisible()
 })
 
+test("launches Nek'zali's separate Mythic full fight with well assignment and interrupt controls", async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Provisional Mythic full fight Learn 2D" }).click()
+  const setup2d = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
+  await expect(setup2d).toContainText('Mythic assignment')
+  await expect(setup2d).toContainText(/Well half [12]/)
+  await setup2d.getByRole('button', { name: 'Start' }).click()
+  await expect(page.locator('.learn2d-controls')).toContainText('Interrupt T')
+  await expect(page.getByRole('button', { name: 'Interrupt', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Exit' }).click()
+
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Provisional Mythic full fight Train 3D" }).click()
+  const setup3d = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
+  await expect(setup3d).toContainText('Mythic assignment')
+  await expect(setup3d).toContainText(/Well half [12]/)
+  await setup3d.getByRole('button', { name: 'Start' }).click()
+  await expect(page.locator('.train3d-controls')).toContainText('Interrupt T')
+  await expect(page.getByRole('button', { name: /Interrupt T/ })).toBeVisible()
+})
+
 test('launches the Entombed Sentinels Heroic full fight in separate 2D and 3D arenas', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Guided full-fight walkthrough Learn 2D' }).click()

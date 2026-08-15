@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { IDLE_PLAYER_COMMANDS } from '../../platform/train3d/types'
-import { createNekzaliState, nekzaliSnapshot, startNekzaliMainCast, stepNekzaliState, tauntNekzali, type NekzaliState } from './simulation'
+import { createNekzaliState, interruptNekzali, nekzaliSnapshot, startNekzaliMainCast, stepNekzaliState, tauntNekzali, type NekzaliState } from './simulation'
 
 const idle = IDLE_PLAYER_COMMANDS
 
@@ -79,5 +79,53 @@ describe("Nek'zali Heroic headless simulation", () => {
     const before = state.hazards[0].position
     state = stepNekzaliState(state, idle, 1)
     expect(state.hazards[0].position).not.toEqual(before)
+  })
+})
+
+describe("Nek'zali Mythic well simulation", () => {
+  const insideState = (): NekzaliState => ({
+    ...createNekzaliState('player', 'normal', true),
+    realmStage: 'inside',
+    realmStartedAt: 0,
+    player: { x: 8, z: 8, facing: Math.PI },
+    innerCastInterrupted: true,
+    disruptionIndex: 2,
+  })
+
+  it('alternates assigned raid halves and isolates the entered half inside the dome', () => {
+    const assigned = stepNekzaliState({ ...createNekzaliState('player', 'normal', true), time: 44.99 }, idle, .02)
+    expect(assigned).toMatchObject({ realmStage: 'pull', wellGroup: 1, wellEventIndex: 1 })
+
+    const unassigned = stepNekzaliState({ ...createNekzaliState('tank-2', 'normal', true), time: 44.99 }, idle, .02)
+    expect(unassigned).toMatchObject({ realmStage: 'none', wellGroup: 2, wellEventIndex: 1 })
+
+    const snapshot = nekzaliSnapshot({ ...assigned, realmStage: 'inside', realmStartedAt: assigned.time })
+    expect(snapshot.effects.some(effect => effect.kind === 'dome')).toBe(true)
+    expect(snapshot.actors.some(actor => actor.id === 'nekzali-boss')).toBe(false)
+    expect(snapshot.actors.filter(actor => actor.kind === 'ally').length).toBeGreaterThan(0)
+    expect(snapshot.actors.filter(actor => actor.kind === 'ally').length).toBeLessThan(19)
+  })
+
+  it('kills the Drowned Echo with 20 completed Main casts and returns after five seconds', () => {
+    let state = insideState()
+    for (let hit = 0; hit < 20; hit += 1) {
+      state = startNekzaliMainCast(state)
+      state = stepNekzaliState(state, idle, 1.01)
+    }
+    expect(state).toMatchObject({ realmAddHits: 20, realmStage: 'returning', outcome: 'active' })
+    state = stepNekzaliState(state, idle, 5.01)
+    expect(state).toMatchObject({ realmStage: 'none', soulExhausted: true, outcome: 'active' })
+  })
+
+  it('requires the assigned interrupt and keeps Nekzali disruption non-terminal', () => {
+    const interruptible = { ...insideState(), time: 5, innerCastStartedAt: 4, innerCastInterrupted: false }
+    expect(interruptNekzali(interruptible).innerCastInterrupted).toBe(true)
+    const missed = stepNekzaliState({ ...interruptible, time: 8.99 }, idle, .02)
+    expect(missed).toMatchObject({ outcome: 'wipe', outcomeReason: 'Drowned Echo completed its assigned cast' })
+
+    let disrupted: NekzaliState = { ...insideState(), time: 8.9, disruptionIndex: 0, mainCastRemaining: 20, mainTargetId: 'drowned-echo' }
+    while (disrupted.time < 18 && disrupted.disruptionIndex === 0) disrupted = stepNekzaliState(disrupted, idle, .2)
+    expect(disrupted).toMatchObject({ outcome: 'active', mistakes: 0, mainCastRemaining: 0, disruptionIndex: 1 })
+    expect(disrupted.failures[0]?.code).toBe('mythic-main-interrupted')
   })
 })
