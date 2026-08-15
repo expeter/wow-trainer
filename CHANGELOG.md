@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Fixed repeated Train 3D raid-position selection so the controlled player and
+  vacated default slot keep unique render identities and the camera follows
+  every newly selected position.
+- Documented the Train 3D calibration boundary: exact yard-space movement,
+  approximately 89.16-degree horizontal projection at 16:9, and encounter
+  geometry that still requires package-specific evidence.
 - Made controlled-player movement in both Learn 2D runtimes paint at display
   rate while mechanic/HUD publication stays throttled, and made the Train 3D
   Main ability cast bar progress continuously between state updates.

@@ -118,9 +118,17 @@ test('opens paired contract rooms with full-raid ground reactions and paced 3D r
   await expect(page.getByRole('heading', { name: 'Reaction and movement lab' })).toBeVisible()
   const contractArena = page.getByLabel('Third-person 3D training arena')
   await expect(contractArena).toBeVisible()
-  await expect(page.getByRole('dialog', { name: 'Contract room entrance' })).toBeVisible()
+  const trainEntrance = page.getByRole('dialog', { name: 'Contract room entrance' })
+  await expect(trainEntrance).toBeVisible()
+  const selectedXs: number[] = []
+  for (const slot of [/Tank 1, warrior/, /Healer 5, evoker/, /Melee 3, demon hunter/, /Ranged 7, evoker/]) {
+    await trainEntrance.getByRole('button', { name: slot }).click()
+    await expect.poll(() => contractArena.evaluate(element => Math.abs(Number((element as HTMLElement).dataset.playerX) - Number((element as HTMLElement).dataset.cameraTargetX)))).toBeLessThan(.01)
+    selectedXs.push(Number(await contractArena.getAttribute('data-camera-target-x')))
+  }
+  expect(new Set(selectedXs).size).toBeGreaterThanOrEqual(3)
   await expect(page.locator('details.contract-lab-drawer')).not.toHaveAttribute('open', '')
-  await page.getByRole('dialog', { name: 'Contract room entrance' }).getByRole('button', { name: 'Start', exact: true }).click()
+  await trainEntrance.getByRole('button', { name: 'Start', exact: true }).click()
   await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
   await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('event 1')
   await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('20-player raid')

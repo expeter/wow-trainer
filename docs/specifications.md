@@ -517,6 +517,11 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   Arena dimensions, radii, and travel distances use yards; mechanic timings use
   seconds and require encounter-specific provenance. Calibration details live
   in [`wow-movement-calibration.md`](wow-movement-calibration.md).
+- Yard-space calibration does not imply pixel-identical camera projection.
+  The default 58-degree vertical perspective is approximately 89.16 degrees
+  horizontal at 16:9, close to WoW's documented 90-degree ceiling; viewport,
+  zoom, pitch, and WoW's user-selectable FOV reduction legitimately alter the
+  apparent pixels per yard without altering authoritative travel distance.
 - Separate development-only Learn 2D and Train 3D contract rooms may exercise
   shared generic event vocabulary, auras, timers, role-aware actions, position
   checks, and spell primitives through their own geometry and simulation. Each

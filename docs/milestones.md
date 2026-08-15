@@ -127,6 +127,12 @@ encounter development into an independently deployed Season 2 repository.
   preferences to a dense, reviewed-style settings panel.
 - `CR-254` — completed under `FR-072`: make mechanic objective and timer mandatory,
   remove raw position output, and retain only meaningful optional HUD frames.
+- `BUG-168` — completed under `FR-072`: keep controlled and vacated raid-slot
+  renderer identities unique so every pre-pull 3D position change moves the
+  player-follow perspective reliably.
+- `SPEC-020` — completed under `FR-072`: document the verified yard-space model,
+  current camera projection, and the boundary between calibrated platform
+  movement and encounter geometry that still needs sourced evidence.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

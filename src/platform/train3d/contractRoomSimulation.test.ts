@@ -28,6 +28,14 @@ describe('development contract room simulation', () => {
     expect(snapshot.actors).toHaveLength(21)
   })
 
+  it('keeps the controlled render identity unique after every slot transfer', () => {
+    for (const slotId of ['player', 'tank-1', 'healer-5', 'melee-3', 'ranged-7']) {
+      const snapshot = contractRoomSnapshot(createContractRoomState(), slotId)
+      expect(snapshot.actors.map(actor => actor.id)).toEqual([...new Set(snapshot.actors.map(actor => actor.id))])
+      expect(snapshot.actors.find(actor => actor.kind === 'player')?.id).toBe('controlled-player')
+    }
+  })
+
   it('distinguishes matching and wrong ground contacts after projectiles land', () => {
     const initial = createContractRoomState()
     const event = activeContractEvent(initial)

@@ -347,6 +347,10 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
           if (renderCanvas.dataset.playerFacing !== facingValue) renderCanvas.dataset.playerFacing = facingValue
           if (renderCanvas.dataset.playerX !== xValue) renderCanvas.dataset.playerX = xValue
           if (renderCanvas.dataset.playerZ !== zValue) renderCanvas.dataset.playerZ = zValue
+          const cameraTargetX = playerX.toFixed(3)
+          const cameraTargetZ = playerZ.toFixed(3)
+          if (renderCanvas.dataset.cameraTargetX !== cameraTargetX) renderCanvas.dataset.cameraTargetX = cameraTargetX
+          if (renderCanvas.dataset.cameraTargetZ !== cameraTargetZ) renderCanvas.dataset.cameraTargetZ = cameraTargetZ
         }
         const yaw = renderedFacing + cameraYawOffset
         const zoom = settingsRef.current.zoom
