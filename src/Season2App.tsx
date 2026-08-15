@@ -17,6 +17,14 @@ import './styles/season2.css'
 
 const tabs = ['Game settings', 'Keys & Mouse', 'HUD', 'Tactical plan', 'Statistics', 'Profile'] as const
 type SetupTab = typeof tabs[number]
+const movementLabels: Record<MovementAction, string> = {
+  forward: 'Forward',
+  backward: 'Backward',
+  left: 'Strafe left',
+  right: 'Strafe right',
+  turnLeft: 'Turn left',
+  turnRight: 'Turn right',
+}
 
 const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string }> = {
   'Game settings': {
@@ -106,12 +114,21 @@ export default function Season2App() {
     setRuntimeLoading(undefined)
   }
 
+  async function launchContractRoom() {
+    setRuntimeLoading('train3d')
+    const module = await import('./platform/train3d/ContractRoom')
+    setRuntime({ mode: 'train3d', scenarioId: 'platform-contract-room', Component: module.default })
+    setRuntimeLoading(undefined)
+  }
+
   if (runtime) {
     const Runtime = runtime.Component
     return <Runtime
       scenarioId={runtime.scenarioId}
       keyBindings={settings.keyBindings}
       hudSettings={settings.hud}
+      cameraSettings={settings.camera}
+      onCameraSettingsChange={camera => setSettings(current => ({ ...current, camera }))}
       onExit={() => setRuntime(undefined)}
     />
   }
@@ -184,10 +201,16 @@ export default function Season2App() {
             {runtimeLoading === 'train3d' ? 'Loading…' : train3dReady ? 'Launch Train 3D' : 'Runtime pending'}
           </button>
         </article>
+        {import.meta.env.DEV && <article className="season2-contract-room-card">
+          <span>DEV</span>
+          <h3>Contract room</h3>
+          <p>Exercise seeded aura events, reaction timing, movement, position checks, spell primitives, camera controls, and the shared HUD without adding another boss.</p>
+          <button type="button" disabled={Boolean(runtimeLoading)} onClick={() => void launchContractRoom()}>Open contract room</button>
+        </article>}
       </div>}
       {activeTab === 'Keys & Mouse' && <div className="season2-settings-grid">
         {(Object.keys(settings.keyBindings) as MovementAction[]).map(action => <div className="season2-keybind" key={action}>
-          <span>{action}</span>
+          <span>{movementLabels[action]}</span>
           <button type="button" aria-label={`Rebind ${action}, current ${keyLabel(settings.keyBindings[action])}`} className={rebinding === action ? 'listening' : ''} onClick={() => setRebinding(action)}>
             {rebinding === action ? 'Press a key…' : keyLabel(settings.keyBindings[action])}
           </button>
@@ -195,6 +218,12 @@ export default function Season2App() {
         <button type="button" className="secondary season2-reset" onClick={() => setSettings(current => ({ ...current, keyBindings: { ...DEFAULT_TRAINING_SETTINGS.keyBindings } }))}>
           Reset movement keys
         </button>
+        <div className="season2-camera-settings">
+          <h3>Train 3D camera</h3>
+          <label><input type="checkbox" checked={settings.camera.invertX} onChange={event => setSettings(current => ({ ...current, camera: { ...current.camera, invertX: event.target.checked } }))} /> Invert horizontal mouse-look</label>
+          <label><input type="checkbox" checked={settings.camera.invertY} onChange={event => setSettings(current => ({ ...current, camera: { ...current.camera, invertY: event.target.checked } }))} /> Invert vertical mouse-look</label>
+          <label className="season2-camera-sensitivity">Mouse-look speed <strong>{settings.camera.sensitivity.toFixed(1)}×</strong><input type="range" min="0.5" max="2" step="0.1" value={settings.camera.sensitivity} onChange={event => setSettings(current => ({ ...current, camera: { ...current.camera, sensitivity: Number(event.target.value) } }))} /></label>
+        </div>
       </div>}
       {activeTab === 'HUD' && <div className="season2-hud-settings">
         <div className="season2-toggle-grid">

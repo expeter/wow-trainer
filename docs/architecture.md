@@ -46,10 +46,19 @@ development diagnostics instead of crashing the catalogue.
 Entombed Sentinels is the only current encounter directory. Its package owns
 the `ptr_2026-08-13` profile, tactic declarations, abstract 2D diagram arena,
 independent 3D world arena, scenario metadata, and lazy runtime adapters. Only
-Helical Toxins is `ready`: Learn 2D resolves composition and an abstract meeting
-sector, while Train 3D resolves keyboard movement, world collision, and the
-28-second matching window. The shell passes persisted bindings and HUD
-preferences into both without becoming an encounter-state owner.
+Helical Toxins is `ready`: Learn 2D moves a controlled icon-based character
+through abstract percentage space, while Train 3D resolves player commands,
+world collision, and the 28-second matching window in a headless fixed-step
+simulation. The reusable Three.js renderer consumes immutable actor/aura/effect
+snapshots and owns no mechanic decisions. The shell passes persisted bindings,
+camera preferences, and HUD preferences without becoming an encounter-state
+owner.
+
+The development-only platform contract room uses the same Train 3D movement,
+camera, snapshot, aura, effect, timing, and position-check primitives. It is a
+neutral extraction/characterization harness, not a discovered boss or a source
+of fabricated encounter behavior, and Vite removes its guarded launch path from
+production.
 
 ## Delivery order
 

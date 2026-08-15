@@ -1,3 +1,6 @@
+import type { ComponentType } from 'react'
+import type { MovementKeyBindings, TrainingCameraSettings, TrainingHudSettings } from '../trainingSettings'
+
 export type EncounterMode = 'learn2d' | 'train3d'
 export type EncounterDifficulty = 'heroic' | 'mythic'
 export type EncounterAvailability = 'research' | 'ptr-preview' | 'live-validated' | 'retired'
@@ -168,6 +171,8 @@ export interface EncounterRuntimeProps {
   scenarioId: string
   keyBindings: MovementKeyBindings
   hudSettings: TrainingHudSettings
+  cameraSettings: TrainingCameraSettings
+  onCameraSettingsChange: (settings: TrainingCameraSettings) => void
   onExit: () => void
 }
 
@@ -187,5 +192,3 @@ export interface EncounterPackageV1 {
   train3dArenas: readonly WorldArena3D[]
   runtimeLoaders: Readonly<Record<EncounterMode, EncounterRuntimeLoader>>
 }
-import type { ComponentType } from 'react'
-import type { MovementKeyBindings, TrainingHudSettings } from '../trainingSettings'

@@ -26,17 +26,16 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.getByRole('button', { name: 'Launch Train 3D' })).toBeEnabled()
   })
 
-  it('loads the package-owned Learn 2D runtime and completes the first toxin decision', async () => {
+  it('loads the movement-driven Learn 2D runtime with icon-only character toxins', async () => {
     render(<Season2App />)
     await screen.findByRole('heading', { name: 'Entombed Sentinels' })
 
     fireEvent.click(screen.getByRole('button', { name: 'Launch Learn 2D' }))
     expect(await screen.findByRole('heading', { name: 'Helical Toxins tutorial' })).toBeVisible()
-    fireEvent.click(screen.getByRole('button', { name: /Scout B/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'North meeting sector' }))
-
-    expect(screen.getByText('DRILL COMPLETE')).toBeVisible()
-    expect(screen.getByText('Clean solve.')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Move forward' })).toBeVisible()
+    expect(screen.getAllByRole('img')).toHaveLength(4)
+    expect(screen.getByLabelText('Controlled character with 1 green and 3 red toxins')).toBeVisible()
+    expect(screen.queryByText(/1G|3R/)).not.toBeInTheDocument()
   })
 
   it('persists unique movement bindings and exposes the configured keys to the shell', async () => {

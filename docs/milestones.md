@@ -39,7 +39,19 @@ encounter development into an independently deployed Season 2 repository.
   discovery, and the isolated Entombed Sentinels package. Stage 4B makes the
   focused Helical Toxins lesson playable through separate package-owned Learn
   2D and Train 3D runtimes, with shell-owned persisted movement bindings and
-  HUD preferences. Full-fight, Mythic, plan-image, and scoring work remains.
+  HUD preferences. Corrective Stage 4C adds movable icon-based 2D practice,
+  headless fixed-step 3D mechanics, a snapshot-only third-person renderer, and
+  the development contract room. Full-fight, Mythic, plan-image, and scoring
+  work remains.
+- `CR-237` — completed under `FR-072`: make Learn 2D movement-driven and
+  represent each character's toxin composition with attached icons rather than
+  character text while preserving abstract 2D geometry.
+- `BUG-157` — completed under `FR-072`: replace the fixed tactical 3D camera
+  and renderer-owned resolution with WoW-like player/camera controls, a
+  deterministic headless simulation, and a snapshot-only generic renderer.
+- `CR-238` — completed under `FR-072`: provide a development-only abstract
+  contract room with seeded aura events, reaction prompts, position checks,
+  spell primitives, and the same reusable 3D host used by encounter drills.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

@@ -488,6 +488,19 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   not import a boss runtime directly or resolve boss mechanics itself.
 - Movement bindings and HUD visibility/scale are shell-owned, use Season 2
   storage keys, and flow into both runtimes without sharing simulation state.
+- Learn 2D may accept the shared movement bindings, but owns only abstract
+  percentage-space movement and icon/diagram contact. Character debuffs are
+  represented by attached visual icons with accessible labels, not text baked
+  into actor tokens.
+- Train 3D uses a deterministic headless fixed-step simulation for movement,
+  events, collision, bots, and mechanic outcomes. A general renderer consumes
+  immutable snapshots and emits input/camera commands; it never decides
+  gameplay. The baseline input contract is facing-relative WASD, Q/E turning,
+  left-button camera orbit, right-button facing look, both-buttons-forward,
+  wheel zoom, inversion, and persisted camera preferences.
+- A development-only platform contract room may exercise generic events,
+  auras, timers, position checks, and spell primitives. It is not an encounter
+  package and must be excluded from production builds.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.

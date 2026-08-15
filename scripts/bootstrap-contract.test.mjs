@@ -32,6 +32,8 @@ test('preserves the six-section shell around automatically discovered package ru
   assert.match(shell, />Train 3D</)
   assert.match(shell, /loadEncounterCatalogue/)
   assert.match(shell, /encounter\.runtimeLoaders\[mode\]/)
+  assert.match(shell, /import\.meta\.env\.DEV && <article className="season2-contract-room-card">/)
+  assert.match(shell, /await import\('\.\/platform\/train3d\/ContractRoom'\)/)
   assert.match(sentinels, /learn2d: \(\) => import\('\.\/learn2d\/Runtime'\)/)
   assert.match(sentinels, /train3d: \(\) => import\('\.\/train3d\/Runtime'\)/)
   assert.match(discovery, /import\.meta\.glob<.*>\('\.\.\/\.\.\/encounters\/\*\/index\.ts'\)/)

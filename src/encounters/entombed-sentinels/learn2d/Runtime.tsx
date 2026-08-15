@@ -1,95 +1,153 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import TrainingHud from '../../../platform/TrainingHud'
 import type { EncounterRuntimeProps } from '../../../platform/encounters'
+import { keyLabel } from '../../../platform/trainingSettings'
+import ToxinIcons from '../ToxinIcons'
 import { learn2dScenarios } from './scenarios'
 
-const partnerOptions = [
-  { id: 'scout-a', label: 'Scout A', green: 2, red: 2 },
-  { id: 'scout-b', label: 'Scout B', green: 3, red: 1 },
-  { id: 'scout-c', label: 'Scout C', green: 1, red: 3 },
+type Direction = 'forward' | 'backward' | 'left' | 'right'
+type LessonOutcome = 'active' | 'success' | 'wrong-partner' | 'expired'
+const startPosition = { x: 27, y: 62 }
+const partners = [
+  { id: 'compatible', x: 50, y: 18, green: 3, red: 1 },
+  { id: 'wrong-south', x: 50, y: 82, green: 2, red: 2 },
+  { id: 'wrong-east', x: 76, y: 58, green: 1, red: 3 },
 ] as const
 
-export default function SentinelsLearn2D({ scenarioId, hudSettings, onExit }: EncounterRuntimeProps) {
+export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings, onExit }: EncounterRuntimeProps) {
   const scenario = useMemo(() => learn2dScenarios.find(item => item.id === scenarioId) ?? learn2dScenarios[0], [scenarioId])
-  const [stage, setStage] = useState<'partner' | 'sector' | 'complete'>('partner')
-  const [feedback, setFeedback] = useState('You carry 1 green and 3 red. Find the partner that brings the pair to exactly 4 green.')
-  const [mistakes, setMistakes] = useState(0)
-  const objective = stage === 'partner'
-    ? 'Choose the compatible toxin partner'
-    : stage === 'sector'
-      ? 'Meet your partner in the north sector'
-      : 'Helical Toxins solved'
+  const playerRef = useRef({ ...startPosition })
+  const pressedRef = useRef(new Set<Direction>())
+  const elapsedRef = useRef(0)
+  const outcomeRef = useRef<LessonOutcome>('active')
+  const [player, setPlayer] = useState({ ...startPosition })
+  const [secondsRemaining, setSecondsRemaining] = useState(28)
+  const [outcome, setOutcome] = useState<LessonOutcome>('active')
+  const [attempt, setAttempt] = useState(0)
 
-  function choosePartner(green: number) {
-    if (green === 3) {
-      setStage('sector')
-      setFeedback('Correct: 1 + 3 green makes four. Now preserve the center corridor and meet north.')
-    } else {
-      setMistakes(value => value + 1)
-      setFeedback(`${1 + green} green is not four. Read both toxin compositions and try again.`)
+  useEffect(() => {
+    const codes: Record<Direction, string> = {
+      forward: keyBindings.forward,
+      backward: keyBindings.backward,
+      left: keyBindings.left,
+      right: keyBindings.right,
     }
-  }
+    const updateKey = (event: KeyboardEvent, active: boolean) => {
+      const direction = (Object.keys(codes) as Direction[]).find(candidate => codes[candidate] === event.code)
+      if (!direction) return
+      event.preventDefault()
+      if (active) pressedRef.current.add(direction)
+      else pressedRef.current.delete(direction)
+    }
+    const down = (event: KeyboardEvent) => updateKey(event, true)
+    const up = (event: KeyboardEvent) => updateKey(event, false)
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+    }
+  }, [keyBindings])
 
-  function chooseSector(sector: string) {
-    if (sector === 'north-meeting-sector') {
-      setStage('complete')
-      setFeedback('Resolved. The matching pair met in the assigned sector without blocking the corridor.')
-    } else {
-      setMistakes(value => value + 1)
-      setFeedback('That is not your assigned meeting sector. Use north and leave the center corridor open.')
+  useEffect(() => {
+    let frame = 0
+    let previous = performance.now()
+    let lastPublish = 0
+    const tick = (now: number) => {
+      const seconds = Math.min((now - previous) / 1000, .05)
+      previous = now
+      if (outcomeRef.current === 'active') {
+        elapsedRef.current += seconds
+        const horizontal = Number(pressedRef.current.has('right')) - Number(pressedRef.current.has('left'))
+        const vertical = Number(pressedRef.current.has('backward')) - Number(pressedRef.current.has('forward'))
+        const length = Math.hypot(horizontal, vertical) || 1
+        playerRef.current = {
+          x: Math.max(5, Math.min(95, playerRef.current.x + horizontal / length * 24 * seconds)),
+          y: Math.max(5, Math.min(95, playerRef.current.y + vertical / length * 24 * seconds)),
+        }
+        const contacted = partners.find(partner => Math.hypot(playerRef.current.x - partner.x, playerRef.current.y - partner.y) < 6)
+        if (contacted) outcomeRef.current = contacted.id === 'compatible' ? 'success' : 'wrong-partner'
+        else if (elapsedRef.current >= 28) outcomeRef.current = 'expired'
+        if (now - lastPublish > 50 || outcomeRef.current !== 'active') {
+          lastPublish = now
+          setPlayer({ ...playerRef.current })
+          setSecondsRemaining(Math.max(0, 28 - elapsedRef.current))
+          setOutcome(outcomeRef.current)
+        }
+      }
+      frame = requestAnimationFrame(tick)
     }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [attempt])
+
+  function setPad(direction: Direction, active: boolean) {
+    if (active) pressedRef.current.add(direction)
+    else pressedRef.current.delete(direction)
   }
 
   function restart() {
-    setStage('partner')
-    setMistakes(0)
-    setFeedback('You carry 1 green and 3 red. Find the partner that brings the pair to exactly 4 green.')
+    playerRef.current = { ...startPosition }
+    pressedRef.current.clear()
+    elapsedRef.current = 0
+    outcomeRef.current = 'active'
+    setPlayer({ ...startPosition })
+    setSecondsRemaining(28)
+    setOutcome('active')
+    setAttempt(value => value + 1)
   }
+
+  const status = outcome === 'active'
+    ? 'Read the four icons attached to you, then move into exactly one compatible character in the north sector.'
+    : outcome === 'success'
+      ? 'Resolved: your pair combines to exactly four green.'
+      : outcome === 'wrong-partner'
+        ? 'Wrong partner. Compare the attached icons and try a composition that totals four green.'
+        : 'The matching window expired before you reached a partner.'
 
   return <main className="training-shell learn2d-runtime">
     <header className="training-header">
       <div>
         <p className="eyebrow">ENTOMBED SENTINELS · LEARN 2D</p>
         <h1>{scenario.name}</h1>
-        <p className="lede">Read the composition, select the compatible partner, then execute the package-owned abstract plan.</p>
+        <p className="lede">Move the gold character through the abstract top-down lesson. Toxin information stays attached as icons, not character text.</p>
       </div>
       <button type="button" className="secondary" onClick={onExit}>Back to setup</button>
     </header>
-
     <section className="training-runtime-layout">
-      <div className="learn2d-board" aria-label="Helical Toxins tactical diagram">
-        <div className="learn2d-side acid-side"><span>ACID SIDE</span><b>Ula’tek</b></div>
-        <button type="button" className="learn2d-region north" onClick={() => chooseSector('north-meeting-sector')} disabled={stage !== 'sector'}>
-          North meeting sector
-        </button>
-        <div className="learn2d-corridor"><span>KEEP CLEAR</span></div>
-        <button type="button" className="learn2d-region south" onClick={() => chooseSector('south-meeting-sector')} disabled={stage !== 'sector'}>
-          South meeting sector
-        </button>
-        <div className="learn2d-side blood-side"><span>BLOOD SIDE</span><b>Lothraxion</b></div>
-        <div className="learn2d-player-token">YOU<strong>1G · 3R</strong></div>
+      <div className="learn2d-stage">
+        <div className="learn2d-board" aria-label="Movable Helical Toxins tactical diagram">
+          <div className="learn2d-side acid-side"><span>ACID SIDE</span><b>Ula’tek</b></div>
+          <div className="learn2d-sector north" aria-label="North meeting sector" />
+          <div className="learn2d-corridor"><span>KEEP CLEAR</span></div>
+          <div className="learn2d-sector south" aria-label="South meeting sector" />
+          <div className="learn2d-side blood-side"><span>BLOOD SIDE</span><b>Lothraxion</b></div>
+          {partners.map(partner => <div className="learn2d-character ally" key={partner.id} style={{ left: `${partner.x}%`, top: `${partner.y}%` }} aria-label={`Character with ${partner.green} green and ${partner.red} red toxins`}>
+            <ToxinIcons green={partner.green} red={partner.red} />
+            <span className="character-body" aria-hidden="true" />
+          </div>)}
+          <div className="learn2d-character player" style={{ left: `${player.x}%`, top: `${player.y}%` }} aria-label="Controlled character with 1 green and 3 red toxins">
+            <ToxinIcons green={1} red={3} />
+            <span className="character-body" aria-hidden="true" />
+          </div>
+        </div>
+        <div className="learn2d-controls">
+          <span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)}</span>
+          <div className="learn2d-dpad" aria-label="2D movement controls">
+            {(['forward', 'left', 'backward', 'right'] as Direction[]).map(direction => <button
+              type="button"
+              key={direction}
+              aria-label={`Move ${direction}`}
+              onPointerDown={() => setPad(direction, true)}
+              onPointerUp={() => setPad(direction, false)}
+              onPointerLeave={() => setPad(direction, false)}
+            >{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}
+          </div>
+        </div>
       </div>
-
       <div className="training-sidecar">
-        <TrainingHud settings={hudSettings} mode="Learn 2D" objective={objective} status={feedback} />
-        {stage === 'partner' && <section className="training-choice" aria-labelledby="partner-choice-title">
-          <small>STEP 1 OF 2</small>
-          <h2 id="partner-choice-title">Choose your partner</h2>
-          {partnerOptions.map(partner => <button type="button" key={partner.id} onClick={() => choosePartner(partner.green)}>
-            <strong>{partner.label}</strong><span>{partner.green} green · {partner.red} red</span>
-          </button>)}
-        </section>}
-        {stage === 'sector' && <section className="training-choice">
-          <small>STEP 2 OF 2</small>
-          <h2>Move the pair</h2>
-          <p>Select the assigned north sector directly on the diagram.</p>
-        </section>}
-        {stage === 'complete' && <section className="training-choice training-complete">
-          <small>DRILL COMPLETE</small>
-          <h2>Exact composition</h2>
-          <p>{mistakes === 0 ? 'Clean solve.' : `${mistakes} incorrect decision${mistakes === 1 ? '' : 's'} reviewed.`}</p>
-          <button type="button" onClick={restart}>Practice again</button>
-        </section>}
+        <TrainingHud settings={hudSettings} mode="Learn 2D" objective="Move to the compatible northern partner" secondsRemaining={secondsRemaining} status={status} />
+        {outcome !== 'active' && <button type="button" className="training-restart" onClick={restart}>Practice again</button>}
       </div>
     </section>
   </main>

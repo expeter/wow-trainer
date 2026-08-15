@@ -68,6 +68,7 @@
 .season2-mode-grid h3 { margin: 8px 0; font-size: 22px; }
 .season2-mode-grid p, .season2-boundary-note { color: var(--s2-color-muted); line-height: 1.6; }
 .season2-mode-grid button { width: 100%; margin-top: 10px; }
+.season2-mode-grid .season2-contract-room-card { grid-column: 1 / -1; background: linear-gradient(135deg, rgba(66, 54, 117, .28), var(--s2-color-surface)); }
 .season2-boundary-note {
   padding: 18px;
   border: 1px dashed var(--s2-color-border);
@@ -105,6 +106,13 @@
 .season2-keybind button { min-width: 112px; padding: 9px 12px; color: var(--s2-color-text); }
 .season2-keybind button.listening { border-color: var(--s2-color-warning); color: var(--s2-color-warning); }
 .season2-reset { grid-column: 1 / -1; padding: 10px 12px; }
+.season2-camera-settings { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 4px; padding: 14px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); }
+.season2-camera-settings h3 { grid-column: 1 / -1; margin: 0 0 3px; font-size: 16px; }
+.season2-camera-settings label { display: flex; align-items: center; gap: 9px; color: var(--s2-color-muted); font-size: 13px; }
+.season2-camera-settings input[type='checkbox'] { width: auto; }
+.season2-camera-settings .season2-camera-sensitivity { grid-column: 1 / -1; display: block; padding-top: 7px; }
+.season2-camera-sensitivity strong { float: right; color: var(--s2-color-accent); }
+.season2-camera-sensitivity input { margin-top: 9px; }
 .season2-hud-settings { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(320px, 1.2fr); gap: 20px; }
 .season2-toggle-grid { display: grid; gap: 9px; align-content: start; }
 .season2-toggle-grid > label {
@@ -178,18 +186,27 @@
 .learn2d-side.blood-side { right: 11%; color: #ed91a0; }
 .learn2d-corridor { position: absolute; left: 45%; top: 0; width: 10%; height: 100%; display: grid; place-items: center; border-inline: 1px dashed rgba(216, 198, 128, .42); }
 .learn2d-corridor span { color: rgba(216, 198, 128, .62); font: 9px var(--s2-font-mono); writing-mode: vertical-rl; letter-spacing: .2em; }
-.learn2d-region { position: absolute; left: 50%; z-index: 2; transform: translateX(-50%); width: 210px; padding: 12px; border-color: rgba(115, 224, 193, .5); background: rgba(14, 35, 33, .92); }
-.learn2d-region.north { top: 8%; }
-.learn2d-region.south { bottom: 8%; }
-.learn2d-region:disabled { cursor: default; opacity: .55; }
-.learn2d-player-token { position: absolute; left: 27%; top: 62%; width: 66px; height: 66px; display: grid; place-items: center; border: 2px solid #f4d568; border-radius: 50%; color: #fff4bd; background: rgba(79, 64, 15, .92); box-shadow: 0 0 22px rgba(244, 213, 104, .36); font: 11px var(--s2-font-mono); }
-.learn2d-player-token strong { display: block; font-size: 10px; }
+.learn2d-sector { position: absolute; left: 50%; z-index: 1; transform: translateX(-50%); width: 22%; height: 16%; border: 1px solid rgba(115, 224, 193, .48); border-radius: 50%; background: rgba(43, 125, 99, .12); box-shadow: inset 0 0 25px rgba(115, 224, 193, .08); }
+.learn2d-sector.north { top: 10%; }
+.learn2d-sector.south { bottom: 10%; border-color: rgba(216, 198, 128, .3); background: rgba(216, 198, 128, .06); }
+.learn2d-character { position: absolute; z-index: 4; transform: translate(-50%, -50%); width: 48px; height: 48px; pointer-events: none; }
+.learn2d-character .character-body { position: absolute; inset: 8px; display: block; border: 2px solid rgba(255, 255, 255, .72); border-radius: 50% 50% 44% 44%; background: #728198; box-shadow: 0 4px 14px rgba(0, 0, 0, .4); }
+.learn2d-character.player { z-index: 6; }
+.learn2d-character.player .character-body { border-color: #fff0a5; background: #b49430; box-shadow: 0 0 0 4px rgba(242, 211, 107, .16), 0 0 20px rgba(242, 211, 107, .42); }
+.toxin-icons { position: absolute; z-index: 3; left: 50%; bottom: calc(100% - 4px); transform: translateX(-50%); display: flex; gap: 2px; min-width: max-content; padding: 2px 3px; border-radius: 4px; background: rgba(5, 9, 13, .78); }
+.toxin-icon { width: 8px; height: 8px; display: block; border: 1px solid rgba(255, 255, 255, .52); border-radius: 2px; transform: rotate(45deg); }
+.toxin-icon.green { background: #6ce58d; box-shadow: 0 0 5px rgba(108, 229, 141, .7); }
+.toxin-icon.red { background: #eb6e7d; box-shadow: 0 0 5px rgba(235, 110, 125, .65); }
+.learn2d-controls { min-height: 58px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 14px; color: var(--s2-color-muted); background: var(--s2-color-surface); font: 10px var(--s2-font-mono); }
+.learn2d-dpad { display: grid; grid-template-columns: repeat(4, 38px); gap: 5px; }
+.learn2d-dpad button { width: 38px; height: 38px; padding: 0; touch-action: none; }
 
 .train3d-stage { border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: #070b12; overflow: hidden; }
 .train3d-stage canvas { width: 100%; height: min(68vh, 650px); min-height: 520px; outline: none; }
 .train3d-stage canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--s2-color-accent); }
 .train3d-controls { margin: 0; padding: 10px 13px; color: var(--s2-color-muted); background: var(--s2-color-surface); font: 10px var(--s2-font-mono); }
 .training-restart { width: 100%; padding: 11px 12px; }
+.contract-room-note { margin: 0; padding: 13px 15px; border: 1px dashed var(--s2-color-border); border-radius: var(--s2-radius-control); color: var(--s2-color-muted); font-size: 12px; line-height: 1.55; }
 @media (max-width: 760px) {
   .season2-encounter { align-items: flex-start; flex-direction: column; }
   .season2-mode-grid { grid-template-columns: 1fr; }

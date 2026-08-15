@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- CR-238: Add a development-only 3D contract room with a deterministic seeded
+  aura stream, six-second reaction windows, named position checks, animated
+  pulse/projectile primitives, live HUD feedback, and the shared player/camera
+  controls. It is a platform harness, not another encounter package.
+- BUG-157: Replace the fixed tactical-camera Sentinels prototype with a generic
+  snapshot-only Three.js renderer and headless 60 Hz mechanic simulation. Train
+  3D now uses a third-person player-follow camera, facing-relative WASD,
+  Q/E turning, left/right mouse-look, both-buttons-forward, wheel zoom,
+  inversion, and persisted camera preferences.
+- CR-237: Make Helical Toxins Learn 2D a movable top-down rehearsal. The player
+  reaches a compatible character through abstract 2D space, and every toxin
+  composition is displayed as attached green/red icons instead of character
+  text.
 - FR-072 (Stage 4B): Make the focused Helical Toxins scenario playable in both
   a package-owned Learn 2D decision lesson and an independently modelled Train
   3D movement drill. Add lazy runtime loaders, shared persisted movement

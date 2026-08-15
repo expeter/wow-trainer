@@ -13,15 +13,30 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page.getByRole('heading', { name: 'L’ura Trainer' })).toHaveCount(0)
 })
 
-test('completes the Helical Toxins Learn 2D decision drill', async ({ page }) => {
+test('moves the player through the Helical Toxins Learn 2D icon drill', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
 
   await expect(page.getByRole('heading', { name: 'Helical Toxins tutorial' })).toBeVisible()
-  await page.getByRole('button', { name: /Scout B/ }).click()
-  await page.getByRole('button', { name: 'North meeting sector' }).click()
-  await expect(page.getByText('DRILL COMPLETE')).toBeVisible()
-  await expect(page.getByText('Clean solve.')).toBeVisible()
+  await expect(page.getByLabel('Controlled character with 1 green and 3 red toxins')).toBeVisible()
+  await expect(page.getByRole('img', { name: '3 green toxins and 1 red toxin' })).toBeVisible()
+  await page.keyboard.down('w')
+  await page.waitForTimeout(1800)
+  await page.keyboard.up('w')
+  await page.keyboard.down('d')
+  await page.waitForTimeout(950)
+  await page.keyboard.up('d')
+  await expect(page.getByText('Resolved: your pair combines to exactly four green.')).toBeVisible()
+})
+
+test('opens the development contract room with seeded aura and spell events', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Open contract room' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Reaction and movement lab' })).toBeVisible()
+  await expect(page.getByLabel('Third-person 3D training arena')).toBeVisible()
+  await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('event 1')
+  await expect(page.getByText(/fixed steps per second/)).toBeVisible()
 })
 
 test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3D drill', async ({ page }) => {
@@ -35,6 +50,11 @@ test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3
   await page.getByRole('button', { name: 'Launch Train 3D' }).click()
 
   await expect(page.getByRole('heading', { name: 'Helical Toxins movement drill' })).toBeVisible()
+  const arena = page.getByLabel('Third-person 3D training arena')
+  await expect(arena).toBeVisible()
+  await arena.hover()
+  await page.mouse.wheel(0, 300)
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('midnight-s2:training-settings:v1') || '{}').camera?.zoom ?? 0)).toBeGreaterThan(22)
   await expect(page.getByRole('complementary', { name: 'Training HUD' }).getByText('Objective')).toHaveCount(0)
   await page.keyboard.down('ArrowUp')
   await page.waitForTimeout(500)
