@@ -15,6 +15,20 @@ in [`specifications.md`](specifications.md).
 - Current leaderboard season: `season-1`. No milestone or SemVer bump changes
   it automatically.
 
+## Midnight Season 2 transition
+
+Goal: preserve the reviewed L’ura trainer platform knowledge while moving new
+encounter development into an independently deployed Season 2 repository.
+
+- `CR-229` — completed the privacy-safe migration dossier under
+  [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),
+  including the reuse audit, separate Learn 2D and Train 3D contracts,
+  isolated encounter packages, Sentinels reference, API `/v2` statistics
+  boundary, verification strategy, source material, and new-session prompt.
+
+This documentation changes no encounter, scoring, API, deployment, or
+leaderboard behavior. The L’ura API and leaderboard remain `season-1`.
+
 ## M0 · Online identity hotfix
 
 Goal: ensure a run that starts authenticated remains attributable and that the
