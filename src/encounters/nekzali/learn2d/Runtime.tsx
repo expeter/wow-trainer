@@ -9,7 +9,7 @@ import { keyLabel } from '../../../platform/trainingSettings'
 import type { PlayerCommandState } from '../../../platform/train3d/types'
 import { IDLE_PLAYER_COMMANDS } from '../../../platform/train3d/types'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
-import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, isNekzaliPlayerRendTarget, nekzaliRendRemaining, nekzaliSnapshot, nextNekzaliTimer, prepareNekzaliSlot, startNekzaliMainCast, stepNekzaliState, tauntNekzali } from '../simulation'
+import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, isNekzaliPlayerRendTarget, nekzaliRendRemaining, nekzaliSnapshot, nextNekzaliTimer, prepareNekzaliSlot, startNekzaliMainCast, stepNekzaliDiagramState, tauntNekzali } from '../simulation'
 
 const RAID_PLAN = new URL('../../../../inbox/INBOX-20260815-124454-f3a9e1.png', import.meta.url).href
 const percent = (value: number) => 50 + value / 90 * 100
@@ -30,7 +30,7 @@ export default function NekzaliLearn2D({ trainingDifficulty, keyBindings, onExit
     let frame = 0; let previous = performance.now(); let lastPublish = 0
     const tick = (now: number) => {
       const seconds = Math.min((now - previous) / 1000, .05); previous = now
-      if (gate.phaseRef.current === 'active' && !pause.pausedRef.current) stateRef.current = stepNekzaliState(stateRef.current, commandsRef.current, seconds)
+      if (gate.phaseRef.current === 'active' && !pause.pausedRef.current) stateRef.current = stepNekzaliDiagramState(stateRef.current, commandsRef.current, seconds)
       if (playerRef.current) { playerRef.current.style.left = `${percent(stateRef.current.player.x)}%`; playerRef.current.style.top = `${percent(stateRef.current.player.z)}%`; playerRef.current.dataset.positionX = stateRef.current.player.x.toFixed(2); playerRef.current.dataset.positionY = stateRef.current.player.z.toFixed(2) }
       if (now - lastPublish >= 70) { lastPublish = now; setView(stateRef.current) }
       frame = requestAnimationFrame(tick)

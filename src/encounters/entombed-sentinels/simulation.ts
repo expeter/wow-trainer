@@ -1,6 +1,7 @@
 import { contractRaidRoster, contractRosterForSlot, contractSelectedMember, trainingClassColors, type ContractRaidMember } from '../../platform/contractRoom'
 import type { RuntimeFailure } from '../../platform/RuntimeFeedback'
 import { shouldEndTrainingAttempt, type TrainingDifficulty } from '../../platform/trainingSettings'
+import { stepScreenRelativeWorldMovement } from '../../platform/learn2d/worldMovement'
 import { cosmeticClassProjectiles } from '../../platform/train3d/cosmeticCombat'
 import { distance, stepPlayerMovement } from '../../platform/train3d/simulation'
 import type { ActorSnapshot, EffectSnapshot, PlayerCommandState, Train3DSnapshot, WorldPoint } from '../../platform/train3d/types'
@@ -137,24 +138,12 @@ export function dispelSentinels(state: SentinelsState): SentinelsState {
   return { ...state, blightedResolved: true }
 }
 
-function stepScreenRelativePlayer(player: SentinelsState['player'], commands: PlayerCommandState, seconds: number) {
-  const horizontal = Number(commands.right) - Number(commands.left)
-  const vertical = Number(commands.backward) - Number(commands.forward)
-  const magnitude = Math.hypot(horizontal, vertical)
-  if (!magnitude) return player
-  const distanceMoved = 7 * seconds / Math.max(1, magnitude)
-  return {
-    ...player,
-    x: Math.max(-sentinelsArena.width / 2 + 1.5, Math.min(sentinelsArena.width / 2 - 1.5, player.x + horizontal * distanceMoved)),
-    z: Math.max(-sentinelsArena.depth / 2 + 1.5, Math.min(sentinelsArena.depth / 2 - 1.5, player.z + vertical * distanceMoved)),
-  }
-}
-
 function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds: number, screenRelative = false): SentinelsState {
   const phaseAge = state.time - state.phaseStartedAt
   const duration = state.cycle === 1 ? FIRST_ACTIVE_SECONDS : SECOND_ACTIVE_SECONDS
   const member = contractSelectedMember(state.selectedSlotId)
-  let player = screenRelative ? stepScreenRelativePlayer(state.player, commands, seconds) : stepPlayerMovement(state.player, commands, seconds, { halfWidth: sentinelsArena.width / 2 - 1.5, halfDepth: sentinelsArena.depth / 2 - 1.5 })
+  const bounds = { halfWidth: sentinelsArena.width / 2 - 1.5, halfDepth: sentinelsArena.depth / 2 - 1.5 }
+  let player = screenRelative ? stepScreenRelativeWorldMovement(state.player, commands, seconds, bounds, 16 / 9, 7, sentinelsArena) : stepPlayerMovement(state.player, commands, seconds, bounds)
   let acidBoss = state.acidBoss; let bloodBoss = state.bloodBoss
   if (member.role === 'tank') {
     if (state.assignedSide === 'acid') acidBoss = moveToward(acidBoss, player, 5, seconds)
@@ -230,7 +219,8 @@ function helicalPartner(state: SentinelsState): WorldPoint {
 
 function stepStasis(state: SentinelsState, commands: PlayerCommandState, seconds: number, screenRelative = false): SentinelsState {
   const age = state.time - state.phaseStartedAt
-  const player = screenRelative ? stepScreenRelativePlayer(state.player, commands, seconds) : stepPlayerMovement(state.player, commands, seconds, { halfWidth: sentinelsArena.width / 2 - 1.5, halfDepth: sentinelsArena.depth / 2 - 1.5 })
+  const bounds = { halfWidth: sentinelsArena.width / 2 - 1.5, halfDepth: sentinelsArena.depth / 2 - 1.5 }
+  const player = screenRelative ? stepScreenRelativeWorldMovement(state.player, commands, seconds, bounds, 16 / 9, 7, sentinelsArena) : stepPlayerMovement(state.player, commands, seconds, bounds)
   let next = { ...state, player, acidBoss: { ...STASIS_ACID }, bloodBoss: { ...STASIS_BLOOD }, energy: 100 }
   const partner = helicalPartner(next)
   const wrong = { x: 12, z: next.cycle === 1 ? -6 : 6 }

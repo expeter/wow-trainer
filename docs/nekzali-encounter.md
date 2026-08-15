@@ -47,13 +47,15 @@ versioned, and visibly replaceable until authoritative live data is available.
 
 - Boss health drains from 100% to 50% over approximately 90 simulated seconds.
   This is a trainer pacing profile, not an asserted live DPS check.
-- **Essence Rend:** one selected player is pulled for five seconds and carries an
-  essence. Target selection remains unknown until applied. When the controlled
-  player is selected, a compact attached timer appears; the player moves toward
-  a free outer lane and drops exactly three provisional training puddles before
-  the aura ends and ordinary play resumes. One persistent Latent Cultist zone
-  remains at removal. Current journal evidence proves only the final Cultist,
-  so the three-drop training model remains explicit and replaceable.
+- **Essence Rend:** one selected player carries an eight-second provisional
+  trainer aura. The first two seconds are a readable outward-movement lead;
+  three puddles then drop at one-second intervals, leaving a recovery margin
+  before removal. Target selection remains unknown until applied. When the
+  controlled player is selected, a compact attached timer appears; the player
+  moves toward a free outer lane and drops exactly three provisional training
+  puddles before the aura ends and ordinary play resumes. One persistent Latent
+  Cultist zone remains at removal. Current journal evidence proves only the
+  final Cultist, so the three-drop training model remains explicit and replaceable.
 - **Possession Barrage:** the active tank moves away in a clear lane. Spirits
   travel from boss to tank and burst in a small area; raid damage decreases with
   travel distance. Non-tanks avoid the lane and impacts. The off-tank takes

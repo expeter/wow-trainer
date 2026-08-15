@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+- Normalized Learn 2D movement so equal-duration up, down, left, and right
+  input travels equal visible distance on square and wide encounter boards;
+  3D retains its calibrated WoW-like forward, backward, and strafe speeds.
+- Extended the provisional Essence Rend trainer aura to eight seconds: two
+  seconds to move outward, three one-second puddle drops, and a recovery margin
+  before removal.
 - Corrected Nek'zali Essence Rend to select one raid member at application,
-  attach its five-second timer to that character, drop exactly three pools,
+  attach its timer to that character, drop exactly three pools,
   retain only the final Latent Cultist, and avoid revealing the controlled
   player's reaction before selection.
 - Reduced Nek'zali's central Learn 2D and Train 3D mechanic coaching to a

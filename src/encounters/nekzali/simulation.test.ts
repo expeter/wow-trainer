@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { IDLE_PLAYER_COMMANDS } from '../../platform/train3d/types'
-import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, nekzaliRendRemaining, nekzaliSnapshot, startNekzaliMainCast, stepNekzaliState, tauntNekzali, type NekzaliState } from './simulation'
+import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, NEKZALI_TIMING, nekzaliRendRemaining, nekzaliSnapshot, startNekzaliMainCast, stepNekzaliDiagramState, stepNekzaliState, tauntNekzali, type NekzaliState } from './simulation'
 
 const idle = IDLE_PLAYER_COMMANDS
 
@@ -8,6 +8,18 @@ describe("Nek'zali headless full-fight simulation", () => {
   it('assigns one of two alternating soak groups before pull', () => {
     expect(createNekzaliState('tank-1').soakGroup).toBe(1)
     expect(createNekzaliState('tank-2').soakGroup).toBe(2)
+  })
+
+  it('moves equally in all fixed screen directions in Learn 2D while 3D keeps its WoW profile', () => {
+    const initial = { ...createNekzaliState('player', 'hard'), player: { x: 0, z: 0, facing: Math.PI / 2 } }
+    const left = stepNekzaliDiagramState(initial, { ...idle, left: true }, .5)
+    const right = stepNekzaliDiagramState(initial, { ...idle, right: true }, .5)
+    const up = stepNekzaliDiagramState(initial, { ...idle, forward: true }, .5)
+    const down = stepNekzaliDiagramState(initial, { ...idle, backward: true }, .5)
+    expect(Math.abs(left.player.x)).toBeCloseTo(Math.abs(right.player.x))
+    expect(Math.abs(up.player.z)).toBeCloseTo(Math.abs(down.player.z))
+    expect(Math.abs(left.player.x)).toBeCloseTo(Math.abs(up.player.z))
+    expect(stepNekzaliState(initial, { ...idle, backward: true }, .5).player).not.toEqual(down.player)
   })
 
   it('spawns nine Amani and requires exactly three marked player kills', () => {
@@ -27,15 +39,19 @@ describe("Nek'zali headless full-fight simulation", () => {
     expect(activeNekzaliPrompt({ ...state, time: 14 })).toBe('Essence Rend soon')
     state = stepNekzaliState(state, idle, .02)
     expect(state.rendTargetId).toBe('player')
+    expect(NEKZALI_TIMING).toMatchObject({ rendSeconds: 8, rendDropLeadSeconds: 2 })
     expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras).toContainEqual({ id: 'essence-rend', tone: 'danger', stacks: 1 })
     expect(activeNekzaliPrompt(state)).toBe('Essence Rend — move out')
 
+    state = stepNekzaliState({ ...state, player: { x: 40, z: 0, facing: 0 } }, idle, 1.9)
+    expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(0)
     for (let drop = 1; drop <= 3; drop += 1) {
       const angle = drop * .32
       state = stepNekzaliState({ ...state, player: { x: Math.cos(angle) * 40, z: Math.sin(angle) * 40, facing: 0 } }, idle, 1.01)
     }
     expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(3)
-    state = stepNekzaliState({ ...state, player: { x: 0, z: 40, facing: 0 } }, idle, 2.1)
+    expect(nekzaliRendRemaining(state)).toBeGreaterThan(2)
+    state = stepNekzaliState({ ...state, player: { x: 0, z: 40, facing: 0 } }, idle, 3.2)
     expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(1)
     expect(state.rendTargetId).toBeUndefined()
     expect(nekzaliRendRemaining(state)).toBe(0)

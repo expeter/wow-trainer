@@ -1,5 +1,6 @@
 import { contractRaidRoster, contractRosterForSlot, contractSelectedMember, trainingClassColors, type ContractRaidMember } from '../../platform/contractRoom'
 import type { RuntimeFailure } from '../../platform/RuntimeFeedback'
+import { stepScreenRelativeWorldMovement } from '../../platform/learn2d/worldMovement'
 import { shouldEndTrainingAttempt, type TrainingDifficulty } from '../../platform/trainingSettings'
 import { cosmeticClassProjectiles } from '../../platform/train3d/cosmeticCombat'
 import { distance, stepPlayerMovement } from '../../platform/train3d/simulation'
@@ -59,8 +60,9 @@ const WELL_RADIUS = 6
 const ROOM_RADIUS = 45
 const P1_SECONDS = 90
 const ECHO_SECONDS = 12
-const REND_SECONDS = 5
+const REND_SECONDS = 8
 const REND_DROPS = 3
+const REND_DROP_LEAD_SECONDS = 2
 const bossHome = { x: 0, z: 18 }
 const echoPositions = { 1: { x: 0, z: -34 }, 2: { x: 0, z: 34 } } as const
 
@@ -112,7 +114,7 @@ function stepEssenceRend(state: NekzaliState, eventIndex: number): NekzaliState 
   }
   if (next.rendStartedAt === undefined) return next
   const age = next.time - next.rendStartedAt
-  const dueDrops = Math.min(REND_DROPS, Math.floor(age))
+  const dueDrops = age < REND_DROP_LEAD_SECONDS ? 0 : Math.min(REND_DROPS, Math.floor(age - REND_DROP_LEAD_SECONDS) + 1)
   if (dueDrops > next.rendDrops) {
     const hazards = [...next.hazards]
     for (let drop = next.rendDrops + 1; drop <= dueDrops; drop += 1) {
@@ -215,7 +217,7 @@ function disruptionStarts(state: NekzaliState): readonly [number, number] {
   return [first, first + 13 + (slotIndex + state.wellGroup) % 4]
 }
 
-function stepRealm(state: NekzaliState, commands: PlayerCommandState, seconds: number): NekzaliState {
+function stepRealm(state: NekzaliState, commands: PlayerCommandState, seconds: number, screenRelative = false): NekzaliState {
   let next = state
   const age = next.time - next.realmStartedAt
   if (next.realmStage === 'pull') {
@@ -228,7 +230,8 @@ function stepRealm(state: NekzaliState, commands: PlayerCommandState, seconds: n
     return next
   }
 
-  const moved = stepPlayerMovement(next.player, commands, seconds, { halfWidth: 11.5, halfDepth: 11.5 })
+  const realmBounds = { halfWidth: 11.5, halfDepth: 11.5 }
+  const moved = screenRelative ? stepScreenRelativeWorldMovement(next.player, commands, seconds, realmBounds, 1, 9) : stepPlayerMovement(next.player, commands, seconds, realmBounds)
   const radius = Math.hypot(moved.x, moved.z)
   const player = radius > 11.5 ? { ...moved, x: moved.x / radius * 11.5, z: moved.z / radius * 11.5 } : moved
   next = { ...next, player }
@@ -363,11 +366,12 @@ function stepPhaseTwo(state: NekzaliState, seconds: number): NekzaliState {
   return next
 }
 
-export function stepNekzaliState(state: NekzaliState, commands: PlayerCommandState, seconds: number): NekzaliState {
+function stepNekzali(state: NekzaliState, commands: PlayerCommandState, seconds: number, screenRelative = false): NekzaliState {
   if (state.outcome !== 'active') return state
   let next: NekzaliState = maybeStartRealm({ ...state, time: state.time + seconds })
-  if (next.realmStage !== 'none') return stepRealm(next, commands, seconds)
-  const rawPlayer = stepPlayerMovement(next.player, commands, seconds, { halfWidth: ROOM_RADIUS, halfDepth: ROOM_RADIUS })
+  if (next.realmStage !== 'none') return stepRealm(next, commands, seconds, screenRelative)
+  const roomBounds = { halfWidth: ROOM_RADIUS, halfDepth: ROOM_RADIUS }
+  const rawPlayer = screenRelative ? stepScreenRelativeWorldMovement(next.player, commands, seconds, roomBounds, 1, 9) : stepPlayerMovement(next.player, commands, seconds, roomBounds)
   next = { ...next, player: clampCircle(rawPlayer) }
   next = resolveMainCast(next, seconds)
   if (distance(next.player, { x: 0, z: 0 }) < WELL_RADIUS) next = addFailure(next, 'entered-well', 'Entered the Soulcoil Well', 'Keep outside the central well at all times.', true)
@@ -402,6 +406,14 @@ export function stepNekzaliState(state: NekzaliState, commands: PlayerCommandSta
     if (next.time - next.phaseStartedAt >= ECHO_SECONDS) next = resolveEcho(next, echo)
   } else next = stepPhaseTwo(next, seconds)
   return next
+}
+
+export function stepNekzaliState(state: NekzaliState, commands: PlayerCommandState, seconds: number): NekzaliState {
+  return stepNekzali(state, commands, seconds)
+}
+
+export function stepNekzaliDiagramState(state: NekzaliState, commands: PlayerCommandState, seconds: number): NekzaliState {
+  return stepNekzali(state, commands, seconds, true)
 }
 
 function npcPosition(member: ContractRaidMember, state: NekzaliState, index: number): WorldPoint {
@@ -532,4 +544,4 @@ export function nekzaliSnapshot(state: NekzaliState, playerHealth = 100): Train3
   return { time: state.time, arena: nekzaliArena, actors, effects: [...effects, ...ambientCombat] }
 }
 
-export const NEKZALI_TIMING = { phaseOneSeconds: P1_SECONDS, echoSeconds: ECHO_SECONDS, wellRadius: WELL_RADIUS }
+export const NEKZALI_TIMING = { phaseOneSeconds: P1_SECONDS, echoSeconds: ECHO_SECONDS, wellRadius: WELL_RADIUS, rendSeconds: REND_SECONDS, rendDropLeadSeconds: REND_DROP_LEAD_SECONDS }

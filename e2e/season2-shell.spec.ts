@@ -105,12 +105,17 @@ test("keeps Nek'zali Learn 2D circular, undistorted, and movable left and right"
   expect(geometry.backgroundSize).toBe('auto 100%, auto 100%')
 
   const player = page.getByLabel(/Controlled .* player/)
+  const startBox = await player.boundingBox()
   const start = Number(await player.getAttribute('data-position-x'))
   await page.keyboard.down('a'); await page.waitForTimeout(300); await page.keyboard.up('a')
+  const leftBox = await player.boundingBox()
   const left = Number(await player.getAttribute('data-position-x'))
   expect(left).toBeLessThan(start)
-  await page.keyboard.down('d'); await page.waitForTimeout(600); await page.keyboard.up('d')
+  await page.keyboard.down('d'); await page.waitForTimeout(300); await page.keyboard.up('d')
+  const returnedBox = await player.boundingBox()
   expect(Number(await player.getAttribute('data-position-x'))).toBeGreaterThan(left)
+  if (!startBox || !leftBox || !returnedBox) throw new Error('Nek\'zali player has no bounds')
+  expect(Math.abs((startBox.x - leftBox.x) - (returnedBox.x - leftBox.x))).toBeLessThan(3)
 })
 
 test('launches the single Entombed Sentinels full fight in separate 2D and 3D arenas', async ({ page }) => {
@@ -127,14 +132,21 @@ test('launches the single Entombed Sentinels full fight in separate 2D and 3D ar
   await expect(page.getByRole('button', { name: 'Move forward' })).toHaveText('↑')
   await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
   const player = page.getByLabel(/Controlled .* player/)
+  const beforeBox = await player.boundingBox()
   const before = { x: Number(await player.getAttribute('data-position-x')), y: Number(await player.getAttribute('data-position-y')) }
   await page.keyboard.down('w'); await page.waitForTimeout(300); await page.keyboard.up('w')
+  const afterForwardBox = await player.boundingBox()
   const afterForward = { x: Number(await player.getAttribute('data-position-x')), y: Number(await player.getAttribute('data-position-y')) }
   expect(afterForward.y).toBeLessThan(before.y)
   expect(Math.abs(afterForward.x - before.x)).toBeLessThan(.2)
   const rightButton = page.getByRole('button', { name: 'Move right' })
   await rightButton.dispatchEvent('pointerdown'); await page.waitForTimeout(300); await rightButton.dispatchEvent('pointerup')
+  const afterRightBox = await player.boundingBox()
   expect(Number(await player.getAttribute('data-position-x'))).toBeGreaterThan(afterForward.x)
+  if (!beforeBox || !afterForwardBox || !afterRightBox) throw new Error('Sentinels player has no bounds')
+  const verticalPixels = Math.abs(afterForwardBox.y - beforeBox.y)
+  const horizontalPixels = Math.abs(afterRightBox.x - afterForwardBox.x)
+  expect(Math.abs(horizontalPixels - verticalPixels)).toBeLessThan(3)
   await page.getByRole('button', { name: 'Exit' }).click()
 
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()

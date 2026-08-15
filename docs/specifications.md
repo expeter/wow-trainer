@@ -499,6 +499,11 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   into actor tokens. Controlled-player transforms update directly at display
   rate while React publishes mechanic/HUD summaries less frequently; throttled
   UI state must not make movement appear stepped.
+- Learn 2D directional movement is screen-relative and projection-aware. Equal
+  held-input durations cover equal rendered-pixel distance up, down, left, and
+  right even when a board's visual aspect ratio differs from its world-space
+  dimensions. Diagonal input is normalized. This diagram profile does not
+  alter Train 3D's yard-space movement calibration.
 - Train 3D uses a deterministic headless fixed-step simulation for movement,
   events, collision, bots, and mechanic outcomes. A general renderer consumes
   immutable snapshots and emits input/camera commands; it never decides

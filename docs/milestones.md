@@ -180,6 +180,11 @@ encounter development into an independently deployed Season 2 repository.
 - `BUG-172` — completed under `FR-084`: make Sentinels Learn 2D movement
   screen-relative and keep simulated side groups visibly inside their colored
   play/soak areas without covering the player's mechanic.
+- `BUG-173` — completed under `FR-072`: normalize visible horizontal and vertical
+  movement speed across Season 2 Learn 2D full-fight arena projections.
+- `CR-262` — completed under `FR-082`: give the provisional Essence Rend drill a
+  practical outward lead, three-drop window, and recovery margin while
+  preserving calibrated Train 3D movement.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
