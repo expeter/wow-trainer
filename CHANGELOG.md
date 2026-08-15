@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Completed Entombed Sentinels Heroic full-fight training in Learn 2D and
+  Train 3D with boss separation, side marks, droplets/returning venom,
+  Miasma pools, dual energy bars, Stasis matching, side swaps, and repeat cycles.
+- Added a separately selectable provisional Mythic Sentinels full fight with
+  active-cycle Protovenom pairing and a persisted healer-only Dispel binding.
 - Added isolated, automatically discovered setup packages for all eight
   Venomous Abyss bosses; six remain clearly labelled as catalogue-only while
   Nek'zali and Entombed Sentinels expose their approved playable work.

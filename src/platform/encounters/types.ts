@@ -65,7 +65,7 @@ export interface PhaseDefinition {
 export interface EncounterActionDefinition {
   id: string
   label: string
-  kind: 'interrupt' | 'taunt' | 'swap' | 'claim' | 'soak' | 'special'
+  kind: 'interrupt' | 'taunt' | 'swap' | 'claim' | 'soak' | 'dispel' | 'special'
   defaultBinding?: string
   cooldown?: number
 }

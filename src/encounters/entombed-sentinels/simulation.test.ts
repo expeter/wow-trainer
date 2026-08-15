@@ -1,0 +1,76 @@
+import { describe, expect, it } from 'vitest'
+import { IDLE_PLAYER_COMMANDS } from '../../platform/train3d/types'
+import { createSentinelsState, dispelSentinels, sentinelsContract, sentinelsSnapshot, stepSentinelsState, type SentinelsState } from './simulation'
+
+const idle = { ...IDLE_PLAYER_COMMANDS }
+
+describe('Entombed Sentinels full-fight contract', () => {
+  it('starts the bosses about 100 yards apart and fails below the 40-yard Dominance threshold', () => {
+    const initial = createSentinelsState('tank-1', 'easy')
+    expect(Math.hypot(initial.acidBoss.x - initial.bloodBoss.x, initial.acidBoss.z - initial.bloodBoss.z)).toBe(100)
+    const close = { ...initial, time: 9, phaseStartedAt: 0, acidBoss: { x: -15, z: 0 }, bloodBoss: { x: 15, z: 0 } }
+    const result = stepSentinelsState(close, idle, .1)
+    expect(sentinelsContract.dominanceYards).toBe(40)
+    expect(result.outcome).toBe('wipe')
+    expect(result.failures[0].code).toBe('dominance')
+  })
+
+  it('applies only the mark whose 40-yard boss aura contains the player', () => {
+    const state = { ...createSentinelsState('player', 'easy'), time: 4.95, lastMarkAt: 0 }
+    const result = stepSentinelsState(state, idle, .1)
+    expect(result.acidMarks).toBe(1)
+    expect(result.bloodMarks).toBe(0)
+  })
+
+  it('spawns four droplets and turns a soaked droplet into a returning projectile', () => {
+    let state = { ...createSentinelsState('player', 'easy'), time: 11.95 }
+    state = stepSentinelsState(state, idle, .1)
+    expect(state.droplets).toHaveLength(4)
+    const assigned = state.droplets.find(droplet => droplet.assignedToPlayer)!
+    state = { ...state, player: { ...state.player, ...assigned.position } }
+    state = stepSentinelsState(state, idle, .1)
+    expect(state.droplets.find(droplet => droplet.assignedToPlayer)?.soaked).toBe(true)
+    expect(sentinelsSnapshot(state).effects.some(effect => effect.id.endsWith('-return'))).toBe(true)
+  })
+
+  it('allows only a Blood-side healer to dispel Blighted Blood', () => {
+    const healer = { ...createSentinelsState('healer-2', 'easy'), time: 34, blightedActive: true }
+    expect(healer.assignedSide).toBe('blood')
+    expect(dispelSentinels(healer).blightedResolved).toBe(true)
+    const damage = { ...createSentinelsState('melee-1', 'easy'), time: 34, assignedSide: 'blood' as const, blightedActive: true }
+    expect(dispelSentinels(damage).blightedResolved).toBe(false)
+  })
+
+  it('enters Stasis at 100 energy and resolves the exact-four partner contact', () => {
+    const initial = createSentinelsState('player', 'easy')
+    let state: SentinelsState = { ...initial, time: 59.95, dropletsSpawned: true, droplets: [
+      { id: 'd1', position: { x: -38, z: 0 }, assignedToPlayer: true, soaked: true, soakedAt: 20 },
+    ], miasmaResolved: true }
+    state = stepSentinelsState(state, idle, .1)
+    expect(state.phase).toBe('stasis')
+    expect(state.energy).toBe(100)
+    state = { ...state, player: { x: 2, z: -14, facing: 0 } }
+    state = stepSentinelsState(state, idle, .1)
+    expect(state.helicalResolved).toBe(true)
+  })
+
+  it('swaps the controlled player side after the first Stasis cycle', () => {
+    const initial = createSentinelsState('player', 'easy')
+    const state = { ...initial, phase: 'stasis' as const, phaseStartedAt: 0, time: 29.95, helicalResolved: true }
+    const result = stepSentinelsState(state, idle, .1)
+    expect(result.cycle).toBe(2)
+    expect(result.phase).toBe('active')
+    expect(result.assignedSide).toBe('blood')
+  })
+
+  it('keeps Protovenom Mythic-only and requires it cleared before Stasis', () => {
+    const heroic = { ...createSentinelsState('player', 'easy', false), time: 40 }
+    expect(stepSentinelsState(heroic, idle, .1).protovenomActive).toBe(false)
+    const mythic = { ...createSentinelsState('player', 'easy', true), time: 59.95, dropletsSpawned: true, droplets: [
+      { id: 'd1', position: { x: -38, z: 0 }, assignedToPlayer: true, soaked: true, soakedAt: 20 },
+    ], miasmaResolved: true }
+    const result = stepSentinelsState(mythic, idle, .1)
+    expect(result.outcome).toBe('wipe')
+    expect(result.failures[0].code).toBe('protovenom-stasis')
+  })
+})

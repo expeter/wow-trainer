@@ -226,6 +226,19 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
       const grid = new THREE.GridHelper(Math.max(visualFloor.width, visualFloor.depth), 64, 0x405d48, 0x243329)
       grid.position.y = .03
       scene.add(grid)
+      if (arena.theme.kind === 'sentinels') {
+        const sideWidth = arena.width * .36
+        for (const [x, color] of [[-arena.width * .3, arena.theme.acid], [arena.width * .3, arena.theme.blood]] as const) {
+          const side = new THREE.Mesh(new THREE.PlaneGeometry(sideWidth, arena.depth * .9), new THREE.MeshBasicMaterial({ color: color || '#77c978', transparent: true, opacity: .1, depthWrite: false }))
+          side.rotation.x = -Math.PI / 2
+          side.position.set(x, .04, 0)
+          scene.add(side)
+        }
+        const corridor = new THREE.Mesh(new THREE.PlaneGeometry(18, arena.depth * .92), new THREE.MeshBasicMaterial({ color: arena.theme.corridor || '#d8c680', transparent: true, opacity: .08, depthWrite: false }))
+        corridor.rotation.x = -Math.PI / 2
+        corridor.position.y = .045
+        scene.add(corridor)
+      }
     } else {
       for (const radius of [10, 22, 34, 44]) {
         const ring = new THREE.Mesh(new THREE.RingGeometry(radius - .08, radius + .08, 72), new THREE.MeshBasicMaterial({ color: boundaryColor, side: THREE.DoubleSide, transparent: true, opacity: radius === 44 ? .48 : .15 }))

@@ -25,4 +25,16 @@ export const roles = [
     responsibilities: ['Group-soak Unstable Miasma.', 'Conserve edge pool space.', 'Resolve assigned toxin pairs.'],
     actions: [{ id: 'sentinels_join_miasma', label: 'Join Miasma soak', kind: 'soak' }],
   },
+  {
+    id: 'sentinels_acid_healer',
+    label: 'Acid healer',
+    responsibilities: ['Handle Acid-side movement.', 'Resolve assigned toxin pairs after Stasis.'],
+    actions: [],
+  },
+  {
+    id: 'sentinels_blood_healer',
+    label: 'Blood healer',
+    responsibilities: ['Dispel Blighted Blood.', 'Join Miasma and place the delayed pool at the edge.'],
+    actions: [{ id: 'sentinels_dispel_blighted_blood', label: 'Dispel Blighted Blood', kind: 'dispel', defaultBinding: 'R' }],
+  },
 ] as const satisfies readonly RoleDefinition[]

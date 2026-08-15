@@ -8,6 +8,7 @@ import { keyLabel } from '../../../platform/trainingSettings'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
 import ToxinIcons from '../ToxinIcons'
 import { learn2dScenarios } from './scenarios'
+import FullFightRuntime from './FullFightRuntime'
 
 type Direction = DiagramDirection
 type LessonOutcome = 'active' | 'success' | 'wrong-partner' | 'expired'
@@ -18,7 +19,7 @@ const partners = [
   { id: 'wrong-east', x: 76, y: 58, green: 1, red: 3 },
 ] as const
 
-export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: EncounterRuntimeProps) {
+function HelicalLearn2D({ scenarioId, keyBindings, onExit }: EncounterRuntimeProps) {
   const scenario = useMemo(() => learn2dScenarios.find(item => item.id === scenarioId) ?? learn2dScenarios[0], [scenarioId])
   const playerRef = useRef({ ...startPosition })
   const playerElementRef = useRef<HTMLDivElement>(null)
@@ -174,4 +175,11 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: En
       </div>
     </section>
   </main>
+}
+
+export default function SentinelsLearn2D(props: EncounterRuntimeProps) {
+  if (props.scenarioId === 'sentinels_full_fight' || props.scenarioId === 'sentinels_mythic_full_fight') {
+    return <FullFightRuntime {...props} />
+  }
+  return <HelicalLearn2D {...props} />
 }

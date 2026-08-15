@@ -154,6 +154,11 @@ encounter development into an independently deployed Season 2 repository.
   runtimes over one headless encounter contract.
 - `FR-083` — planned under `FR-075`: add the separately sourced Mythic well
   scenario only after the Heroic simulation is stable.
+- `FR-084` — completed under `FR-072`: complete the Sentinels reference package
+  with Heroic full-fight cycles in both runtimes and a separately selectable
+  Mythic Protovenom overlay, using the supplied split-room plan.
+- `CR-258` — completed under `FR-077`: add a persisted encounter Dispel binding
+  that only healer-capable Sentinels roles can resolve.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

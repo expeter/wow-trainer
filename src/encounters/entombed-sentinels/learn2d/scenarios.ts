@@ -14,7 +14,7 @@ const splitDiagram = {
 
 const shared = {
   phaseIds: ['sentinels_active_cycle', 'sentinels_stasis'],
-  roleIds: ['sentinels_acid_tank', 'sentinels_blood_tank', 'sentinels_acid_group', 'sentinels_blood_group'],
+  roleIds: ['sentinels_acid_tank', 'sentinels_blood_tank', 'sentinels_acid_group', 'sentinels_blood_group', 'sentinels_acid_healer', 'sentinels_blood_healer'],
   timingProfileIds: ['ptr_2026-08-13'],
   tacticIds: ['sentinels_default'],
   arena: splitDiagram,
@@ -45,16 +45,32 @@ export const learn2dScenarios = [
   },
   {
     ...shared,
-    status: 'planned',
+    status: 'ready',
     id: 'sentinels_full_fight',
     name: 'Guided full-fight walkthrough',
     kind: 'full-fight',
     mode: 'learn2d',
     difficulty: 'heroic',
     abilityIds: [
-      'sentinels_dominance', 'sentinels_marks', 'sentinels_toxic_droplets', 'sentinels_living_venom',
+      'sentinels_dominance', 'sentinels_marks', 'sentinels_toxic_droplets', 'sentinels_living_venom', 'sentinels_venom_coagulation',
       'sentinels_unstable_miasma', 'sentinels_vitriolic_stasis', 'sentinels_helical_toxins',
+      'sentinels_blighted_blood',
     ],
     steps: ['Review side responsibilities.', 'Walk through Stasis and pairing.', 'Prepare the side swap.', 'Recap the next cycle.'],
+  },
+  {
+    ...shared,
+    status: 'ready',
+    id: 'sentinels_mythic_full_fight',
+    name: 'Provisional Mythic full fight',
+    kind: 'full-fight',
+    mode: 'learn2d',
+    difficulty: 'mythic',
+    abilityIds: [
+      'sentinels_dominance', 'sentinels_marks', 'sentinels_toxic_droplets', 'sentinels_living_venom', 'sentinels_venom_coagulation',
+      'sentinels_unstable_miasma', 'sentinels_blighted_blood', 'sentinels_shifting_protovenom',
+      'sentinels_vitriolic_stasis', 'sentinels_helical_toxins',
+    ],
+    steps: ['Resolve assigned side mechanics.', 'Clear marked Protovenom before Stasis.', 'Match Helical Toxins.', 'Swap sides and repeat.'],
   },
 ] as const satisfies readonly Learn2DScenario[]

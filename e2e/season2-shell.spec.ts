@@ -52,6 +52,30 @@ test("discovers all raid panels and launches Nek'zali in separate 2D and 3D aren
   await expect(page.getByText('Training boss · your aggro')).toBeVisible()
 })
 
+test('launches the Entombed Sentinels Heroic full fight in separate 2D and 3D arenas', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Guided full-fight walkthrough Learn 2D' }).click()
+  const setup2d = page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' })
+  await expect(setup2d).toContainText('Heroic full fight')
+  await setup2d.getByRole('button', { name: 'Healer 2, druid' }).click()
+  await expect(setup2d).toContainText('Blighted Blood dispel')
+  await setup2d.getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByLabel('Entombed Sentinels raid-plan training arena')).toBeVisible({ timeout: 5000 })
+  await expect(page.getByText(/Dispel R/)).toBeVisible()
+  await page.getByRole('button', { name: 'Exit' }).click()
+
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Provisional Heroic full fight Train 3D' }).click()
+  const setup3d = page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' })
+  const canvas = page.getByLabel('Third-person 3D training arena')
+  await expect(canvas).toHaveAttribute('data-arena-shape', 'rectangle')
+  await expect(canvas).toHaveAttribute('data-arena-theme', 'sentinels')
+  await setup3d.getByRole('button', { name: 'Tank 1, warrior' }).click()
+  await setup3d.getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
+  await expect(page.getByLabel(/Breath of Ula'tek energy 5\d%/)).toBeVisible()
+  await expect(page.getByText(/boss distance 9\d yd/i)).toBeVisible()
+})
+
 test('moves independently in all four Learn 2D directions and clears input on blur', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()

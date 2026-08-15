@@ -12,5 +12,9 @@ export const tacticSchema = {
     { id: 'protovenom_pairs', label: 'Mythic Protovenom pairs', kind: 'pair', required: false },
     { id: 'protovenom_lanes', label: 'Mythic meeting lanes', kind: 'region', required: false },
     { id: 'swap_action_owner', label: 'Tank swap action owner', kind: 'action-owner', required: true },
+    { id: 'dispel_action_owner', label: 'Blighted Blood dispel owner', kind: 'action-owner', required: true },
+    { id: 'droplet_owners', label: 'Toxic Droplet owners', kind: 'group', required: true },
+    { id: 'miasma_soak_group', label: 'Miasma soak group', kind: 'group', required: true },
+    { id: 'pool_drop_regions', label: 'Blood Venom drop regions', kind: 'region', required: true },
   ],
 } as const satisfies TacticSchema

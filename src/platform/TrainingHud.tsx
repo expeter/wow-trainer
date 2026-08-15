@@ -33,6 +33,9 @@ interface ArenaTrainingHudProps extends Omit<TrainingHudProps, 'mode' | 'compact
   castSeconds?: number
   castSecondsSource?: () => number
   actionButton?: ReactNode
+  bossLabel?: string
+  bossEnergy?: number
+  secondaryBoss?: { label: string; health: number; energy?: number }
 }
 
 function SmoothCastBar({ seconds, secondsSource, style }: { seconds: number; secondsSource?: () => number; style: CSSProperties }) {
@@ -53,7 +56,7 @@ function SmoothCastBar({ seconds, secondsSource, style }: { seconds: number; sec
 }
 
 /** Season 2 extraction of the reviewed v0.9.1 in-arena HUD contract. */
-export function ArenaTrainingHud({ settings, objective, secondsRemaining, timers, status, playerHealth = 100, bossHealth = 100, bossThreat, auraLabel = 'No active aura', actionStatus = 'Ready', castSeconds = 0, castSecondsSource, actionButton }: ArenaTrainingHudProps) {
+export function ArenaTrainingHud({ settings, objective, secondsRemaining, timers, status, playerHealth = 100, bossHealth = 100, bossThreat, auraLabel = 'No active aura', actionStatus = 'Ready', castSeconds = 0, castSecondsSource, actionButton, bossLabel = 'Training boss', bossEnergy, secondaryBoss }: ArenaTrainingHudProps) {
   const at = (box: keyof TrainingHudSettings['layout']) => ({ left: `${settings.layout[box].x}%`, top: `${settings.layout[box].y}%` })
   const countdowns = timers ?? (secondsRemaining === undefined ? [] : [{ label: 'Time', seconds: secondsRemaining }])
   return <aside className="arena-training-hud" aria-label="Training HUD" style={{ fontSize: `${settings.scale}%` }}>
@@ -65,7 +68,11 @@ export function ArenaTrainingHud({ settings, objective, secondsRemaining, timers
     </div>
     {settings.showPlayer && <div className="arena-hud-health player" style={at('player')}><small>Player</small><div><i style={{ width: `${playerHealth}%` }} /></div><strong>{Math.round(playerHealth)}%</strong></div>}
     {settings.showAuras && <div className="arena-hud-auras" style={at('auras')}><small>Status</small><strong>{auraLabel}</strong></div>}
-    {settings.showBoss && <div className={`arena-hud-health boss${bossThreat ? ` ${bossThreat}` : ''}`} style={at('boss')}><small>Training boss{bossThreat ? ` · ${bossThreat === 'owned' ? 'your aggro' : 'no aggro'}` : ''}</small><div><i style={{ width: `${bossHealth}%` }} /></div><strong>{Math.round(bossHealth)}%</strong></div>}
+    {settings.showBoss && <div className={`arena-hud-health boss${bossThreat ? ` ${bossThreat}` : ''}${secondaryBoss ? ' dual' : ''}`} style={at('boss')}>
+      <small>{bossLabel}{bossThreat ? ` · ${bossThreat === 'owned' ? 'your aggro' : 'no aggro'}` : ''}</small><div><i style={{ width: `${bossHealth}%` }} /></div><strong>{Math.round(bossHealth)}%</strong>
+      {bossEnergy !== undefined && <div className="boss-energy" aria-label={`${bossLabel} energy ${Math.round(bossEnergy)}%`}><i style={{ width: `${bossEnergy}%` }} /></div>}
+      {secondaryBoss && <><small>{secondaryBoss.label}</small><div><i style={{ width: `${secondaryBoss.health}%` }} /></div><strong>{Math.round(secondaryBoss.health)}%</strong>{secondaryBoss.energy !== undefined && <div className="boss-energy" aria-label={`${secondaryBoss.label} energy ${Math.round(secondaryBoss.energy)}%`}><i style={{ width: `${secondaryBoss.energy}%` }} /></div>}</>}
+    </div>}
     {settings.showActions && castSeconds > 0 && <SmoothCastBar seconds={castSeconds} secondsSource={castSecondsSource} style={at('castbar')} />}
     {settings.showActions && actionButton && <div className="arena-hud-actions" style={at('actions')} aria-label="HUD action buttons">{actionButton}</div>}
   </aside>

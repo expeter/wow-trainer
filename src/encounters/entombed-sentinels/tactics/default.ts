@@ -14,5 +14,9 @@ export const defaultTactic = {
     protovenom_pairs: ['Acid 1 + Acid 2', 'Blood 1 + Blood 2'],
     protovenom_lanes: ['acid-outer', 'blood-outer'],
     swap_action_owner: ['Tank 1', 'Tank 2'],
+    dispel_action_owner: 'Healer 2',
+    droplet_owners: ['Tank 1', 'Acid 1', 'Acid 2', 'Acid 3'],
+    miasma_soak_group: ['Tank 2', 'Blood 1', 'Blood 2', 'Blood 3'],
+    pool_drop_regions: ['blood-outer-north', 'blood-outer-south'],
   },
 } as const satisfies TacticPreset

@@ -11,8 +11,9 @@ import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from '../../../platform
 import { keyLabel } from '../../../platform/trainingSettings'
 import { createHelicalState, helicalSnapshot, stepHelicalState, turnHelicalPlayer } from './helicalSimulation'
 import { train3dScenarios } from './scenarios'
+import FullFightRuntime from './FullFightRuntime'
 
-export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
+function HelicalTrain3D({ scenarioId, keyBindings, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
   const scenario = useMemo(() => train3dScenarios.find(item => item.id === scenarioId) ?? train3dScenarios[0], [scenarioId])
   const stateRef = useRef(createHelicalState())
   const commandsRef = useRef<PlayerCommandState>({ ...IDLE_PLAYER_COMMANDS })
@@ -144,4 +145,9 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
       </div>
     </section>
   </main>
+}
+
+export default function SentinelsTrain3D(props: EncounterRuntimeProps) {
+  if (props.scenarioId === 'sentinels_full_fight' || props.scenarioId === 'sentinels_mythic_full_fight') return <FullFightRuntime {...props} />
+  return <HelicalTrain3D {...props} />
 }

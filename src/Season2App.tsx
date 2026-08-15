@@ -34,6 +34,7 @@ const actionLabels = {
   taunt: 'Taunt / Spott',
   healthPot: 'Health potion',
   shield: 'Shield',
+  dispel: 'Dispel',
 } as const
 const trainingLabels: Record<TrainingAction, string> = { ...movementLabels, ...actionLabels }
 
@@ -162,7 +163,7 @@ export default function Season2App() {
     </div>
     <div className="season2-status" aria-label="Migration status">
       <span>Platform extraction</span>
-      <strong>Nek'zali full fight · Sentinels focused drill</strong>
+      <strong>Nek'zali and Entombed Sentinels full fights</strong>
       <small>All eight raid bosses have isolated catalogue packages. Only Nek'zali and Entombed Sentinels currently expose playable scenarios.</small>
     </div>
 
@@ -202,6 +203,7 @@ export default function Season2App() {
             {(['learn2d', 'train3d'] as EncounterMode[]).map(mode => {
               const modeLabel = mode === 'learn2d' ? 'Learn 2D' : 'Train 3D'
               const scenarios = mode === 'learn2d' ? selectedEncounter.learn2d : selectedEncounter.train3d
+              const primaryReadyScenario = scenarios.find(scenario => scenario.status === 'ready')
               return <section key={mode} aria-labelledby={`${selectedEncounter.manifest.id}-${mode}`}>
                 <h4 id={`${selectedEncounter.manifest.id}-${mode}`}>{modeLabel}</h4>
                 <p>{mode === 'learn2d' ? 'Study timing and assignments in the tactical model.' : 'Rehearse movement in the independent 3D arena.'}</p>
@@ -209,7 +211,7 @@ export default function Season2App() {
                   type="button"
                   key={`${scenario.id}-${scenario.difficulty}`}
                   disabled={scenario.status !== 'ready' || Boolean(runtimeLoading)}
-                  aria-label={scenario.status === 'ready' ? `Launch ${selectedEncounter.manifest.name} ${modeLabel}` : `${selectedEncounter.manifest.name} ${scenario.name} coming soon in ${modeLabel}`}
+                  aria-label={scenario.status === 'ready' ? primaryReadyScenario?.id === scenario.id ? `Launch ${selectedEncounter.manifest.name} ${modeLabel}` : `Launch ${selectedEncounter.manifest.name} ${scenario.name} ${modeLabel}` : `${selectedEncounter.manifest.name} ${scenario.name} coming soon in ${modeLabel}`}
                   onClick={() => void launch(selectedEncounter, mode, scenario.id)}
                 ><span>{scenario.name}</span><strong>{scenario.status === 'ready' ? runtimeLoading === mode ? 'Loading…' : 'Play' : 'Coming soon'}</strong></button>)}</div>
               </section>

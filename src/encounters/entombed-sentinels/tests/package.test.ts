@@ -3,11 +3,14 @@ import { validateEncounterPackage } from '../../../platform/encounters'
 import sentinels from '..'
 
 describe('Entombed Sentinels package boundary', () => {
-  it('is a conforming PTR preview with only the first focused drill ready', () => {
+  it('is a conforming PTR preview with focused Heroic and separate full-fight scenarios ready', () => {
     expect(validateEncounterPackage(sentinels).ok).toBe(true)
     expect(sentinels.manifest.availability).toBe('ptr-preview')
-    expect(sentinels.learn2d.filter(scenario => scenario.status === 'ready').map(scenario => scenario.id)).toEqual(['sentinels_helical_toxins'])
-    expect(sentinels.train3d.filter(scenario => scenario.status === 'ready').map(scenario => scenario.id)).toEqual(['sentinels_helical_toxins'])
+    const ready = ['sentinels_helical_toxins', 'sentinels_full_fight', 'sentinels_mythic_full_fight']
+    expect(sentinels.learn2d.filter(scenario => scenario.status === 'ready').map(scenario => scenario.id)).toEqual(ready)
+    expect(sentinels.train3d.filter(scenario => scenario.status === 'ready').map(scenario => scenario.id)).toEqual(ready)
+    expect(sentinels.learn2d.find(scenario => scenario.id === 'sentinels_full_fight')?.difficulty).toBe('heroic')
+    expect(sentinels.learn2d.find(scenario => scenario.id === 'sentinels_mythic_full_fight')?.difficulty).toBe('mythic')
     expect(typeof sentinels.runtimeLoaders.learn2d).toBe('function')
     expect(typeof sentinels.runtimeLoaders.train3d).toBe('function')
   })

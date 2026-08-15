@@ -15,5 +15,10 @@ export const ptrTiming = {
     { key: 'mark-duration', value: 40, unit: 'seconds', provenance: journalHigh },
     { key: 'reported-pull-energy', value: 50, unit: 'energy', provenance: ptrMedium },
     { key: 'planned-boss-separation', value: 40, unit: 'yards', provenance: ptrMedium },
+    { key: 'toxic-droplet-expiry', value: 12, unit: 'seconds', provenance: journalHigh },
+    { key: 'living-venom-return', value: 4, unit: 'seconds', provenance: journalHigh },
+    { key: 'miasma-eruption', value: 8, unit: 'seconds', provenance: journalHigh },
+    { key: 'blighted-blood-duration', value: 18, unit: 'seconds', provenance: journalHigh },
+    { key: 'training-pool-drop-after-soak', value: 5, unit: 'seconds', provenance: ptrMedium },
   ],
 } as const satisfies TimingProfile

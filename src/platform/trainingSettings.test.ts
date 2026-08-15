@@ -20,6 +20,12 @@ describe('shared Season 2 training settings', () => {
     expect(normalizeTrainingSettings({ keyBindings: legacy }).keyBindings).toMatchObject({ forward: 'ArrowUp', pause: 'KeyP' })
   })
 
+  it('adds and persists the encounter Dispel binding during settings migration', () => {
+    const legacy = { ...DEFAULT_TRAINING_SETTINGS.keyBindings } as Partial<typeof DEFAULT_TRAINING_SETTINGS.keyBindings>
+    delete legacy.dispel
+    expect(normalizeTrainingSettings({ keyBindings: legacy }).keyBindings.dispel).toBe('KeyR')
+  })
+
   it('uses the reviewed WoW movement defaults', () => {
     expect(DEFAULT_TRAINING_SETTINGS.keyBindings).toMatchObject({
       forward: 'KeyW', backward: 'KeyS', turnLeft: 'KeyQ', turnRight: 'KeyE', left: 'KeyA', right: 'KeyD',

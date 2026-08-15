@@ -43,16 +43,14 @@ IDs, broken references, missing focused/full-fight declarations, invalid
 defaults/tactics, and timing without provenance. Load failures become sorted
 development diagnostics instead of crashing the catalogue.
 
-Entombed Sentinels is the only current encounter directory. Its package owns
+Entombed Sentinels remains the architecture-reference encounter. Its package owns
 the `ptr_2026-08-13` profile, tactic declarations, abstract 2D diagram arena,
-independent 3D world arena, scenario metadata, and lazy runtime adapters. Only
-Helical Toxins is `ready`: Learn 2D moves a controlled icon-based character
-through abstract percentage space, while Train 3D resolves player commands,
-world collision, and the 28-second matching window in a headless fixed-step
-simulation. The reusable Three.js renderer consumes immutable actor/aura/effect
-snapshots and owns no mechanic decisions. The shell passes persisted bindings,
-camera preferences, and HUD preferences without becoming an encounter-state
-owner.
+independent 3D world arena, scenario metadata, and lazy runtime adapters. The
+focused Helical drill and Heroic/Mythic full fights are `ready`: Learn 2D uses
+abstract percentage space over the supplied tactical plan, while Train 3D
+resolves side mechanics, energy/Stasis cycles, pairing, movement, and collision
+in a headless fixed-step simulation. The reusable Three.js renderer consumes
+immutable snapshots and owns no mechanic decisions.
 
 The development-only platform contract room uses the same Train 3D movement,
 camera, snapshot, aura, effect, timing, and position-check primitives. It is a
