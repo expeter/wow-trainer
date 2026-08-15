@@ -311,6 +311,7 @@
 .arena-training-hud { position: absolute; z-index: 12; inset: 0; overflow: hidden; pointer-events: none; }
 .arena-training-hud > div { position: absolute; transform: translate(-50%, -50%); color: var(--s2-color-text); background: rgba(5, 9, 14, .9); box-shadow: 0 3px 14px rgba(0, 0, 0, .48); }
 .arena-hud-mechanic { display: grid; justify-items: center; width: min(380px, 44%); padding: 8px 12px; border: 1px solid rgba(211, 181, 75, .56); border-radius: 7px; text-align: center; }
+.arena-hud-mechanic.compact { width: auto; max-width: min(260px, 34%); padding: 5px 9px; }
 .arena-hud-mechanic small, .arena-hud-health small, .arena-hud-auras small { color: var(--s2-color-muted); font: 8px var(--s2-font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .arena-hud-mechanic strong { margin-top: 2px; font-size: 11px; }
 .arena-hud-mechanic span { color: var(--s2-color-accent); font: 9px var(--s2-font-mono); }
@@ -373,6 +374,9 @@
 .nekzali-2d-callout { position: absolute; z-index: 18; left: 50%; top: 5%; transform: translateX(-50%); display: grid; min-width: 240px; justify-items: center; padding: 7px 12px; border: 1px solid rgba(211,181,75,.58); border-radius: 7px; color: var(--s2-color-text); background: rgba(4, 10, 14, .9); pointer-events: none; }
 .nekzali-2d-callout strong { font-size: 11px; }
 .nekzali-2d-callout span { margin-top: 2px; color: var(--s2-color-accent); font: 9px var(--s2-font-mono); }
+.nekzali-2d-callout.compact { min-width: 0; max-width: 260px; padding: 5px 9px; }
+.attached-aura-timer { position: absolute; z-index: 4; left: 50%; bottom: calc(100% + 5px); transform: translateX(-50%); padding: 2px 4px; border: 1px solid rgba(231, 91, 79, .8); border-radius: 3px; color: #ffe8bd; background: rgba(34, 8, 10, .92); font: normal 7px var(--s2-font-mono); white-space: nowrap; }
+.train3d-attached-aura-timer { position: absolute; z-index: 16; left: 50%; bottom: 34%; transform: translateX(-50%); padding: 3px 6px; border: 1px solid rgba(231, 91, 79, .8); border-radius: 4px; color: #ffe8bd; background: rgba(34, 8, 10, .92); font: normal 8px var(--s2-font-mono); pointer-events: none; }
 .nekzali-2d-effect { position: absolute; z-index: 2; transform: translate(-50%, -50%); border: 3px solid var(--effect-color); border-radius: 50%; background: color-mix(in srgb, var(--effect-color) 30%, transparent); box-shadow: 0 0 18px color-mix(in srgb, var(--effect-color) 36%, transparent); pointer-events: none; }
 .nekzali-2d-effect.outline { background: transparent; box-shadow: none; }
 .nekzali-2d-effect.spread { z-index: 7; border-width: 2px; }

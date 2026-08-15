@@ -13,7 +13,7 @@ export const abilities = [
   ability('nekzali_hungering_pyre', 'Hungering Pyre', 'One raid half shares a large soak while the other half receives Slithering Flame.', journal, ['soak', 'assignment']),
   ability('nekzali_cremation', 'Cremation', 'Slithering Flame explosions incinerate nearby Amani corpses and leave fire.', journal, ['spread', 'corpse']),
   ability('nekzali_invoke', 'Invoke', 'Triggers Soulcoil Rite and causes Latent Cultists to reposition around the Well.', journal, ['phase-2', 'movement']),
-  ability('nekzali_training_rend_trail', 'Provisional Rend trail', 'One-second edge drops create a repeatable movement drill pending live-log validation.', tactic, ['training-profile', 'provisional']),
+  ability('nekzali_training_rend_trail', 'Provisional Rend drops', 'Three edge drops create a repeatable selected-player movement drill pending live-log validation.', tactic, ['training-profile', 'provisional']),
   ability('nekzali_grasping_depths', 'Grasping Depths', 'The assigned raid half enters the Well to defeat a Drowned Echo.', journal, ['realm']),
   ability('nekzali_drowned_echo', 'Drowned Echo', 'The inner-realm add requires player damage and one assigned interrupt.', tactic, ['realm', 'add', 'interrupt']),
   ability('nekzali_swirling_spirits', 'Swirling Spirits', 'Orbiting and outward-moving spirits make the inner realm a movement drill.', tactic, ['realm', 'movement']),

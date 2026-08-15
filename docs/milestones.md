@@ -173,11 +173,11 @@ encounter development into an independently deployed Season 2 repository.
   octagonal raid plan and provisional Ikku/Namaa/Gebbo/Morzahi contract.
 - `BUG-170` — completed under `FR-082`: restore a circular, undistorted and
   movement-complete Nek'zali Learn 2D board from the supplied visual report.
-- `BUG-171` — planned under `FR-082`: replace the continuous Essence Rend trail
+- `BUG-171` — completed under `FR-082`: replace the continuous Essence Rend trail
   with an affected-player timer and exactly three movement-driven puddles.
-- `CR-260` — planned under `CR-257`: make Nek'zali's central mechanic display
+- `CR-260` — completed under `CR-257`: make Nek'zali's central mechanic display
   compact and preserve target uncertainty until the player is selected.
-- `BUG-172` — planned under `FR-084`: make Sentinels Learn 2D movement
+- `BUG-172` — completed under `FR-084`: make Sentinels Learn 2D movement
   screen-relative and keep simulated side groups visibly inside their colored
   play/soak areas without covering the player's mechanic.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.

@@ -75,6 +75,20 @@ test("keeps Nek'zali Well mechanics and interrupt controls in its single full fi
   await expect(page.getByRole('button', { name: /Interrupt T/ })).toBeVisible()
 })
 
+test("keeps Nek'zali mechanic coaching compact and assignment-neutral before selection", async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Train 3D" }).click()
+  const setup = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
+  await setup.getByRole('button', { name: 'Start' }).click()
+  const mechanic = page.locator('.arena-hud-mechanic.compact')
+  await expect(mechanic).toBeVisible()
+  await expect(mechanic.getByText('Mechanic', { exact: true })).toHaveCount(0)
+  await expect(mechanic.getByLabel('Action state')).toHaveCount(0)
+  await expect(mechanic).not.toContainText(/Take Essence Rend|assigned adds|soak group/)
+  await expect(mechanic).toContainText(/Rend ~\d+s/)
+  expect((await mechanic.boundingBox())!.width).toBeLessThanOrEqual(270)
+})
+
 test("keeps Nek'zali Learn 2D circular, undistorted, and movable left and right", async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()
@@ -109,6 +123,18 @@ test('launches the single Entombed Sentinels full fight in separate 2D and 3D ar
   await setup2d.getByRole('button', { name: 'Start' }).click()
   await expect(page.getByLabel('Entombed Sentinels raid-plan training arena')).toBeVisible({ timeout: 5000 })
   await expect(page.getByText(/Dispel R/)).toBeVisible()
+  await expect(page.getByLabel('2D movement controls')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Move forward' })).toHaveText('↑')
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
+  const player = page.getByLabel(/Controlled .* player/)
+  const before = { x: Number(await player.getAttribute('data-position-x')), y: Number(await player.getAttribute('data-position-y')) }
+  await page.keyboard.down('w'); await page.waitForTimeout(300); await page.keyboard.up('w')
+  const afterForward = { x: Number(await player.getAttribute('data-position-x')), y: Number(await player.getAttribute('data-position-y')) }
+  expect(afterForward.y).toBeLessThan(before.y)
+  expect(Math.abs(afterForward.x - before.x)).toBeLessThan(.2)
+  const rightButton = page.getByRole('button', { name: 'Move right' })
+  await rightButton.dispatchEvent('pointerdown'); await page.waitForTimeout(300); await rightButton.dispatchEvent('pointerup')
+  expect(Number(await player.getAttribute('data-position-x'))).toBeGreaterThan(afterForward.x)
   await page.getByRole('button', { name: 'Exit' }).click()
 
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()

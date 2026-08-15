@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Corrected Nek'zali Essence Rend to select one raid member at application,
+  attach its five-second timer to that character, drop exactly three pools,
+  retain only the final Latent Cultist, and avoid revealing the controlled
+  player's reaction before selection.
+- Reduced Nek'zali's central Learn 2D and Train 3D mechanic coaching to a
+  compact next-event/reaction display without repeated assignment, add-count,
+  action-state, or soak-group prose.
+- Corrected Entombed Sentinels Learn 2D keyboard and directional-pad movement
+  to fixed screen directions, kept both NPC groups inside the visible side
+  areas, and made NPCs visibly gather into only their own active soaks while
+  preserving facing-relative Train 3D movement.
 - Fixed Nek'zali Learn 2D to project its circular yard-space onto a circular
   board, preserve the supplied raid-plan aspect ratio through a centered crop,
   and keep the default player's left/right movement visibly usable.
@@ -25,7 +36,7 @@
   Nek'zali and Entombed Sentinels expose their approved playable work.
 - Added the first Nek'zali full-fight training contract in separate
   Learn 2D and Train 3D runtimes, including the circular Soulwell arena,
-  pre-pull role and soak assignment, Essence Rend trails, Possession Barrage
+  pre-pull role and soak assignment, Essence Rend, Possession Barrage
   tank swaps, killable Amani waves, the two-Echo intermission, corpse burning,
   and Phase 2 Invoke hazard movement.
 - Made Test, Easy, Normal, and Hard trainer assistance/failure-tolerance

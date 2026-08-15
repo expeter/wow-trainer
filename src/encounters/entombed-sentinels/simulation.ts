@@ -137,11 +137,24 @@ export function dispelSentinels(state: SentinelsState): SentinelsState {
   return { ...state, blightedResolved: true }
 }
 
-function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds: number): SentinelsState {
+function stepScreenRelativePlayer(player: SentinelsState['player'], commands: PlayerCommandState, seconds: number) {
+  const horizontal = Number(commands.right) - Number(commands.left)
+  const vertical = Number(commands.backward) - Number(commands.forward)
+  const magnitude = Math.hypot(horizontal, vertical)
+  if (!magnitude) return player
+  const distanceMoved = 7 * seconds / Math.max(1, magnitude)
+  return {
+    ...player,
+    x: Math.max(-sentinelsArena.width / 2 + 1.5, Math.min(sentinelsArena.width / 2 - 1.5, player.x + horizontal * distanceMoved)),
+    z: Math.max(-sentinelsArena.depth / 2 + 1.5, Math.min(sentinelsArena.depth / 2 - 1.5, player.z + vertical * distanceMoved)),
+  }
+}
+
+function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds: number, screenRelative = false): SentinelsState {
   const phaseAge = state.time - state.phaseStartedAt
   const duration = state.cycle === 1 ? FIRST_ACTIVE_SECONDS : SECOND_ACTIVE_SECONDS
   const member = contractSelectedMember(state.selectedSlotId)
-  let player = stepPlayerMovement(state.player, commands, seconds, { halfWidth: sentinelsArena.width / 2 - 1.5, halfDepth: sentinelsArena.depth / 2 - 1.5 })
+  let player = screenRelative ? stepScreenRelativePlayer(state.player, commands, seconds) : stepPlayerMovement(state.player, commands, seconds, { halfWidth: sentinelsArena.width / 2 - 1.5, halfDepth: sentinelsArena.depth / 2 - 1.5 })
   let acidBoss = state.acidBoss; let bloodBoss = state.bloodBoss
   if (member.role === 'tank') {
     if (state.assignedSide === 'acid') acidBoss = moveToward(acidBoss, player, 5, seconds)
@@ -215,9 +228,9 @@ function helicalPartner(state: SentinelsState): WorldPoint {
   return { x: state.selectedSlotId.length % 2 ? 0 : 2, z: state.cycle === 1 ? -14 : 14 }
 }
 
-function stepStasis(state: SentinelsState, commands: PlayerCommandState, seconds: number): SentinelsState {
+function stepStasis(state: SentinelsState, commands: PlayerCommandState, seconds: number, screenRelative = false): SentinelsState {
   const age = state.time - state.phaseStartedAt
-  const player = stepPlayerMovement(state.player, commands, seconds, { halfWidth: sentinelsArena.width / 2 - 1.5, halfDepth: sentinelsArena.depth / 2 - 1.5 })
+  const player = screenRelative ? stepScreenRelativePlayer(state.player, commands, seconds) : stepPlayerMovement(state.player, commands, seconds, { halfWidth: sentinelsArena.width / 2 - 1.5, halfDepth: sentinelsArena.depth / 2 - 1.5 })
   let next = { ...state, player, acidBoss: { ...STASIS_ACID }, bloodBoss: { ...STASIS_BLOOD }, energy: 100 }
   const partner = helicalPartner(next)
   const wrong = { x: 12, z: next.cycle === 1 ? -6 : 6 }
@@ -246,6 +259,12 @@ export function stepSentinelsState(state: SentinelsState, commands: PlayerComman
   return timed.phase === 'active' ? stepActive(timed, commands, seconds) : stepStasis(timed, commands, seconds)
 }
 
+export function stepSentinelsDiagramState(state: SentinelsState, commands: PlayerCommandState, seconds: number): SentinelsState {
+  if (state.outcome !== 'active') return state
+  const timed = { ...state, time: state.time + seconds }
+  return timed.phase === 'active' ? stepActive(timed, commands, seconds, true) : stepStasis(timed, commands, seconds, true)
+}
+
 function memberPosition(member: ContractRaidMember, state: SentinelsState): WorldPoint {
   if (member.id === state.selectedSlotId) return state.player
   if (state.phase === 'stasis') {
@@ -257,7 +276,23 @@ function memberPosition(member: ContractRaidMember, state: SentinelsState): Worl
   const side = sideForSlot(member.id, state.cycle); const home = homeForSide(side, state.cycle)
   const peers = contractRaidRoster.filter(candidate => sideForSlot(candidate.id, state.cycle) === side)
   const index = peers.findIndex(candidate => candidate.id === member.id)
-  return { x: home.x + (side === 'acid' ? 11 : -11), z: -20 + index * 4.5 }
+  const phaseAge = state.time - state.phaseStartedAt
+  if (side === 'acid' && state.dropletsSpawned) {
+    const npcDroplets = state.droplets.filter(droplet => !droplet.soaked && (!droplet.assignedToPlayer || state.assignedSide !== 'acid'))
+    const droplet = npcDroplets[index % Math.max(1, npcDroplets.length)]
+    if (droplet) {
+      const angle = index * 2.1
+      return { x: droplet.position.x + Math.cos(angle) * 1.2, z: droplet.position.z + Math.sin(angle) * 1.2 }
+    }
+  }
+  if (side === 'blood' && phaseAge >= 17 && phaseAge < 25) {
+    const target = { x: home.x + (state.cycle === 1 ? -13 : 13), z: 16 }
+    const angle = index / Math.max(1, peers.length) * Math.PI * 2
+    return { x: target.x + Math.cos(angle) * 5.2, z: target.z + Math.sin(angle) * 5.2 }
+  }
+  const column = index % 3
+  const row = Math.floor(index / 3)
+  return { x: home.x + (side === 'acid' ? 10 + column * 3 : -10 - column * 3), z: -13 + row * 8 }
 }
 
 function toxins(green: number, red: number) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { IDLE_PLAYER_COMMANDS } from '../../platform/train3d/types'
-import { createNekzaliState, interruptNekzali, nekzaliSnapshot, startNekzaliMainCast, stepNekzaliState, tauntNekzali, type NekzaliState } from './simulation'
+import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, nekzaliRendRemaining, nekzaliSnapshot, startNekzaliMainCast, stepNekzaliState, tauntNekzali, type NekzaliState } from './simulation'
 
 const idle = IDLE_PLAYER_COMMANDS
 
@@ -22,19 +22,33 @@ describe("Nek'zali headless full-fight simulation", () => {
     expect(state.corpses.filter(corpse => corpse.id.includes('amani-')).length).toBeGreaterThanOrEqual(3)
   })
 
-  it('drops the provisional 15-zone Rend trail and requires continuous edge movement', () => {
-    let state: NekzaliState = createNekzaliState('player', 'hard')
-    for (let drop = 0; drop < 15; drop += 1) {
-      const angle = drop * Math.PI * 2 / 15
-      state = stepNekzaliState({ ...state, time: 16.99 + drop, player: { x: Math.cos(angle) * 38, z: Math.sin(angle) * 38, facing: 0 } }, idle, .02)
-    }
-    expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(15)
-    expect(state.outcome).toBe('active')
+  it('selects one player, attaches the Rend aura, drops three pools, and retains the final one', () => {
+    let state: NekzaliState = { ...createNekzaliState('player', 'hard'), time: 16.99, player: { x: 38, z: 0, facing: 0 } }
+    expect(activeNekzaliPrompt({ ...state, time: 14 })).toBe('Essence Rend soon')
+    state = stepNekzaliState(state, idle, .02)
+    expect(state.rendTargetId).toBe('player')
+    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras).toContainEqual({ id: 'essence-rend', tone: 'danger', stacks: 1 })
+    expect(activeNekzaliPrompt(state)).toBe('Essence Rend — move out')
 
-    let stopped: NekzaliState = { ...createNekzaliState('player', 'hard'), time: 16.99, player: { x: 38, z: 0, facing: 0 } }
-    stopped = stepNekzaliState(stopped, idle, .02)
-    stopped = stepNekzaliState(stopped, idle, .7)
-    expect(stopped.outcomeReason).toBe('Stayed in an Essence Rend pool')
+    for (let drop = 1; drop <= 3; drop += 1) {
+      const angle = drop * .32
+      state = stepNekzaliState({ ...state, player: { x: Math.cos(angle) * 40, z: Math.sin(angle) * 40, facing: 0 } }, idle, 1.01)
+    }
+    expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(3)
+    state = stepNekzaliState({ ...state, player: { x: 0, z: 40, facing: 0 } }, idle, 2.1)
+    expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(1)
+    expect(state.rendTargetId).toBeUndefined()
+    expect(nekzaliRendRemaining(state)).toBe(0)
+  })
+
+  it('does not expose or apply the controlled-player Rend reaction when an NPC is selected', () => {
+    let state: NekzaliState = { ...createNekzaliState('tank-2', 'hard'), time: 16.99 }
+    expect(activeNekzaliPrompt({ ...state, time: 14 })).toBe('Essence Rend soon')
+    state = stepNekzaliState(state, idle, .02)
+    expect(state.rendTargetId).not.toBe('tank-2')
+    expect(activeNekzaliPrompt(state)).toBe('Essence Rend active')
+    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras).toHaveLength(0)
+    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === state.rendTargetId)?.auras).toContainEqual({ id: 'essence-rend', tone: 'danger', stacks: 1 })
   })
 
   it('fails if the three assigned adds are not dead at the 50% intermission', () => {

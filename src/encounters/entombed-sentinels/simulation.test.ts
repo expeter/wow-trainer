@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { IDLE_PLAYER_COMMANDS } from '../../platform/train3d/types'
-import { createSentinelsState, dispelSentinels, sentinelsContract, sentinelsSnapshot, stepSentinelsState, type SentinelsState } from './simulation'
+import { createSentinelsState, dispelSentinels, sentinelsContract, sentinelsSnapshot, stepSentinelsDiagramState, stepSentinelsState, type SentinelsState } from './simulation'
 
 const idle = { ...IDLE_PLAYER_COMMANDS }
 
@@ -22,6 +22,20 @@ describe('Entombed Sentinels full-fight contract', () => {
     expect(result.bloodMarks).toBe(0)
   })
 
+  it('uses screen-relative movement only in Learn 2D', () => {
+    const initial = createSentinelsState('player', 'hard')
+    const forward = { ...idle, forward: true }
+    const diagram = stepSentinelsDiagramState(initial, forward, .5)
+    const world = stepSentinelsState(initial, forward, .5)
+    expect(diagram.player.x).toBeCloseTo(initial.player.x)
+    expect(diagram.player.z).toBeLessThan(initial.player.z)
+    expect(world.player.x).not.toBeCloseTo(initial.player.x)
+
+    const right = stepSentinelsDiagramState(initial, { ...idle, right: true }, .5)
+    expect(right.player.x).toBeGreaterThan(initial.player.x)
+    expect(right.player.z).toBeCloseTo(initial.player.z)
+  })
+
   it('spawns four droplets and turns a soaked droplet into a returning projectile', () => {
     let state = { ...createSentinelsState('player', 'easy'), time: 11.95 }
     state = stepSentinelsState(state, idle, .1)
@@ -31,6 +45,24 @@ describe('Entombed Sentinels full-fight contract', () => {
     state = stepSentinelsState(state, idle, .1)
     expect(state.droplets.find(droplet => droplet.assignedToPlayer)?.soaked).toBe(true)
     expect(sentinelsSnapshot(state).effects.some(effect => effect.id.endsWith('-return'))).toBe(true)
+  })
+
+  it('keeps both NPC side groups on the board and gathers them into NPC-owned soaks', () => {
+    let state = stepSentinelsState({ ...createSentinelsState('player', 'hard'), time: 11.95 }, idle, .1)
+    let snapshot = sentinelsSnapshot(state)
+    const allies = snapshot.actors.filter(actor => actor.kind === 'ally')
+    expect(allies).toHaveLength(19)
+    expect(allies.every(actor => Math.abs(actor.position.x) <= 46 && Math.abs(actor.position.z) <= 26)).toBe(true)
+    const npcDroplets = state.droplets.filter(droplet => !droplet.assignedToPlayer)
+    const acidAllies = allies.filter(actor => actor.position.x < 0)
+    expect(acidAllies.every(actor => npcDroplets.some(droplet => Math.hypot(actor.position.x - droplet.position.x, actor.position.z - droplet.position.z) <= 1.3))).toBe(true)
+
+    state = { ...state, time: 17.1 }
+    snapshot = sentinelsSnapshot(state)
+    const soak = snapshot.effects.find(effect => effect.id === 'miasma-soak')!
+    const bloodAllies = snapshot.actors.filter(actor => actor.kind === 'ally' && actor.position.x > 0)
+    expect(bloodAllies.every(actor => Math.hypot(actor.position.x - soak.position.x, actor.position.z - soak.position.z) <= 5.3)).toBe(true)
+    expect(state.droplets.find(droplet => droplet.assignedToPlayer)?.soaked).toBe(false)
   })
 
   it('allows only a Blood-side healer to dispel Blighted Blood', () => {

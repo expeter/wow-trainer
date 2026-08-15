@@ -30,6 +30,7 @@ export default function TrainingHud({ settings, mode, objective, secondsRemainin
 }
 
 interface ArenaTrainingHudProps extends Omit<TrainingHudProps, 'mode' | 'compact'> {
+  compactMechanic?: boolean
   castSeconds?: number
   castSecondsSource?: () => number
   actionButton?: ReactNode
@@ -56,15 +57,15 @@ function SmoothCastBar({ seconds, secondsSource, style }: { seconds: number; sec
 }
 
 /** Season 2 extraction of the reviewed v0.9.1 in-arena HUD contract. */
-export function ArenaTrainingHud({ settings, objective, secondsRemaining, timers, status, playerHealth = 100, bossHealth = 100, bossThreat, auraLabel = 'No active aura', actionStatus = 'Ready', castSeconds = 0, castSecondsSource, actionButton, bossLabel = 'Training boss', bossEnergy, secondaryBoss }: ArenaTrainingHudProps) {
+export function ArenaTrainingHud({ settings, objective, secondsRemaining, timers, status, playerHealth = 100, bossHealth = 100, bossThreat, auraLabel = 'No active aura', actionStatus = 'Ready', compactMechanic = false, castSeconds = 0, castSecondsSource, actionButton, bossLabel = 'Training boss', bossEnergy, secondaryBoss }: ArenaTrainingHudProps) {
   const at = (box: keyof TrainingHudSettings['layout']) => ({ left: `${settings.layout[box].x}%`, top: `${settings.layout[box].y}%` })
   const countdowns = timers ?? (secondsRemaining === undefined ? [] : [{ label: 'Time', seconds: secondsRemaining }])
   return <aside className="arena-training-hud" aria-label="Training HUD" style={{ fontSize: `${settings.scale}%` }}>
-    <div className="arena-hud-mechanic" style={at('objective')}>
-      <><small>Mechanic</small><strong>{objective}</strong></>
-      <span className="arena-hud-countdowns">{countdowns.filter((timer, index) => index === 0 || timer.seconds > .05).map(timer => <i key={timer.label}>{timer.label} {Math.max(0, timer.seconds).toFixed(timer.seconds < 5 ? 1 : 0)}s</i>)}</span>
-      {settings.showActions && <b aria-label="Action state">{actionStatus}</b>}
-      {status && <em role="status">{status}</em>}
+    <div className={`arena-hud-mechanic${compactMechanic ? ' compact' : ''}`} style={at('objective')}>
+      <>{!compactMechanic && <small>Mechanic</small>}<strong>{objective}</strong></>
+      <span className="arena-hud-countdowns">{countdowns.filter((timer, index) => index === 0 || timer.seconds > .05).map(timer => <i key={timer.label}>{timer.label} {compactMechanic ? `~${Math.max(0, Math.ceil(timer.seconds))}` : Math.max(0, timer.seconds).toFixed(timer.seconds < 5 ? 1 : 0)}s</i>)}</span>
+      {!compactMechanic && settings.showActions && <b aria-label="Action state">{actionStatus}</b>}
+      {!compactMechanic && status && <em role="status">{status}</em>}
     </div>
     {settings.showPlayer && <div className="arena-hud-health player" style={at('player')}><small>Player</small><div><i style={{ width: `${playerHealth}%` }} /></div><strong>{Math.round(playerHealth)}%</strong></div>}
     {settings.showAuras && <div className="arena-hud-auras" style={at('auras')}><small>Status</small><strong>{auraLabel}</strong></div>}

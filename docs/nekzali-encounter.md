@@ -47,7 +47,7 @@ versioned, and visibly replaceable until authoritative live data is available.
 
 - Boss health drains from 100% to 50% over approximately 90 simulated seconds.
   This is a trainer pacing profile, not an asserted live DPS check.
-- **Essence Rend:** several players are pulled for five seconds and carry an
+- **Essence Rend:** one selected player is pulled for five seconds and carries an
   essence. Target selection remains unknown until applied. When the controlled
   player is selected, a compact attached timer appears; the player moves toward
   a free outer lane and drops exactly three provisional training puddles before
