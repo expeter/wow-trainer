@@ -593,11 +593,13 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   use shared snapshot/renderer vocabulary, are explicitly non-mechanical, and
   do not appear in the real Sentinels lesson unless an encounter later declares
   actual marker semantics.
-- Setup presents automatically discovered packages as encounter teaser cards.
-  Each card owns its Learn 2D and Train 3D scenario actions and labels planned
-  scenarios Coming soon. Setup must not duplicate the selected encounter in a
-  separate oversized banner or invent placeholder packages for bosses whose
-  isolated implementation has not begun.
+- Setup presents automatically discovered packages as a compact four-column
+  desktop encounter matrix. Each card contains one reusable square identity,
+  title, short description, and direct Learn 2D/Train 3D actions; planned
+  actions say Coming soon. The complete eight-boss catalogue fits in two rows
+  when its setup panel is in view. Setup must not duplicate the selected
+  encounter in a separate oversized banner or invent playable mechanics for
+  catalogue-only packages.
 - HUD settings show the same draggable arena-layout frame used by Train 3D,
   without a second report-style HUD summary above it. Dragging tracks the
   pointer without animated positional lag, persists once on release, and keeps
@@ -663,6 +665,10 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - Timing profiles preserve evidence provenance, confidence, and revision
   history. They are implementation inputs, not player-facing raid-difficulty
   choices.
+- Entombed Sentinels preserves 100-yard boss separation in world space while
+  projecting Acid/green on the supplied plan's right side and Blood/red on its
+  left. Both bosses remain visible inside the tactical room. Test-mode failure
+  recording may not prevent the 100-energy transition into Stasis.
 - This contract supersedes the raid-difficulty portions of `SPEC-021`,
   `FR-082`, `FR-083`, and `FR-084` without discarding the mechanics already
   supplied under those tickets.

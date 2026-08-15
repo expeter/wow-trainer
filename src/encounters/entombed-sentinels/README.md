@@ -20,8 +20,9 @@ All timings remain PTR-labelled. No live profile exists yet.
 ## FR-084 full-fight contract
 
 - Learn 2D uses the supplied split-room image as a contained tactical backdrop;
-  Train 3D uses an independent 120-by-70-yard interpretation with the two boss
-  anchors roughly 100 yards apart.
+  Train 3D uses an independent 180-by-70-yard interpretation with the two boss
+  anchors 100 yards apart. Acid/green begins on the raid plan's right and
+  Blood/red on its left; the wider projection keeps both outer anchors visible.
 - Ula'tek's Dominance is active below the sourced 40-yard separation threshold
   and reduces both bosses' incoming damage by 99%. It is not an exact
   100-yard-position check.
@@ -32,7 +33,9 @@ All timings remain PTR-labelled. No live profile exists yet.
 - Acid-side players handle four Toxic Droplets. The controlled player owns one
   droplet only when assigned to Acid; reliable bots clear the others. A cleared
   droplet sends a readable Living Venom beam/projectile back to the Breath and
-  its lane remains harmful.
+  its lane remains harmful. The current PTR-labelled trainer cadence gives the
+  controlled player 18 seconds from droplet appearance to eruption and exposes
+  that deadline in the HUD.
 - Blood-side players group-soak Unstable Miasma. Every participant receives a
   short pool-drop aura and places Blood Venom after five training seconds. The
   journal's eight-second Miasma eruption and six-second Clinging Murk remain
@@ -48,7 +51,10 @@ All timings remain PTR-labelled. No live profile exists yet.
   The raid swaps sides after Stasis and repeats the active cycle.
 - Shifting Protovenom marks pairs during the active cycle. Marked
   red-circle partners collide with each other, touching an unmarked player
-  fails, and unresolved Protovenom before Stasis is terminal.
+  fails, and unresolved Protovenom before Stasis is terminal outside Test.
+  Test records that mistake and still enters Stasis so its non-wipe contract
+  cannot trap the active phase at zero seconds. Learn 2D renders the extra
+  compatible and incompatible partners declared by the simulation snapshot.
 - Bots resolve off-side mechanics deterministically and cannot create an
   unexplained default-mode wipe.
 - Learn 2D input is screen-relative: W/S/A/D always mean up/down/left/right on

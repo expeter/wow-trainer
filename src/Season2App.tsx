@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ComponentType, type SetStateAction } from 'react'
 import BuildStatus from './platform/BuildStatus'
 import CreatorCard from './platform/CreatorCard'
+import EncounterIcon from './platform/EncounterIcon'
 import HudLayoutPreview from './platform/HudLayoutPreview'
 import type { EncounterCatalogue } from './platform/encounters/discovery'
 import { loadEncounterCatalogue, type EncounterMode, type EncounterPackageV1, type EncounterRuntimeProps } from './platform/encounters'
@@ -196,26 +197,22 @@ export default function Season2App() {
         {!catalogue && <article className="season2-encounter-card loading"><p>Discovering encounter packages…</p></article>}
         {catalogueFailed && <article className="season2-encounter-card unavailable"><h3>No conforming encounter package</h3><p>Check development diagnostics before continuing.</p></article>}
         {catalogue?.packages.map(selectedEncounter => <article className="season2-encounter-card" key={selectedEncounter.manifest.id}>
-          <header>
-            <div><p className="eyebrow">{selectedEncounter.manifest.raid}</p><h3>{selectedEncounter.manifest.name}</h3><p>{selectedEncounter.manifest.summary}</p></div>
-            <span className="season2-badge">{selectedEncounter.manifest.availability} · {selectedEncounter.timingProfiles[0]?.status ?? 'timing pending'}</span>
-          </header>
-          <div className="season2-encounter-modes">
+          <header><EncounterIcon name={selectedEncounter.manifest.name} /><h3>{selectedEncounter.manifest.name}</h3></header>
+          <p>{selectedEncounter.manifest.summary}</p>
+          <div className="season2-encounter-actions">
             {(['learn2d', 'train3d'] as EncounterMode[]).map(mode => {
               const modeLabel = mode === 'learn2d' ? 'Learn 2D' : 'Train 3D'
               const scenarios = mode === 'learn2d' ? selectedEncounter.learn2d : selectedEncounter.train3d
-              const primaryReadyScenario = scenarios.find(scenario => scenario.status === 'ready')
-              return <section key={mode} aria-labelledby={`${selectedEncounter.manifest.id}-${mode}`}>
-                <h4 id={`${selectedEncounter.manifest.id}-${mode}`}>{modeLabel}</h4>
-                <p>{mode === 'learn2d' ? 'Study timing and assignments in the tactical model.' : 'Rehearse movement in the independent 3D arena.'}</p>
-                <div className="season2-scenario-list">{scenarios.map(scenario => <button
-                  type="button"
-                  key={scenario.id}
-                  disabled={scenario.status !== 'ready' || Boolean(runtimeLoading)}
-                  aria-label={scenario.status === 'ready' ? primaryReadyScenario?.id === scenario.id ? `Launch ${selectedEncounter.manifest.name} ${modeLabel}` : `Launch ${selectedEncounter.manifest.name} ${scenario.name} ${modeLabel}` : `${selectedEncounter.manifest.name} ${scenario.name} coming soon in ${modeLabel}`}
-                  onClick={() => void launch(selectedEncounter, mode, scenario.id)}
-                ><span>{scenario.name}</span><strong>{scenario.status === 'ready' ? runtimeLoading === mode ? 'Loading…' : 'Play' : 'Coming soon'}</strong></button>)}</div>
-              </section>
+              const readyScenario = scenarios.find(candidate => candidate.status === 'ready')
+              const scenario = readyScenario ?? scenarios[0]
+              const ready = Boolean(readyScenario)
+              return <button
+                type="button"
+                key={mode}
+                disabled={!ready || Boolean(runtimeLoading)}
+                aria-label={ready ? `Launch ${selectedEncounter.manifest.name} ${modeLabel}` : `${selectedEncounter.manifest.name} ${scenario?.name ?? 'full fight'} coming soon in ${modeLabel}`}
+                onClick={() => ready && void launch(selectedEncounter, mode, scenario.id)}
+              ><span>{modeLabel}</span>{ready ? runtimeLoading === mode ? <small>Loading…</small> : null : <small>Coming soon</small>}</button>
             })}
           </div>
         </article>)}

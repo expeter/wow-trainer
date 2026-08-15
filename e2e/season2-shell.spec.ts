@@ -6,8 +6,8 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page).toHaveTitle('Midnight Season 2 Trainer')
   await expect(page.getByRole('heading', { name: 'Midnight Season 2 Trainer' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Entombed Sentinels' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Learn 2D' }).first()).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Train 3D' }).first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toContainText('Learn 2D')
+  await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toContainText('Train 3D')
   await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toBeEnabled()
   await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toBeEnabled()
   const trainerDifficulty = page.getByRole('group', { name: 'Trainer difficulty' })
@@ -62,6 +62,24 @@ test("discovers all raid panels and launches Nek'zali in separate 2D and 3D aren
   await expect(page.locator('.arena-hud-castbar')).toHaveCount(0, { timeout: 2000 })
   await page.keyboard.press('f')
   await expect(page.locator('.arena-hud-castbar i')).toBeVisible()
+})
+
+test('keeps all eight encounters in a compact four-column desktop selector', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 1000 })
+  await page.goto('/')
+  const cards = page.locator('.season2-encounter-card')
+  await expect(cards).toHaveCount(8)
+  const firstTop = (await cards.nth(0).boundingBox())?.y
+  const fourthTop = (await cards.nth(3).boundingBox())?.y
+  const fifthTop = (await cards.nth(4).boundingBox())?.y
+  expect(firstTop).toBeDefined()
+  expect(Math.abs((fourthTop ?? 0) - (firstTop ?? 0))).toBeLessThan(3)
+  expect(fifthTop).toBeGreaterThan((firstTop ?? 0) + 100)
+  await page.locator('.season2-training-difficulty').evaluate(element => element.scrollIntoView())
+  await expect(cards.first()).toBeInViewport()
+  await expect(cards.nth(7)).toBeInViewport()
+  await expect(cards.first().locator('.encounter-icon')).toBeVisible()
+  await expect(cards.first().getByRole('button')).toHaveCount(2)
 })
 
 test("keeps Nek'zali Well mechanics and interrupt controls in its single full fight", async ({ page }) => {
@@ -330,7 +348,7 @@ test('opens paired contract rooms with full-raid ground reactions and paced 3D r
   await expect(page.getByText(/\d+ FPS · p95/)).toBeVisible()
 })
 
-test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3D drill', async ({ page }) => {
+test('uses rebound movement keys, shared HUD settings, and paused camera look in the Sentinels 3D full fight', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Keys & Mouse' }).click()
   const inputPanel = page.getByRole('group', { name: 'Input bindings' })
@@ -351,9 +369,11 @@ test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3
   await page.getByRole('button', { name: 'Game settings' }).click()
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Helical Toxins movement drill' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Entombed Sentinels full fight' })).toBeVisible()
+  await page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' }).getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
   await expect(page.getByRole('dialog', { name: 'Contract room entrance' })).toHaveCount(0)
-  await expect(page.locator('.contract-lab-drawer')).toHaveCount(0)
+  await expect(page.locator('.contract-lab-drawer')).toHaveCount(1)
   const arena = page.getByLabel('Third-person 3D training arena')
   await expect(arena).toBeVisible()
   await arena.hover()
@@ -363,6 +383,15 @@ test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3
   await page.keyboard.press('p')
   await expect(page.getByRole('button', { name: /Resume P/ })).toBeVisible()
   const pausedAt = { x: await arena.getAttribute('data-player-x'), z: await arena.getAttribute('data-player-z') }
+  const viewportBounds = await arena.boundingBox()
+  if (!viewportBounds) throw new Error('Sentinels viewport has no bounds')
+  const lookStart = { x: viewportBounds.x + viewportBounds.width / 2, y: viewportBounds.y + viewportBounds.height / 2 }
+  const facingBeforeLook = Number(await arena.getAttribute('data-player-facing'))
+  await page.mouse.move(lookStart.x, lookStart.y)
+  await page.mouse.down({ button: 'right' })
+  await page.mouse.move(lookStart.x + 80, lookStart.y)
+  await page.mouse.up({ button: 'right' })
+  await expect.poll(async () => Number(await arena.getAttribute('data-player-facing'))).toBeGreaterThan(facingBeforeLook + .2)
   await page.keyboard.down('ArrowUp'); await page.waitForTimeout(300); await page.keyboard.up('ArrowUp')
   await expect(arena).toHaveAttribute('data-player-x', pausedAt.x || '')
   await expect(arena).toHaveAttribute('data-player-z', pausedAt.z || '')
@@ -403,18 +432,21 @@ test('Season 2 shell HUD boxes follow the pointer and persist on release', async
 test('keeps left orbit independent, aligns on right press, and moves with both mouse buttons', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()
+  await page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' }).getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
   const arena = page.getByLabel('Third-person 3D training arena')
   const bounds = await arena.boundingBox()
   if (!bounds) throw new Error('3D arena has no bounds')
   const center = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }
+  const initialFacing = Number(await arena.getAttribute('data-player-facing'))
   await page.mouse.move(center.x, center.y)
   await page.mouse.down({ button: 'left' })
   await page.mouse.move(center.x + 90, center.y)
   await page.mouse.up({ button: 'left' })
-  expect(Number(await arena.getAttribute('data-player-facing'))).toBeCloseTo(0, 2)
+  expect(Number(await arena.getAttribute('data-player-facing'))).toBeCloseTo(initialFacing, 2)
 
   await page.mouse.down({ button: 'right' })
-  await expect.poll(async () => Number(await arena.getAttribute('data-player-facing'))).toBeGreaterThan(.25)
+  await expect.poll(async () => Number(await arena.getAttribute('data-player-facing'))).toBeGreaterThan(initialFacing + .25)
   const alignedFacing = Number(await arena.getAttribute('data-player-facing'))
   await page.mouse.move(center.x + 130, center.y)
   await expect.poll(async () => Number(await arena.getAttribute('data-player-facing'))).toBeGreaterThan(alignedFacing)

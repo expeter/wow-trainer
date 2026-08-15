@@ -201,6 +201,18 @@ encounter development into an independently deployed Season 2 repository.
   with a faster, denser dodge pattern.
 - `BUG-178` — completed under `FR-072`: prevent smooth Main cast feedback from
   stalling across rapid casts and pause/resume.
+- `BUG-179` — completed under `FR-084`: align Sentinels Acid/green and Blood/red
+  with the raid plan while keeping the 100-yard bosses inside the room.
+- `CR-266` — completed under `FR-084`: expose a reachable 18-second controlled
+  droplet window without varying mechanics by trainer difficulty.
+- `BUG-180` — completed under `FR-084`: render snapshot-declared Protovenom and
+  Helical partners in Learn 2D.
+- `BUG-181` — completed under `SPEC-022`: let Test record uncleared Protovenom
+  and still transition both bosses into Stasis at 100 energy.
+- `BUG-182` — completed under `BUG-161`: publish Sentinels player facing so
+  right-button camera look remains visible while paused.
+- `CR-267` — completed under `FR-081`: condense the eight bosses into a reusable
+  two-row, four-column encounter selector with direct mode actions.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

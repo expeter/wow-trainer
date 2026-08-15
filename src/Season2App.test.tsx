@@ -21,8 +21,8 @@ describe('Midnight Season 2 bootstrap shell', () => {
 
     await screen.findByRole('heading', { name: 'Entombed Sentinels' })
     const sentinels = screen.getByRole('heading', { name: 'Entombed Sentinels' }).closest('article')!
-    expect(within(sentinels).getByRole('heading', { name: 'Learn 2D' })).toBeVisible()
-    expect(within(sentinels).getByRole('heading', { name: 'Train 3D' })).toBeVisible()
+    expect(within(sentinels).getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toHaveTextContent('Learn 2D')
+    expect(within(sentinels).getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toHaveTextContent('Train 3D')
     expect(screen.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toBeEnabled()
     const catalogue = screen.getByLabelText('Encounter catalogue')

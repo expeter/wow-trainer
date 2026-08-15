@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Corrected the Sentinels room and runtime: Acid/green now matches the supplied
+  plan's right side, Blood/red matches its left, 100-yard boss separation stays
+  inside the visible projection, the droplet assignment has an explicit
+  18-second response window, compatible partners render in Learn 2D, Test mode
+  reaches Stasis after recording an uncleared pair, and right-mouse facing is
+  published correctly even while paused.
+- Replaced the oversized boss teaser stack with a compact reusable encounter
+  selector: all eight packages occupy two desktop rows and each card contains
+  a square identity, concise description, and direct Learn 2D/Train 3D actions.
 - Completed the Nek'zali presentation and interaction correction batch: visible
   player/NPC projectiles, reliable cast feedback, dynamic corpse cremation,
   moving NPC Essence Rend drops, an expanded Well realm, denser dodge patterns,
