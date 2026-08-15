@@ -43,6 +43,16 @@ server at `?reference=lura-v0.9.1`. Production builds use the Season 2 entry
 point and do not expose the reference link. The inherited `/v1` API and its
 deployment workflow are frozen.
 
+## Project lineage
+
+Midnight Season 2 Trainer was seeded from the reviewed
+[L’ura Trainer](https://lura.asgard.website) v0.9.1 foundation so its proven
+shell and engineering lessons could be extracted incrementally. The original
+trainer remains a separate Season 1 product with its own
+[source repository](https://github.com/expeter/wow-midnight-fall-lura-trainer).
+This acknowledgement is repository documentation only; the deployed Midnight
+shell does not link to or connect with the legacy trainer or its `/v1` API.
+
 ## Local development
 
 Use the repository dependency guard before running project code:

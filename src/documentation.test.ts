@@ -94,4 +94,11 @@ describe('maintained project documentation', () => {
     expect(inboxConfig.workflow.instructions).toContain('docs/README.md')
     expect(inboxConfig.workflow.instructions).toContain('Processing remains explicit')
   })
+
+  it('keeps the original trainer acknowledgement in repository documentation only', () => {
+    expect(read('README.md')).toContain('## Project lineage')
+    expect(read('README.md')).toContain('[L’ura Trainer](https://lura.asgard.website)')
+    expect(read('README.md')).toContain('wow-midnight-fall-lura-trainer')
+    expect(read('src/Season2App.tsx')).not.toContain('https://lura.asgard.website')
+  })
 })

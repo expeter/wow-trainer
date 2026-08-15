@@ -30,6 +30,8 @@ encounter development into an independently deployed Season 2 repository.
   a native-loader-compatible Vite configuration.
 - `CR-232` — completed: add and start the localhost-only global Project Inbox
   skill, with captures routed into the maintained Season 2 ticket workflow.
+- `CR-233` — completed: acknowledge the original L’ura Trainer in repository
+  documentation only, never as a deployed Midnight shell link.
 - `SPEC-018` — completed: make the shared-shell/separate-runtime and isolated
   auto-discovered encounter-package boundaries binding.
 - `FR-072` — in progress now that `CR-230` and `SPEC-018` are stable: Stage 4A
@@ -37,6 +39,18 @@ encounter development into an independently deployed Season 2 repository.
   discovery, and Entombed Sentinels as the sole non-playable first encounter
   package. The Helical Toxins Learn 2D vertical slice is next.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
+- `FR-074` — deferred until the first trainable Sentinels release candidate:
+  enable an isolated GitHub Pages workflow and `midnight.asgard.website` with
+  an explicit production gate and legacy-domain safety checks.
+- `CR-234` — deferred until the first static publication: perform a measured
+  bundle, runtime, accessibility, responsive, and test-duration optimization
+  pass without changing encounter mechanics.
+- `FR-075` — deferred until Sentinels and the optimization pass are stable:
+  open individually ticketed, isolated encounter packages one boss at a time.
+
+The near-term execution order is `FR-072` → `FR-074` → `CR-234` → `FR-075`.
+`FR-073` remains a separate later online-platform milestone and does not block
+the static trainer sequence.
 
 No other boss work may start alongside Entombed Sentinels. The L'ura API and
 leaderboard remain frozen legacy reference behavior and cannot deploy from this

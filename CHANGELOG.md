@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- CR-233: Add a README-only project-lineage acknowledgement linking the
+  original L’ura Trainer and source repository while keeping the deployed
+  Midnight shell disconnected from the legacy site and `/v1` API.
 - FR-072 (Stage 4A): Add the validated `EncounterPackageV1` contract, lazy
   automatic encounter discovery, development diagnostics, and the isolated
   non-playable Entombed Sentinels research package with shared PTR vocabulary
