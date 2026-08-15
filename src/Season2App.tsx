@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType } from 'react'
+import { useCallback, useEffect, useState, type ComponentType, type SetStateAction } from 'react'
 import TrainingHud from './platform/TrainingHud'
 import BuildStatus from './platform/BuildStatus'
 import CreatorCard from './platform/CreatorCard'
@@ -74,7 +74,7 @@ const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string
 export default function Season2App() {
   const [activeTab, setActiveTab] = useState<SetupTab>('Game settings')
   const [catalogue, setCatalogue] = useState<EncounterCatalogue>()
-  const [settings, setSettings] = useState<TrainingSettings>(loadTrainingSettings)
+  const [settings, setSettings] = useState<TrainingSettings>(() => loadTrainingSettings())
   const [rebinding, setRebinding] = useState<TrainingAction>()
   const [runtimeLoading, setRuntimeLoading] = useState<EncounterMode>()
   const [runtime, setRuntime] = useState<{ mode: EncounterMode; scenarioId: string; Component: ComponentType<EncounterRuntimeProps> }>()
@@ -92,7 +92,13 @@ export default function Season2App() {
     return () => { active = false }
   }, [])
 
-  useEffect(() => saveTrainingSettings(settings), [settings])
+  const updateSettings = useCallback((update: SetStateAction<TrainingSettings>) => {
+    setSettings(current => {
+      const next = typeof update === 'function' ? update(current) : update
+      saveTrainingSettings(next)
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     if (!rebinding) return
@@ -101,7 +107,7 @@ export default function Season2App() {
       const previousCode = settings.keyBindings[rebinding]
       const occupiedAction = (Object.keys(settings.keyBindings) as TrainingAction[])
         .find(action => action !== rebinding && settings.keyBindings[action] === event.code)
-      setSettings(current => ({
+      updateSettings(current => ({
         ...current,
         keyBindings: {
           ...current.keyBindings,
@@ -113,7 +119,7 @@ export default function Season2App() {
     }
     window.addEventListener('keydown', onKeyDown, { once: true })
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [rebinding, settings.keyBindings])
+  }, [rebinding, settings.keyBindings, updateSettings])
 
   async function launch(mode: EncounterMode) {
     if (!encounter) return
@@ -137,14 +143,14 @@ export default function Season2App() {
 
   if (runtime) {
     const Runtime = runtime.Component
-    return <><BuildStatus /><Runtime
+    return <Runtime
       scenarioId={runtime.scenarioId}
       keyBindings={settings.keyBindings}
       hudSettings={settings.hud}
       cameraSettings={settings.camera}
-      onCameraSettingsChange={camera => setSettings(current => ({ ...current, camera }))}
+      onCameraSettingsChange={camera => updateSettings(current => ({ ...current, camera }))}
       onExit={() => setRuntime(undefined)}
-    /></>
+    />
   }
 
   return <><BuildStatus /><main className="shell setup-shell season2-shell" id="setup-top">
@@ -235,14 +241,14 @@ export default function Season2App() {
             {rebinding === action ? 'Press a key…' : keyLabel(settings.keyBindings[action])}
           </button>
         </div>)}
-        <button type="button" className="secondary season2-reset" onClick={() => setSettings(current => ({ ...current, keyBindings: { ...DEFAULT_TRAINING_SETTINGS.keyBindings } }))}>
+        <button type="button" className="secondary season2-reset" onClick={() => updateSettings(current => ({ ...current, keyBindings: { ...DEFAULT_TRAINING_SETTINGS.keyBindings } }))}>
           Reset movement keys
         </button>
         <div className="season2-camera-settings">
           <h3>Train 3D camera</h3>
-          <label><input type="checkbox" checked={settings.camera.invertX} onChange={event => setSettings(current => ({ ...current, camera: { ...current.camera, invertX: event.target.checked } }))} /> Invert horizontal mouse-look</label>
-          <label><input type="checkbox" checked={settings.camera.invertY} onChange={event => setSettings(current => ({ ...current, camera: { ...current.camera, invertY: event.target.checked } }))} /> Invert vertical mouse-look</label>
-          <label className="season2-camera-sensitivity">Mouse-look speed <strong>{settings.camera.sensitivity.toFixed(1)}×</strong><input type="range" min="0.5" max="2" step="0.1" value={settings.camera.sensitivity} onChange={event => setSettings(current => ({ ...current, camera: { ...current.camera, sensitivity: Number(event.target.value) } }))} /></label>
+          <label><input type="checkbox" checked={settings.camera.invertX} onChange={event => updateSettings(current => ({ ...current, camera: { ...current.camera, invertX: event.target.checked } }))} /> Invert horizontal mouse-look</label>
+          <label><input type="checkbox" checked={settings.camera.invertY} onChange={event => updateSettings(current => ({ ...current, camera: { ...current.camera, invertY: event.target.checked } }))} /> Invert vertical mouse-look</label>
+          <label className="season2-camera-sensitivity">Mouse-look speed <strong>{settings.camera.sensitivity.toFixed(1)}×</strong><input type="range" min="0.5" max="2" step="0.1" value={settings.camera.sensitivity} onChange={event => updateSettings(current => ({ ...current, camera: { ...current.camera, sensitivity: Number(event.target.value) } }))} /></label>
         </div>
       </div>}
       {activeTab === 'HUD' && <div className="season2-hud-settings">
@@ -256,15 +262,15 @@ export default function Season2App() {
             ['showActions', 'Show action state'],
             ['showBoss', 'Show boss health'],
           ] as const).map(([key, label]) => <label key={key}>
-            <input type="checkbox" checked={settings.hud[key]} onChange={event => setSettings(current => ({ ...current, hud: { ...current.hud, [key]: event.target.checked } }))} />
+            <input type="checkbox" checked={settings.hud[key]} onChange={event => updateSettings(current => ({ ...current, hud: { ...current.hud, [key]: event.target.checked } }))} />
             {label}
           </label>)}
           <label className="season2-hud-scale">
             HUD scale <strong>{settings.hud.scale}%</strong>
-            <input type="range" min="80" max="130" step="5" value={settings.hud.scale} onChange={event => setSettings(current => ({ ...current, hud: { ...current.hud, scale: Number(event.target.value) } }))} />
+            <input type="range" min="80" max="130" step="5" value={settings.hud.scale} onChange={event => updateSettings(current => ({ ...current, hud: { ...current.hud, scale: Number(event.target.value) } }))} />
           </label>
         </div>
-        <div className="season2-hud-preview"><TrainingHud settings={settings.hud} mode="Train 3D" objective="Reach the matching toxin partner" secondsRemaining={18.4} position={{ x: -12.5, z: -7.2 }} status="HUD preview" playerHealth={72} bossHealth={86} auraLabel="Poison · 3 stacks" actionStatus="Main ready · Shield 8.4s" /><HudLayoutPreview settings={settings.hud} onChange={hud => setSettings(current => ({ ...current, hud }))} /></div>
+        <div className="season2-hud-preview"><TrainingHud settings={settings.hud} mode="Train 3D" objective="Reach the matching toxin partner" secondsRemaining={18.4} position={{ x: -12.5, z: -7.2 }} status="HUD preview" playerHealth={72} bossHealth={86} auraLabel="Poison · 3 stacks" actionStatus="Main ready · Shield 8.4s" /><HudLayoutPreview settings={settings.hud} onChange={hud => updateSettings(current => ({ ...current, hud }))} /></div>
       </div>}
       {activeTab === 'Tactical plan' && encounter && <div className="season2-plan-preview">
         <p className="season2-boundary-note">The package-owned abstract regions are available for the first drill. Raid-plan imagery and editable roster assignments will follow the evidence you provide through the inbox.</p>

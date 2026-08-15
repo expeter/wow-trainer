@@ -43,6 +43,22 @@ test('moves independently in all four Learn 2D directions and clears input on bl
   await page.keyboard.up('w')
 })
 
+test('keeps the wide runtime header in one line and preserves the 2D arena aspect', async ({ page }) => {
+  await page.setViewportSize({ width: 2048, height: 900 })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
+
+  await expect(page.getByLabel('Build information')).toHaveCount(0)
+  const status = page.locator('.runtime-status-bar')
+  const statusBox = await status.boundingBox()
+  expect(statusBox?.width).toBeGreaterThan(1900)
+  const boardBox = await page.getByLabel('Movable Helical Toxins tactical diagram').boundingBox()
+  if (!boardBox) throw new Error('2D arena has no bounds')
+  expect(boardBox.width / boardBox.height).toBeCloseTo(5 / 3, 2)
+  await expect(page.getByRole('complementary', { name: 'Recent failures' })).toContainText('No failures yet')
+  await expect(page.getByRole('complementary', { name: 'Points' })).toContainText('Not scored')
+})
+
 test('moves the player through the Helical Toxins Learn 2D icon drill', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
@@ -107,6 +123,9 @@ test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3
   await page.getByRole('button', { name: 'Keys & Mouse' }).click()
   await page.getByRole('button', { name: 'Rebind forward, current W' }).click()
   await page.keyboard.press('ArrowUp')
+  await page.reload()
+  await page.getByRole('button', { name: 'Keys & Mouse' }).click()
+  await expect(page.getByRole('button', { name: 'Rebind forward, current ArrowUp' })).toBeVisible()
   await page.getByRole('button', { name: 'HUD' }).click()
   await expect(page.getByLabel('Draggable HUD preview')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Player health + cooldowns' })).toBeVisible()

@@ -487,9 +487,12 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   product shell may pass shared preferences and select a scenario, but it must
   not import a boss runtime directly or resolve boss mechanics itself.
 - Movement, pause, and reusable encounter-action bindings are shell-owned, use
-  Season 2 storage keys, and flow into both runtimes without sharing simulation
-  state. Train 3D HUD visibility, scale, and box layout are likewise shell-owned;
-  Learn 2D uses diagram-native attached state instead of inheriting 3D frames.
+  Season 2 storage keys, autosave with each change, and flow into both runtimes
+  without sharing simulation state. Additive schema migrations preserve valid
+  bindings field by field rather than resetting the entire map. The default
+  movement contract is W forward, S backward, Q/E turn, and A/D strafe. Train
+  3D HUD visibility, scale, and box layout are likewise shell-owned; Learn 2D
+  uses diagram-native attached state instead of inheriting 3D frames.
 - Learn 2D may accept the shared movement bindings, but owns only abstract
   percentage-space movement and icon/diagram contact. Character debuffs are
   represented by attached visual icons with accessible labels, not text baked
@@ -534,7 +537,17 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   available audio, pause/resume, performance, and exit controls right. Lab-only
   diagnostics/configuration belong in a closed slide-in drawer that real
   encounter runtimes do not render. Unimplemented audio channels are visibly
-  unavailable rather than interactive no-ops.
+  unavailable rather than interactive no-ops. At wide desktop widths those
+  groups remain one horizontal row. Exact build and repository provenance stays
+  on setup and does not consume the running lesson header.
+- A runtime viewport preserves the aspect implied by its arena model; expanding
+  the browser may extend the surrounding room treatment but must not stretch
+  arena coordinates or playable bounds. The current split arena is 5:3.
+- Both runtimes reserve the reviewed bottom corners for a reusable recent-
+  failures log on the left and points on the right. Failure records expose a
+  stable reason code and clickable corrective explanation. The points frame
+  reads as unscored until a package supplies an approved scoring contract; it
+  must not invent placeholder scores.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.

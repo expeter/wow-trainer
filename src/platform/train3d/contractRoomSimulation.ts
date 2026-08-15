@@ -2,6 +2,7 @@ import type { WorldArena3D } from '../encounters'
 import { auraToneColors, contractDirections, contractMemberForRole, contractRaidRoster, contractTones, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, seededContractEvents, type ContractDirection, type ContractEvent, type ContractPlayerRole, type ContractRaidMember } from '../contractRoom'
 import { distance, stepPlayerMovement } from './simulation'
 import type { PlayerCommandState, Train3DSnapshot, WorldPoint } from './types'
+import type { RuntimeFailure } from '../RuntimeFeedback'
 
 export { CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS } from '../contractRoom'
 
@@ -25,6 +26,7 @@ export interface ContractRoomState {
   successes: number
   misses: number
   wrongGrounds: number
+  failures: readonly RuntimeFailure[]
 }
 
 export const seededEvents = seededContractEvents
@@ -52,7 +54,7 @@ export function prepareContractRoomRole(state: ContractRoomState, role: Contract
 export function createContractRoomState(seed = 238): ContractRoomState {
   const controlled = contractRaidRoster.find(member => member.controlled)!
   const start = worldPosition(controlled)
-  return { time: 0, eventStartedAt: 0, eventIndex: 0, player: { ...start, facing: 0 }, events: seededEvents(seed), successes: 0, misses: 0, wrongGrounds: 0 }
+  return { time: 0, eventStartedAt: 0, eventIndex: 0, player: { ...start, facing: 0 }, events: seededEvents(seed), successes: 0, misses: 0, wrongGrounds: 0, failures: [] }
 }
 
 export function turnContractRoomPlayer(state: ContractRoomState, yawDelta: number): ContractRoomState {
@@ -72,6 +74,14 @@ export function stepContractRoom(state: ContractRoomState, commands: PlayerComma
     : undefined
   const expired = age >= CONTRACT_EVENT_SECONDS
   if (!contact && !expired) return { ...state, time, player }
+  const event = activeContractEvent(state)
+  const failure = contact?.correct ? undefined : {
+    id: `contract-3d-${state.eventIndex}-${time.toFixed(3)}`,
+    code: contact ? 'wrong-ground' : 'reaction-expired',
+    time,
+    label: contact ? `Entered the ${contact.tone} rune with a ${event.tone} aura` : `Did not reach the ${event.tone} rune in time`,
+    advice: contact ? 'Read your attached aura icon and enter only the matching ground effect.' : 'Turn toward the matching ground effect and begin moving while the landing projectiles are still visible.',
+  } satisfies RuntimeFailure
   return {
     ...state,
     time,
@@ -81,6 +91,7 @@ export function stepContractRoom(state: ContractRoomState, commands: PlayerComma
     successes: state.successes + Number(Boolean(contact?.correct)),
     misses: state.misses + Number(expired || Boolean(contact && !contact.correct)),
     wrongGrounds: state.wrongGrounds + Number(Boolean(contact && !contact.correct)),
+    failures: failure ? [failure, ...state.failures].slice(0, 5) : state.failures,
   }
 }
 

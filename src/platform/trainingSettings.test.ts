@@ -9,15 +9,21 @@ import {
 } from './trainingSettings'
 
 describe('shared Season 2 training settings', () => {
-  it('normalizes malformed or duplicate bindings back to the safe defaults', () => {
-    expect(normalizeTrainingSettings({ keyBindings: { forward: 'KeyW', backward: 'KeyW', left: 'KeyA', right: 'KeyD' } }).keyBindings)
-      .toEqual(DEFAULT_TRAINING_SETTINGS.keyBindings)
+  it('repairs only malformed or duplicate bindings without discarding valid custom keys', () => {
+    expect(normalizeTrainingSettings({ keyBindings: { forward: 'ArrowUp', backward: 'ArrowUp', left: 'KeyZ', right: 'KeyD' } }).keyBindings)
+      .toMatchObject({ forward: 'ArrowUp', backward: 'KeyS', left: 'KeyZ', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE' })
   })
 
   it('adds the pause binding without discarding an older Season 2 custom binding', () => {
     const legacy = { ...DEFAULT_TRAINING_SETTINGS.keyBindings, forward: 'ArrowUp' } as Partial<typeof DEFAULT_TRAINING_SETTINGS.keyBindings>
     delete legacy.pause
     expect(normalizeTrainingSettings({ keyBindings: legacy }).keyBindings).toMatchObject({ forward: 'ArrowUp', pause: 'KeyP' })
+  })
+
+  it('uses the reviewed WoW movement defaults', () => {
+    expect(DEFAULT_TRAINING_SETTINGS.keyBindings).toMatchObject({
+      forward: 'KeyW', backward: 'KeyS', turnLeft: 'KeyQ', turnRight: 'KeyE', left: 'KeyA', right: 'KeyD',
+    })
   })
 
   it('round-trips shell settings through the isolated Season 2 storage key', () => {

@@ -36,5 +36,6 @@ describe('development contract room simulation', () => {
     const failure = stepContractRoom({ ...initial, player: { ...initial.player, ...contractGroundPosition3D(wrong.direction) } }, IDLE_PLAYER_COMMANDS, CONTRACT_LANDING_SECONDS)
     expect(success.successes).toBe(1)
     expect(failure.wrongGrounds).toBe(1)
+    expect(failure.failures[0]).toMatchObject({ code: 'wrong-ground' })
   })
 })

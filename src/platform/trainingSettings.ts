@@ -62,6 +62,9 @@ export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
   camera: { invertX: false, invertY: true, sensitivity: 1, zoom: 22 },
 }
 
+const bindingActions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight', 'pause', 'mainAbility', 'taunt', 'healthPot', 'shield'] as const
+const fallbackCodes = ['KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyQ', 'KeyE', 'KeyP', 'KeyF', 'Numpad1', 'NumpadDecimal', 'Numpad7', 'KeyR', 'KeyT', 'KeyG', 'KeyH'] as const
+
 function isBoolean(value: unknown): value is boolean {
   return typeof value === 'boolean'
 }
@@ -71,13 +74,18 @@ export function normalizeTrainingSettings(value: unknown): TrainingSettings {
   const candidate = value as Partial<TrainingSettings>
   const bindings = candidate.keyBindings
   const hud = candidate.hud
-  const bindingActions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight', 'pause', 'mainAbility', 'taunt', 'healthPot', 'shield'] as const
-  const migratedBindings = Object.fromEntries(bindingActions.map(action => [action, typeof bindings?.[action] === 'string' && bindings[action].length > 0 ? bindings[action] : DEFAULT_TRAINING_SETTINGS.keyBindings[action]])) as unknown as MovementKeyBindings
-  const keys = Object.values(migratedBindings)
-  const validKeys = new Set(keys).size === bindingActions.length
+  const usedCodes = new Set<string>()
+  const migratedBindings = {} as MovementKeyBindings
+  for (const action of bindingActions) {
+    const persisted = bindings?.[action]
+    const candidates = [persisted, DEFAULT_TRAINING_SETTINGS.keyBindings[action], ...fallbackCodes]
+    const code = candidates.find(candidate => typeof candidate === 'string' && candidate.length > 0 && !usedCodes.has(candidate))!
+    migratedBindings[action] = code
+    usedCodes.add(code)
+  }
 
   return {
-    keyBindings: validKeys ? migratedBindings : { ...DEFAULT_TRAINING_SETTINGS.keyBindings },
+    keyBindings: migratedBindings,
     hud: {
       showObjective: isBoolean(hud?.showObjective) ? hud.showObjective : DEFAULT_TRAINING_SETTINGS.hud.showObjective,
       showTimer: isBoolean(hud?.showTimer) ? hud.showTimer : DEFAULT_TRAINING_SETTINGS.hud.showTimer,
@@ -118,7 +126,12 @@ export function loadTrainingSettings(storage: Pick<Storage, 'getItem'> = localSt
 }
 
 export function saveTrainingSettings(settings: TrainingSettings, storage: Pick<Storage, 'setItem'> = localStorage) {
-  storage.setItem(TRAINING_SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+  try {
+    storage.setItem(TRAINING_SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+  } catch {
+    // A private or quota-limited browser may reject storage. Keep the live
+    // settings usable without turning a preference change into a runtime crash.
+  }
 }
 
 export function keyLabel(code: string) {

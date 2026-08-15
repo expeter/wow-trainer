@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Corrected the Season 2 runtime shell on wide screens: the status controls now
+  occupy one horizontal header, build provenance remains on setup, and the 2D
+  split arena preserves its 5:3 geometry instead of stretching with the window.
+- Made Season 2 key changes autosave immediately and migrate one binding at a
+  time, preserving W/S movement, Q/E turning, and A/D strafing defaults without
+  discarding valid custom keys when the settings schema grows.
+- Restored reusable in-arena feedback corners with clickable recent-failure
+  guidance at bottom left and a scoring-ready, explicitly unscored points frame
+  at bottom right.
+
 - CR-245: Reuse the reviewed v0.9.1 in-arena HUD layout for Train 3D, with
   draggable runtime positions and no health bars attached to 3D actors.
 - BUG-164: Make the HUD layout editor responsive with local drag updates,

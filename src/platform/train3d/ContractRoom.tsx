@@ -3,6 +3,7 @@ import type { EncounterRuntimeProps } from '../encounters'
 import { ContractPullOverlay, useContractPullGate } from '../ContractPullGate'
 import type { ContractPlayerRole } from '../contractRoom'
 import RuntimeStatusBar from '../RuntimeStatusBar'
+import RuntimeFeedback from '../RuntimeFeedback'
 import { ArenaTrainingHud } from '../TrainingHud'
 import { keyLabel } from '../trainingSettings'
 import { useContractActions } from '../useContractActions'
@@ -119,6 +120,7 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
           />
           <ArenaTrainingHud settings={hudSettings} objective={`Match the ${event.tone} ground rune`} secondsRemaining={secondsRemaining} position={snapshot.actors[0].position} status={`${summary.successes} resolved · ${summary.misses} missed · 20-player raid · event ${summary.eventIndex + 1}`} playerHealth={actions.health} auraLabel={`${event.tone} aura`} actionStatus={actions.mainCast > 0 ? 'Main ability casting' : 'Main ability ready'} castSeconds={actions.mainCast} actionButton={<button type="button" onClick={actions.activateMain} disabled={gate.phase !== 'active' || actions.mainCast > 0}>Main ability <kbd>{keyLabel(keyBindings.mainAbility)}</kbd></button>} />
           <ContractPullOverlay role={gate.role} onRoleChange={chooseRole} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Train 3D" />
+          <RuntimeFeedback failures={stateRef.current.failures} elapsed={snapshot.time} />
         </div>
         <p className="train3d-controls">Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · turn {keyLabel(keyBindings.turnLeft)} {keyLabel(keyBindings.turnRight)} · Main {keyLabel(keyBindings.mainAbility)} · Shield {keyLabel(keyBindings.shield)} · Potion {keyLabel(keyBindings.healthPot)}{gate.role === 'tank' ? ` · Taunt / Spott ${keyLabel(keyBindings.taunt)}` : ''} · mouse-look, both-buttons-forward, wheel zoom</p>
       </div>

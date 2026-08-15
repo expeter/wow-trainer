@@ -4,6 +4,7 @@ import { ContractPullOverlay, useContractPullGate } from '../ContractPullGate'
 import { auraToneColors, contractMemberForRole, contractRaidRoster, CONTRACT_LANDING_SECONDS, type ContractPlayerRole } from '../contractRoom'
 import type { EncounterRuntimeProps } from '../encounters'
 import RuntimeStatusBar from '../RuntimeStatusBar'
+import RuntimeFeedback from '../RuntimeFeedback'
 import { keyLabel } from '../trainingSettings'
 import { useContractActions } from '../useContractActions'
 import { useRuntimePause } from '../useRuntimePause'
@@ -66,7 +67,7 @@ export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntime
     <RuntimeStatusBar meta={`DEVELOPMENT · LEARN 2D LAB · ${gate.role.toUpperCase()}`} title="Top-down reaction lab" status={`Match ${event.tone} · ${view.successes} resolved · event ${view.eventIndex + 1}`} paused={pause.paused} pauseKey={keyBindings.pause} onTogglePause={pause.toggle} onExit={onExit} />
     <section className="training-runtime-layout arena-only">
       <div className="learn2d-stage">
-        <div className="learn2d-board contract-2d-board" aria-label="Top-down contract training arena" data-raid-size={contractRaidRoster.length}>
+        <div className="learn2d-arena-frame"><div className="learn2d-board contract-2d-board" aria-label="Top-down contract training arena" data-raid-size={contractRaidRoster.length}>
           <div className="contract-2d-boss" aria-label="Training boss"><span>BOSS</span><i className="actor-health"><b style={{ width: '100%' }} /></i></div>
           {event.groundObjects.map(object => {
             const slot = contractGroundSlots2D[object.direction]
@@ -75,7 +76,8 @@ export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntime
           {contractRaidRoster.filter(member => !member.controlled).map((originalMember, index) => { const member = contractMemberForRole(originalMember, gate.role); const origin = contractRaidPosition2D(member); return <div key={member.id} className={`contract-raid-member ${member.role}`} style={{ left: `${origin.x + Math.sin(view.time * .7 + index) * .6}%`, top: `${origin.y + Math.cos(view.time * .5 + index) * .35}%` }} aria-label={`${member.role} NPC`}><span /></div> })}
           <div className={`learn2d-character player ${gate.role}`} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.y.toFixed(2)} style={{ left: `${view.player.x}%`, top: `${view.player.y}%` }} aria-label={`Controlled ${gate.role} player with ${event.tone} aura`}><AuraIcons tones={[event.tone]} label={`${event.tone} aura`} /><i className="actor-health"><b style={{ width: `${actions.health}%` }} /></i><span className="character-body" aria-hidden="true" /></div>
           <ContractPullOverlay role={gate.role} onRoleChange={chooseRole} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" />
-        </div>
+          <RuntimeFeedback failures={view.failures} elapsed={view.time} />
+        </div></div>
         <div className="learn2d-controls"><span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · Shield {keyLabel(keyBindings.shield)}{gate.role === 'tank' ? ` · Taunt / Spott ${keyLabel(keyBindings.taunt)}` : ''} · no Main ability or potion in Learn 2D</span><div className="learn2d-dpad" aria-label="2D movement controls">{(['forward', 'left', 'backward', 'right'] as DiagramDirection[]).map(direction => <button type="button" key={direction} aria-label={`Move ${direction}`} disabled={gate.phase !== 'active'} onPointerDown={() => setPad(direction, true)} onPointerUp={() => setPad(direction, false)} onPointerLeave={() => setPad(direction, false)} onPointerCancel={() => setPad(direction, false)}>{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}</div></div>
       </div>
     </section>

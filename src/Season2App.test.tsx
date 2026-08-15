@@ -45,10 +45,22 @@ describe('Midnight Season 2 bootstrap shell', () => {
     fireEvent.keyDown(window, { code: 'ArrowUp' })
 
     expect(screen.getByRole('button', { name: 'Rebind forward, current ArrowUp' })).toHaveTextContent('ArrowUp')
+    expect(JSON.parse(localStorage.getItem('midnight-s2:training-settings:v1') || '{}').keyBindings.forward).toBe('ArrowUp')
     view.unmount()
     render(<Season2App />)
     fireEvent.click(screen.getByRole('button', { name: 'Keys & Mouse' }))
     expect(screen.getByRole('button', { name: 'Rebind forward, current ArrowUp' })).toHaveTextContent('ArrowUp')
+  })
+
+  it('keeps build provenance on setup and uses scoring-ready runtime corners', async () => {
+    render(<Season2App />)
+    expect(screen.getByLabelText('Build information')).toBeVisible()
+    await screen.findByRole('heading', { name: 'Entombed Sentinels' })
+    fireEvent.click(screen.getByRole('button', { name: 'Launch Learn 2D' }))
+    expect(await screen.findByRole('heading', { name: 'Helical Toxins tutorial' })).toBeVisible()
+    expect(screen.queryByLabelText('Build information')).not.toBeInTheDocument()
+    expect(screen.getByRole('complementary', { name: 'Recent failures' })).toHaveTextContent('No failures yet')
+    expect(screen.getByRole('complementary', { name: 'Points' })).toHaveTextContent('Not scored')
   })
 
   it('updates the shared HUD preview from persisted visibility settings', () => {

@@ -12,4 +12,14 @@ describe('Learn 2D contract room simulation', () => {
     expect(resolved.successes).toBe(1)
     expect(resolved.eventIndex).toBe(1)
   })
+
+  it('records a stable corrective failure when the player enters a wrong rune', () => {
+    const state = createContractRoom2DState()
+    const event = activeContractEvent2D(state)
+    const wrong = event.groundObjects.find(object => !object.correct)!
+    const slot = contractGroundSlots2D[wrong.direction]
+    const resolved = stepContractRoom2D({ ...state, player: { x: slot.x, y: slot.y } }, new Set(), CONTRACT_LANDING_SECONDS)
+    expect(resolved.failures[0]).toMatchObject({ code: 'wrong-ground' })
+    expect(resolved.failures[0].advice).toContain('attached')
+  })
 })

@@ -98,9 +98,18 @@ encounter development into an independently deployed Season 2 repository.
 - `FR-077` — planned under `FR-072`: dynamic package-declared actions.
 - `FR-078` — planned under `FR-072`: independent persisted audio services.
 - `FR-079` — planned under `FR-072`: versioned encounter tactic editor.
-- `FR-080` — planned under `FR-072`: reusable failure and offline results.
+- `FR-080` — in progress under `FR-072`: `CR-249` restores reusable live
+  failure/points corners; recap and offline result identity remain.
 - `CR-247` — completed under `FR-072`: restore the full-viewport runtime,
   compact status header, top-right lab performance, and lab-only slide-in panel.
+- `CR-248` — completed under `FR-072`: correct the wide-screen status-bar and
+  arena-aspect regressions captured in `INBOX-20260815-104139-edd60f`, and keep
+  setup-only build provenance out of running lessons.
+- `BUG-165` — completed under `FR-072`: autosave shell-owned bindings and migrate
+  individual settings without periodically discarding the user's key map.
+- `CR-249` — completed under `FR-080`: restore clickable recent failures at the
+  bottom left and a scoring-ready, currently unscored points frame at the
+  bottom right of both runtimes.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
