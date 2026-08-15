@@ -213,6 +213,23 @@ encounter development into an independently deployed Season 2 repository.
   right-button camera look remains visible while paused.
 - `CR-267` — completed under `FR-081`: condense the eight bosses into a reusable
   two-row, four-column encounter selector with direct mode actions.
+- `SPEC-023` — completed under `FR-072`: make every encounter consume one shared
+  action, projectile, zone-semantic, HUD, and camera capability contract while
+  preserving separate Learn 2D and Train 3D arena models.
+- `CR-268` — completed under `FR-072`: adopt one display-rate Learn 2D snapshot
+  renderer across the contract room and implemented encounters.
+- `BUG-183` — completed under `FR-082`: repair Nek'zali Main targeting/projectile
+  feedback, Well cast/interrupt visibility, one-shot failures, and truthful hints.
+- `BUG-184` — completed under `FR-084`: make Venom Coagulation a five-hit player
+  target before droplet spawn and restore shared player/NPC projectile visuals.
+- `CR-269` — completed under `FR-084`: shorten Stasis, resolve it across the raid,
+  clear completed marks, and replace visible NPC/assignment teleports with motion.
+- `BUG-185` — completed under `BUG-161`: reverify shared right-button player/camera
+  facing in both implemented 3D encounters, paused and active.
+- `CR-270` — completed under `FR-072`: restore subtle reviewed world-marker wobble
+  in the shared 3D renderer while preserving fixed marker anchors.
+- `BUG-186` — completed under `FR-076`: pause-gate shared combat activation and
+  freeze an in-progress contract-room cast until resume.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

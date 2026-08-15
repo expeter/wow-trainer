@@ -5,20 +5,24 @@ import { auraToneColors, contractRaidRoster, contractRosterForSlot, contractSele
 import type { EncounterRuntimeProps } from '../encounters'
 import RuntimeStatusBar from '../RuntimeStatusBar'
 import RuntimeFeedback from '../RuntimeFeedback'
+import { EncounterCastBars } from '../TrainingHud'
 import { keyLabel } from '../trainingSettings'
+import { classProjectileEffects, cosmeticClassProjectiles } from '../train3d/cosmeticCombat'
+import type { ActorSnapshot } from '../train3d/types'
 import { useContractActions } from '../useContractActions'
 import { useRuntimePause } from '../useRuntimePause'
 import { activeContractEvent2D, contractGroundSlots2D, contractRaidPosition2D, createContractRoom2DState, prepareContractRoom2DSlot, stepContractRoom2D } from './contractRoomSimulation'
 import type { DiagramDirection } from './movement'
+import SnapshotEffects from './SnapshotEffects'
 
-export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntimeProps) {
+export default function ContractRoom2D({ keyBindings, hudSettings, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createContractRoom2DState())
   const playerElementRef = useRef<HTMLDivElement>(null)
   const pressedRef = useRef(new Set<DiagramDirection>())
   const [view, setView] = useState(stateRef.current)
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
-  const actions = useContractActions({ enabled: gate.phase === 'active', role: gate.role, eventIndex: view.eventIndex, keyBindings, includeMainAndPotion: false })
+  const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, eventIndex: view.eventIndex, keyBindings, includeMainAndPotion: true })
 
   function chooseSlot(slotId: string) {
     gate.setSelectedSlotId(slotId)
@@ -60,7 +64,7 @@ export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntime
         playerElement.dataset.positionX = stateRef.current.player.x.toFixed(2)
         playerElement.dataset.positionY = stateRef.current.player.y.toFixed(2)
       }
-      if (now - lastPublish >= 50) { lastPublish = now; setView(stateRef.current) }
+      if (now - lastPublish >= 33) { lastPublish = now; setView(stateRef.current) }
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
@@ -71,6 +75,10 @@ export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntime
   const roster = contractRosterForSlot(gate.selectedSlotId)
   const controlled = contractSelectedMember(gate.selectedSlotId)
   const age = view.time - view.eventStartedAt
+  const actorPoint = (member: (typeof roster)[number]) => { const point = member.controlled ? { x: view.player.x, y: view.player.y } : contractRaidPosition2D(member); return { x: point.x - 50, z: (point.y - 50) * .6 } }
+  const combatActors: ActorSnapshot[] = roster.map(member => ({ id: member.controlled ? 'player' : member.id, kind: member.controlled ? 'player' : 'ally', playerClass: member.playerClass, position: actorPoint(member), facing: 0, color: trainingClassColors[member.playerClass], auras: [] }))
+  const bossPoint = { x: 0, z: -4.8 }
+  const combatEffects = [...cosmeticClassProjectiles(combatActors, bossPoint, view.time), ...(actions.mainProjectileAge >= 0 ? classProjectileEffects('contract-player-main', actorPoint(roster.find(member => member.controlled)!), bossPoint, controlled.playerClass, actions.mainProjectileAge, view.eventIndex, 1) : [])]
   const setPad = (direction: DiagramDirection, active: boolean) => { if (active && gate.phaseRef.current === 'active' && !pause.pausedRef.current) pressedRef.current.add(direction); else pressedRef.current.delete(direction) }
 
   return <main className="training-shell contract-room-runtime">
@@ -79,16 +87,18 @@ export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntime
       <div className="learn2d-stage">
         <div className="learn2d-arena-frame"><div className="learn2d-board contract-2d-board" aria-label="Top-down contract training arena" data-raid-size={contractRaidRoster.length}>
           <div className="contract-2d-boss" aria-label="Training boss"><span>BOSS</span><i className="actor-health"><b style={{ width: '100%' }} /></i></div>
+          <SnapshotEffects effects={combatEffects} width={100} depth={60} />
           {event.groundObjects.map(object => {
             const slot = contractGroundSlots2D[object.direction]
             return <div key={object.id} className={`contract-ground ${object.tone}${age < CONTRACT_LANDING_SECONDS ? ' incoming' : ''}`} style={{ left: `${slot.x}%`, top: `${slot.y}%`, '--ground-color': auraToneColors[object.tone] } as CSSProperties} aria-label={`${object.tone} ground rune`} />
           })}
           {roster.filter(member => !member.controlled).map((member, index) => { const origin = contractRaidPosition2D(member); return <div key={member.id} className={`contract-raid-member ${member.role}`} style={{ left: `${origin.x + Math.sin(view.time * .7 + index) * .6}%`, top: `${origin.y + Math.cos(view.time * .5 + index) * .35}%` }} aria-label={`${member.role} NPC`}><span /></div> })}
           <div ref={playerElementRef} className={`learn2d-character player ${gate.role}`} data-player-class={controlled.playerClass} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.y.toFixed(2)} style={{ left: `${view.player.x}%`, top: `${view.player.y}%`, '--player-class-color': trainingClassColors[controlled.playerClass] } as CSSProperties} aria-label={`Controlled ${controlled.playerClass.replace('-', ' ')} ${gate.role} player with ${event.tone} aura`}><AuraIcons tones={[event.tone]} label={`${event.tone} aura`} /><i className="actor-health"><b style={{ width: `${actions.health}%` }} /></i><span className="character-body" aria-hidden="true" /></div>
+          <EncounterCastBars settings={hudSettings} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} />
           <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" />
           <RuntimeFeedback failures={view.failures} elapsed={view.time} />
         </div></div>
-        <div className="learn2d-controls"><span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · Shield {keyLabel(keyBindings.shield)}{gate.role === 'tank' ? ` · Taunt / Spott ${keyLabel(keyBindings.taunt)}` : ''} · no Main ability or potion in Learn 2D</span><div className="learn2d-dpad" aria-label="2D movement controls">{(['forward', 'left', 'backward', 'right'] as DiagramDirection[]).map(direction => <button type="button" key={direction} aria-label={`Move ${direction}`} disabled={gate.phase !== 'active'} onPointerDown={() => setPad(direction, true)} onPointerUp={() => setPad(direction, false)} onPointerLeave={() => setPad(direction, false)} onPointerCancel={() => setPad(direction, false)}>{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}</div></div>
+        <div className="learn2d-controls"><span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · Main {keyLabel(keyBindings.mainAbility)} · Shield {keyLabel(keyBindings.shield)} · Potion {keyLabel(keyBindings.healthPot)}{gate.role === 'tank' ? ` · Taunt / Spott ${keyLabel(keyBindings.taunt)}` : ''}</span><div className="learn2d-dpad" aria-label="2D movement controls">{(['forward', 'left', 'backward', 'right'] as DiagramDirection[]).map(direction => <button type="button" key={direction} aria-label={`Move ${direction}`} disabled={gate.phase !== 'active'} onPointerDown={() => setPad(direction, true)} onPointerUp={() => setPad(direction, false)} onPointerLeave={() => setPad(direction, false)} onPointerCancel={() => setPad(direction, false)}>{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}</div></div>
       </div>
     </section>
     <details className="contract-lab-drawer"><summary>Lab configuration</summary><div><p>Four ground objects land together. Only the rune matching your attached icon is correct.</p><p>20-player raid · {view.successes} resolved · {view.misses} missed · {view.wrongGrounds} wrong rune</p></div></details>

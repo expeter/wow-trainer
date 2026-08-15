@@ -179,5 +179,16 @@ describe("Nek'zali Well realm simulation", () => {
     const result = stepNekzaliState(testState, idle, .02)
     expect(result.outcome).toBe('active')
     expect(result.failures[0]?.code).toBe('missed-well-interrupt')
+    const later = stepNekzaliState(result, idle, 1)
+    expect(later.failures.filter(failure => failure.code === 'missed-well-interrupt')).toHaveLength(1)
+  })
+})
+
+describe("Nek'zali shared combat capability", () => {
+  it('casts at Nek\'zali during downtime instead of completing without a projectile target', () => {
+    let state = startNekzaliMainCast(createNekzaliState('player', 'test'))
+    expect(state.mainTargetId).toBe('nekzali-boss')
+    state = stepNekzaliState(state, idle, 1.01)
+    expect(nekzaliSnapshot(state).effects.some(effect => effect.id.startsWith('player-main'))).toBe(true)
   })
 })

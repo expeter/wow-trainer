@@ -672,3 +672,29 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - This contract supersedes the raid-difficulty portions of `SPEC-021`,
   `FR-082`, `FR-083`, and `FR-084` without discarding the mechanics already
   supplied under those tickets.
+
+## SPEC-023 · Shared encounter runtime capabilities
+
+- Encounter packages consume the platform Main lifecycle: begin, display-rate
+  cast progress, pause/resume, completion, projectile publication, and impact.
+  A package selects the valid target and authoritative damage/outcome only; it
+  must not privately remove the action or reproduce the lifecycle.
+- Learn 2D and Train 3D retain separate movement, camera, arena, and projection
+  models. Both consume the same actor/effect snapshots and meanings for harmful
+  zones, soaks, spreads, arrows, domes, travelling projectiles, and impacts.
+- Harmful and spread zones mean avoid; filled soak zones mean enter and become
+  outlines when satisfied. These semantics are renderer-independent and remain
+  authoritative in encounter simulation rather than DOM or Three.js collision.
+- Every supported full-fight runtime exposes the package's shared action legend,
+  player cast/projectile feedback, cosmetic NPC class casts, actor health, and
+  encounter-owned cast/interrupt feedback. Renderers may change presentation,
+  but may not filter a declared capability out of one mode.
+- Runtime pause blocks new movement and combat actions and freezes active cast
+  progress. Camera look may remain available while paused, but an encounter
+  snapshot may not mask the resulting player-facing update.
+- The contract lab exercises these production contracts in both modes. Its 2D
+  room uses the shared projectile/effect projection and its 3D dummy world
+  markers use the reviewed subtle wobble without moving their world anchors.
+- React state publication is limited to a display-rate summary; deterministic
+  simulation and imperative player/render transforms continue at their own
+  fixed or animation-frame cadence.

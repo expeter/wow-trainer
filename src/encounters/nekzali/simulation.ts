@@ -1,5 +1,6 @@
 import { contractRaidRoster, contractRosterForSlot, contractSelectedMember, trainingClassColors, type ContractRaidMember } from '../../platform/contractRoom'
 import type { RuntimeFailure } from '../../platform/RuntimeFeedback'
+import { advanceMainAction, beginMainAction, publishMainProjectile } from '../../platform/combatActions'
 import { stepScreenRelativeWorldMovement } from '../../platform/learn2d/worldMovement'
 import { shouldEndTrainingAttempt, type TrainingDifficulty } from '../../platform/trainingSettings'
 import { classProjectileEffects, cosmeticClassProjectiles } from '../../platform/train3d/cosmeticCombat'
@@ -163,9 +164,9 @@ export function turnNekzaliPlayer(state: NekzaliState, yawDelta: number): Nekzal
 
 export function startNekzaliMainCast(state: NekzaliState): NekzaliState {
   if (state.outcome !== 'active' || state.mainCastRemaining > 0) return state
-  if (state.realmStage === 'inside' && state.realmAddHits < 20) return { ...state, mainCastRemaining: 1, mainTargetId: 'drowned-echo' }
+  if (state.realmStage === 'inside' && state.realmAddHits < 20) return beginMainAction(state, 'drowned-echo')
   const assigned = state.adds.filter(add => add.assignedToPlayer && add.health > 0).sort((a, b) => distance(state.player, a.position) - distance(state.player, b.position))[0]
-  return { ...state, mainCastRemaining: 1, mainTargetId: assigned?.id }
+  return beginMainAction(state, assigned?.id ?? 'nekzali-boss')
 }
 
 export function tauntNekzali(state: NekzaliState): NekzaliState {
@@ -245,7 +246,7 @@ function stepRealm(state: NekzaliState, commands: PlayerCommandState, seconds: n
   const player = radius > REALM_RADIUS - .5 ? { ...moved, x: moved.x / radius * (REALM_RADIUS - .5), z: moved.z / radius * (REALM_RADIUS - .5) } : moved
   next = { ...next, player }
   if (age >= 4 && next.innerCastStartedAt === undefined) next = { ...next, innerCastStartedAt: next.time }
-  if (next.innerCastStartedAt !== undefined && !next.innerCastInterrupted && next.time - next.innerCastStartedAt >= 5) return addFailure(next, 'missed-well-interrupt', 'Drowned Echo completed its assigned cast', 'Use the Interrupt binding during the five-second cast inside the Well.', true)
+  if (next.innerCastStartedAt !== undefined && !next.innerCastInterrupted && next.time - next.innerCastStartedAt >= 5) return addFailure({ ...next, innerCastInterrupted: true }, 'missed-well-interrupt', 'Drowned Echo completed its assigned cast', 'Use the Interrupt binding during the five-second cast inside the Well.', true)
 
   const activeDisruption = disruptionStarts(next)[next.disruptionIndex]
   if (activeDisruption !== undefined && age >= activeDisruption + 3) {
@@ -266,22 +267,23 @@ function spawnAdds(): readonly NekzaliAdd[] {
 }
 
 function resolveMainCast(state: NekzaliState, seconds: number): NekzaliState {
-  if (state.mainCastRemaining <= 0) return state
-  const remaining = Math.max(0, state.mainCastRemaining - seconds)
-  if (remaining > 0) return { ...state, mainCastRemaining: remaining }
-  if (state.mainTargetId === 'drowned-echo') {
+  const advanced = advanceMainAction(state, seconds)
+  if (!advanced.completedTargetId) return advanced.state
+  state = advanced.state
+  if (advanced.completedTargetId === 'drowned-echo') {
     const realmAddHits = Math.min(20, state.realmAddHits + 1)
-    return { ...state, realmAddHits, mainCastRemaining: 0, mainTargetId: undefined, mainProjectileFiredAt: state.time, mainProjectileOrigin: state.player, mainProjectileTarget: { x: 0, z: 0 }, mainProjectileOrdinal: state.mainProjectileOrdinal + 1,
+    return { ...publishMainProjectile(state, { x: 0, z: 0 }), realmAddHits,
       ...(realmAddHits >= 20 ? { realmStage: 'returning' as const, realmStartedAt: state.time } : {}),
     }
   }
-  const targetIndex = state.adds.findIndex(add => add.id === state.mainTargetId && add.health > 0)
-  if (targetIndex < 0) return { ...state, mainCastRemaining: 0, mainTargetId: undefined }
+  if (advanced.completedTargetId === 'nekzali-boss') return publishMainProjectile(state, state.boss)
+  const targetIndex = state.adds.findIndex(add => add.id === advanced.completedTargetId && add.health > 0)
+  if (targetIndex < 0) return state
   const target = state.adds[targetIndex]
   const targetHealth = Math.max(0, target.health - 55)
   const killed = targetHealth === 0
   const adds = state.adds.map((add, index) => index === targetIndex ? { ...add, health: targetHealth, playerDamage: add.playerDamage + 55 } : add)
-  return { ...state, adds, mainCastRemaining: 0, mainTargetId: undefined, mainProjectileFiredAt: state.time, mainProjectileOrigin: state.player, mainProjectileTarget: target.position, mainProjectileOrdinal: state.mainProjectileOrdinal + 1,
+  return { ...publishMainProjectile(state, target.position), adds,
     playerAddKills: state.playerAddKills + Number(killed),
     corpses: killed ? [...state.corpses, { id: `corpse-${target.id}`, position: target.position, group: target.corpseGroup, cremated: false }] : state.corpses,
   }
@@ -482,12 +484,12 @@ export function nextNekzaliTimer(state: NekzaliState) {
     return { label: 'Outward spirits', seconds: 10 - age % 10 }
   }
   if (state.rendStartedAt !== undefined) return { label: 'Rend', seconds: nekzaliRendRemaining(state) }
-  if (state.phase === 'phase-1') return state.time < 17 ? { label: 'Rend', seconds: 17 - state.time } : state.time < 38 ? { label: 'Barrage', seconds: 38 - state.time } : state.time < 60 ? { label: 'Adds', seconds: 60 - state.time } : { label: 'Intermission', seconds: 90 - state.time }
+  if (state.phase === 'phase-1') return state.time < 17 ? { label: 'Rend in', seconds: 17 - state.time } : state.time < 38 ? { label: 'Barrage in', seconds: 38 - state.time } : state.time < 60 ? { label: 'Adds in', seconds: 60 - state.time } : { label: 'Intermission in', seconds: 90 - state.time }
   if (state.phase === 'echo-1' || state.phase === 'echo-2') return { label: 'Pyre', seconds: ECHO_SECONDS - (state.time - state.phaseStartedAt) }
   const age = state.time - state.phaseStartedAt
   for (const start of [10, 30, 50]) if (age >= start && age < start + 5) return { label: 'Invoke cast', seconds: start + 5 - age }
   const nextInvoke = [10, 30, 50].find(value => value > age) ?? 65
-  return { label: 'Invoke', seconds: nextInvoke - age }
+  return { label: 'Invoke in', seconds: nextInvoke - age }
 }
 
 function realmSnapshot(state: NekzaliState, playerHealth: number): Train3DSnapshot {

@@ -37,6 +37,7 @@ interface ArenaTrainingHudProps extends Omit<TrainingHudProps, 'mode' | 'compact
   bossLabel?: string
   bossEnergy?: number
   secondaryBoss?: { label: string; health: number; energy?: number }
+  enemyCast?: { label: string; seconds: number; duration: number }
 }
 
 function SmoothCastBar({ seconds, secondsSource, style }: { seconds: number; secondsSource?: () => number; style: CSSProperties }) {
@@ -60,8 +61,17 @@ function SmoothCastBar({ seconds, secondsSource, style }: { seconds: number; sec
   return <div className="arena-hud-castbar" style={style}><i ref={fillRef} /><strong ref={labelRef}>Main ability · {seconds.toFixed(1)}s</strong></div>
 }
 
+export function EncounterCastBars({ settings, castSeconds = 0, castSecondsSource, enemyCast }: Pick<ArenaTrainingHudProps, 'settings' | 'castSeconds' | 'castSecondsSource' | 'enemyCast'>) {
+  if (!settings.showActions) return null
+  const position = settings.layout.castbar
+  return <div className="arena-training-hud encounter-cast-bars" style={{ fontSize: `${settings.scale}%` }}>
+    {castSeconds > 0 && <SmoothCastBar seconds={castSeconds} secondsSource={castSecondsSource} style={{ left: `${position.x}%`, top: `${position.y}%` }} />}
+    {enemyCast && <div className="arena-hud-castbar enemy" style={{ left: `${position.x}%`, top: `${Math.max(8, position.y - 8)}%` }} aria-label={`${enemyCast.label} cast`}><i style={{ width: `${Math.max(0, Math.min(100, (1 - enemyCast.seconds / enemyCast.duration) * 100))}%` }} /><strong>{enemyCast.label} · {enemyCast.seconds.toFixed(1)}s</strong></div>}
+  </div>
+}
+
 /** Season 2 extraction of the reviewed v0.9.1 in-arena HUD contract. */
-export function ArenaTrainingHud({ settings, objective, secondsRemaining, timers, status, playerHealth = 100, bossHealth = 100, bossThreat, auraLabel = 'No active aura', actionStatus = 'Ready', compactMechanic = false, castSeconds = 0, castSecondsSource, actionButton, bossLabel = 'Training boss', bossEnergy, secondaryBoss }: ArenaTrainingHudProps) {
+export function ArenaTrainingHud({ settings, objective, secondsRemaining, timers, status, playerHealth = 100, bossHealth = 100, bossThreat, auraLabel = 'No active aura', actionStatus = 'Ready', compactMechanic = false, castSeconds = 0, castSecondsSource, actionButton, bossLabel = 'Training boss', bossEnergy, secondaryBoss, enemyCast }: ArenaTrainingHudProps) {
   const at = (box: keyof TrainingHudSettings['layout']) => ({ left: `${settings.layout[box].x}%`, top: `${settings.layout[box].y}%` })
   const countdowns = timers ?? (secondsRemaining === undefined ? [] : [{ label: 'Time', seconds: secondsRemaining }])
   return <aside className="arena-training-hud" aria-label="Training HUD" style={{ fontSize: `${settings.scale}%` }}>
@@ -79,6 +89,7 @@ export function ArenaTrainingHud({ settings, objective, secondsRemaining, timers
       {secondaryBoss && <><small>{secondaryBoss.label}</small><div><i style={{ width: `${secondaryBoss.health}%` }} /></div><strong>{Math.round(secondaryBoss.health)}%</strong>{secondaryBoss.energy !== undefined && <div className="boss-energy" aria-label={`${secondaryBoss.label} energy ${Math.round(secondaryBoss.energy)}%`}><i style={{ width: `${secondaryBoss.energy}%` }} /></div>}</>}
     </div>}
     {settings.showActions && castSeconds > 0 && <SmoothCastBar seconds={castSeconds} secondsSource={castSecondsSource} style={at('castbar')} />}
+    {settings.showActions && enemyCast && <div className="arena-hud-castbar enemy" style={{ left: `${settings.layout.castbar.x}%`, top: `${Math.max(8, settings.layout.castbar.y - 8)}%` }} aria-label={`${enemyCast.label} cast`}><i style={{ width: `${Math.max(0, Math.min(100, (1 - enemyCast.seconds / enemyCast.duration) * 100))}%` }} /><strong>{enemyCast.label} · {enemyCast.seconds.toFixed(1)}s</strong></div>}
     {settings.showActions && actionButton && <div className="arena-hud-actions" style={at('actions')} aria-label="HUD action buttons">{actionButton}</div>}
   </aside>
 }

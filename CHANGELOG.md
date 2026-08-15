@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Unified the Season 2 runtime capability boundary across the contract lab,
+  Nek'zali, and Entombed Sentinels: both modes now share Main cast/projectile
+  lifecycle, NPC class casts, effect intent/travel, pause gating, and smoother
+  2D publication. Nek'zali gains reliable downtime targeting and a visible,
+  one-shot Well interrupt cast; Sentinels gains a five-hit Venom Coagulation
+  add before droplets, moving raid formations, a 15-second all-raid Stasis, and
+  immediate resolved-mark cleanup. The 3D camera correction is covered in both
+  encounters and shared world markers again wobble without moving their anchors.
 - Corrected the Sentinels room and runtime: Acid/green now matches the supplied
   plan's right side, Blood/red matches its left, 100-yard boss separation stays
   inside the visible projection, the droplet assignment has an explicit

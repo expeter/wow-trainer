@@ -180,6 +180,7 @@ function effectObject(effect: EffectSnapshot) {
 function markerObject(marker: WorldMarkerSnapshot) {
   const group = new THREE.Group()
   group.name = marker.id
+  group.userData.wobblePhase = [...marker.id].reduce((sum, character) => sum + character.charCodeAt(0), 0) * .071
   const material = new THREE.MeshStandardMaterial({ color: marker.color, emissive: marker.color, emissiveIntensity: .35, roughness: .42, transparent: true, opacity: .88 })
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(.07, .1, 4.4, 8), material)
   pole.position.y = 2.2
@@ -502,10 +503,17 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
           scene.add(object)
         }
         object.position.set(marker.position.x, 0, marker.position.z)
+        const wobbleTime = frameTime / 1000 + Number(object.userData.wobblePhase ?? 0)
+        object.rotation.x = Math.sin(wobbleTime * 1.7) * .025
+        object.rotation.z = Math.cos(wobbleTime * 1.35) * .035
+        const symbol = object.children[2]
+        if (symbol) symbol.rotation.y = Math.sin(wobbleTime * .9) * .12
       })
       if (import.meta.env.DEV) {
         renderCanvas.dataset.worldMarkerCount = String(currentMarkers.length)
+        renderCanvas.dataset.markerWobbleSample = String(markers.values().next().value?.rotation.z ?? 0)
         renderCanvas.dataset.cosmeticCastCount = String(current.effects.filter(effect => effect.kind === 'cosmetic-projectile').length)
+        renderCanvas.dataset.playerMainEffectCount = String(current.effects.filter(effect => effect.id.startsWith('player-main') || effect.id.startsWith('contract-player-main')).length)
       }
       const player = current.actors.find(actor => actor.kind === 'player')
       if (player) {

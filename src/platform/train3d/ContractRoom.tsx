@@ -8,6 +8,7 @@ import { keyLabel } from '../trainingSettings'
 import { useContractActions } from '../useContractActions'
 import { useRuntimePause } from '../useRuntimePause'
 import { FIXED_STEP_SECONDS } from './simulation'
+import { classProjectileEffects } from './cosmeticCombat'
 import ThreeWorldRenderer from './ThreeWorldRenderer'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from './types'
 import { activeContractEvent, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, contractRoomSnapshot, createContractRoomState, prepareContractRoomSlot, stepContractRoom, turnContractRoomPlayer } from './contractRoomSimulation'
@@ -23,7 +24,7 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
   const [performanceSample, setPerformanceSample] = useState({ fps: 0, p95Ms: 0 })
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
-  const actions = useContractActions({ enabled: gate.phase === 'active', role: gate.role, eventIndex: summary.eventIndex, keyBindings, includeMainAndPotion: true })
+  const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, eventIndex: summary.eventIndex, keyBindings, includeMainAndPotion: true })
   const healthRef = useRef(actions.health)
   healthRef.current = actions.health
 
@@ -35,8 +36,13 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
   }
 
   useEffect(() => {
-    renderSnapshotRef.current = contractRoomSnapshot(stateRef.current, gate.selectedSlotId, actions.health)
-  }, [actions.health, gate.selectedSlotId])
+    const next = contractRoomSnapshot(stateRef.current, gate.selectedSlotId, actions.health)
+    const player = next.actors.find(actor => actor.kind === 'player')
+    const boss = next.actors.find(actor => actor.kind === 'boss')
+    renderSnapshotRef.current = actions.mainProjectileAge >= 0 && player?.playerClass && boss
+      ? { ...next, effects: [...next.effects, ...classProjectileEffects('contract-player-main', player.position, boss.position, player.playerClass, actions.mainProjectileAge, summary.eventIndex, 1)] }
+      : next
+  }, [actions.health, actions.mainProjectileAge, gate.selectedSlotId, summary.eventIndex])
 
   useEffect(() => {
     let frame = 0
@@ -116,7 +122,7 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
             }}
             onPerformanceSample={setPerformanceSample}
           />
-          <ArenaTrainingHud settings={hudSettings} objective={`Match the ${event.tone} rune`} timers={[{ label: 'React', seconds: secondsRemaining }, { label: 'Ground', seconds: CONTRACT_LANDING_SECONDS - eventAge }]} status={`${summary.successes} resolved · ${summary.misses} missed · 20-player raid · event ${summary.eventIndex + 1}`} playerHealth={actions.health} auraLabel={`${event.tone} aura`} actionStatus={actions.mainCast > 0 ? 'Main ability casting' : 'Main ability ready'} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} actionButton={<button type="button" onClick={actions.activateMain} disabled={gate.phase !== 'active' || actions.mainCast > 0}>Main ability <kbd>{keyLabel(keyBindings.mainAbility)}</kbd></button>} />
+          <ArenaTrainingHud settings={hudSettings} objective={`Match the ${event.tone} rune`} timers={[{ label: 'React', seconds: secondsRemaining }, { label: 'Ground', seconds: CONTRACT_LANDING_SECONDS - eventAge }]} status={`${summary.successes} resolved · ${summary.misses} missed · 20-player raid · event ${summary.eventIndex + 1}`} playerHealth={actions.health} auraLabel={`${event.tone} aura`} actionStatus={actions.mainCast > 0 ? 'Main ability casting' : 'Main ability ready'} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} actionButton={<button type="button" onClick={actions.activateMain} disabled={gate.phase !== 'active' || pause.paused || actions.mainCast > 0}>Main ability <kbd>{keyLabel(keyBindings.mainAbility)}</kbd></button>} />
           <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Train 3D" />
           <RuntimeFeedback failures={stateRef.current.failures} elapsed={snapshot.time} />
         </div>

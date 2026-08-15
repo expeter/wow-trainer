@@ -1,8 +1,9 @@
 import { contractRaidRoster, contractRosterForSlot, contractSelectedMember, trainingClassColors, type ContractRaidMember } from '../../platform/contractRoom'
 import type { RuntimeFailure } from '../../platform/RuntimeFeedback'
+import { advanceMainAction, beginMainAction, publishMainProjectile } from '../../platform/combatActions'
 import { shouldEndTrainingAttempt, type TrainingDifficulty } from '../../platform/trainingSettings'
 import { stepScreenRelativeWorldMovement } from '../../platform/learn2d/worldMovement'
-import { cosmeticClassProjectiles } from '../../platform/train3d/cosmeticCombat'
+import { classProjectileEffects, cosmeticClassProjectiles } from '../../platform/train3d/cosmeticCombat'
 import { distance, stepPlayerMovement } from '../../platform/train3d/simulation'
 import type { ActorSnapshot, EffectSnapshot, PlayerCommandState, Train3DSnapshot, WorldPoint } from '../../platform/train3d/types'
 import { sentinelsArena } from './train3d/arenas'
@@ -33,6 +34,7 @@ export interface SentinelsState {
   lastMarkAt: number
   droplets: readonly DropletState[]
   dropletsSpawned: boolean
+  dropletsSpawnedAt?: number
   miasmaResolved: boolean
   puddleDropAt?: number
   pools: readonly BloodPoolState[]
@@ -41,6 +43,14 @@ export interface SentinelsState {
   protovenomActive: boolean
   protovenomResolved: boolean
   helicalResolved: boolean
+  coagulationHealth: number
+  coagulationFailed: boolean
+  mainCastRemaining: number
+  mainTargetId?: string
+  mainProjectileFiredAt?: number
+  mainProjectileOrigin?: WorldPoint
+  mainProjectileTarget?: WorldPoint
+  mainProjectileOrdinal: number
   outcome: SentinelsOutcome
   outcomeReason?: string
   mistakes: number
@@ -53,7 +63,7 @@ const STASIS_ACID = { x: -5, z: 0 }
 const STASIS_BLOOD = { x: 5, z: 0 }
 const FIRST_ACTIVE_SECONDS = 60
 const SECOND_ACTIVE_SECONDS = 72
-const STASIS_SECONDS = 30
+const STASIS_SECONDS = 15
 const DOMINANCE_YARDS = 40
 
 function sideForSlot(slotId: string, cycle: 1 | 2): SentinelSide {
@@ -90,6 +100,7 @@ export function createSentinelsState(selectedSlotId = 'player', trainingDifficul
     acidMarks: 0, bloodMarks: 0, lastMarkAt: 0, droplets: [], dropletsSpawned: false,
     miasmaResolved: false, pools: [], blightedActive: false, blightedResolved: false,
     protovenomActive: false, protovenomResolved: false, helicalResolved: false,
+    coagulationHealth: 100, coagulationFailed: false, mainCastRemaining: 0, mainProjectileOrdinal: 0,
     outcome: 'active', mistakes: 0, failures: [],
   }
 }
@@ -100,6 +111,26 @@ export function prepareSentinelsSlot(state: SentinelsState, selectedSlotId: stri
 
 export function turnSentinelsPlayer(state: SentinelsState, yawDelta: number): SentinelsState {
   return { ...state, player: { ...state.player, facing: state.player.facing + yawDelta } }
+}
+
+export function startSentinelsMainCast(state: SentinelsState): SentinelsState {
+  if (state.outcome !== 'active' || state.mainCastRemaining > 0) return state
+  const phaseAge = state.time - state.phaseStartedAt
+  const addActive = state.phase === 'active' && phaseAge >= 8 && state.coagulationHealth > 0
+  return beginMainAction(state, addActive ? 'venom-coagulation' : state.assignedSide === 'acid' ? 'breath-of-ulatek' : 'blood-of-ulatek', .7)
+}
+
+function stepMainCast(state: SentinelsState, seconds: number): SentinelsState {
+  const advanced = advanceMainAction(state, seconds)
+  if (!advanced.completedTargetId) return advanced.state
+  state = advanced.state
+  const target = advanced.completedTargetId === 'venom-coagulation'
+    ? { x: towardCentre(homeForSide('acid', state.cycle), 15), z: 18 }
+    : advanced.completedTargetId === 'breath-of-ulatek' ? state.acidBoss : state.bloodBoss
+  return {
+    ...publishMainProjectile(state, target),
+    coagulationHealth: advanced.completedTargetId === 'venom-coagulation' ? Math.max(0, state.coagulationHealth - 20) : state.coagulationHealth,
+  }
 }
 
 function addFailure(state: SentinelsState, code: string, label: string, advice: string, terminal = false): SentinelsState {
@@ -159,7 +190,7 @@ function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds
   const energyStart = state.cycle === 1 ? 50 : 0
   const energy = Math.min(100, energyStart + phaseAge / duration * (100 - energyStart))
   const healthLoss = seconds * .16
-  let next: SentinelsState = { ...state, player, acidBoss, bloodBoss, energy, acidHealth: Math.max(20, state.acidHealth - healthLoss), bloodHealth: Math.max(20, state.bloodHealth - healthLoss * .98) }
+  let next: SentinelsState = stepMainCast({ ...state, player, acidBoss, bloodBoss, energy, acidHealth: Math.max(20, state.acidHealth - healthLoss), bloodHealth: Math.max(20, state.bloodHealth - healthLoss * .98) }, seconds)
 
   if (phaseAge > 8 && distance(acidBoss, bloodBoss) < DOMINANCE_YARDS) next = addFailure(next, 'dominance', "Ula'tek's Dominance activated", 'Keep the two bosses at least 40 yards apart. Tank players must lead their owned boss back to its outer anchor.', true)
 
@@ -170,7 +201,8 @@ function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds
     if (acidMarks > 0 && bloodMarks > 0) next = addFailure(next, 'mixed-marks', 'Collected both Acid and Blood marks', 'Stay with the boss assigned to your current side; do not cross both 40-yard auras during the active cycle.')
   }
 
-  if (!next.dropletsSpawned && phaseAge >= 12) next = { ...next, dropletsSpawned: true, droplets: spawnDroplets(next.cycle) }
+  if (!next.dropletsSpawned && phaseAge >= 8 && next.coagulationHealth <= 0) next = { ...next, dropletsSpawned: true, dropletsSpawnedAt: next.time, droplets: spawnDroplets(next.cycle) }
+  if (!next.coagulationFailed && !next.dropletsSpawned && phaseAge >= 30 && next.coagulationHealth > 0) next = { ...addFailure(next, 'coagulation-alive', 'Venom Coagulation reached Noxious Blast', 'Target the visible add and complete five Main casts before it releases Toxic Droplets.', true), coagulationFailed: true }
   if (next.dropletsSpawned) {
     let droplets = next.droplets.map(droplet => {
       if (droplet.soaked) return droplet
@@ -216,7 +248,7 @@ function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds
       next = addFailure(next, 'protovenom-stasis', 'Protovenom remained active at Stasis', 'Clear the marked pair before the bosses reach 100 energy.', true)
       if (next.outcome !== 'active') return next
     }
-    next = { ...next, phase: 'stasis', phaseStartedAt: next.time, energy: 100, acidBoss: { ...STASIS_ACID }, bloodBoss: { ...STASIS_BLOOD }, helicalResolved: false }
+    next = { ...next, phase: 'stasis', phaseStartedAt: next.time, energy: 100, helicalResolved: false, mainCastRemaining: 0, mainTargetId: undefined }
   }
   return next
 }
@@ -229,23 +261,24 @@ function stepStasis(state: SentinelsState, commands: PlayerCommandState, seconds
   const age = state.time - state.phaseStartedAt
   const bounds = { halfWidth: sentinelsArena.width / 2 - 1.5, halfDepth: sentinelsArena.depth / 2 - 1.5 }
   const player = screenRelative ? stepScreenRelativeWorldMovement(state.player, commands, seconds, bounds, 16 / 9, 7, sentinelsArena) : stepPlayerMovement(state.player, commands, seconds, bounds)
-  let next = { ...state, player, acidBoss: { ...STASIS_ACID }, bloodBoss: { ...STASIS_BLOOD }, energy: 100 }
+  let next = { ...state, player, acidBoss: moveToward(state.acidBoss, STASIS_ACID, 24, seconds), bloodBoss: moveToward(state.bloodBoss, STASIS_BLOOD, 24, seconds), energy: 100 }
   const partner = helicalPartner(next)
   const wrong = { x: 12, z: next.cycle === 1 ? -6 : 6 }
   if (!next.helicalResolved && distance(player, wrong) < 2.6) next = addFailure(next, 'wrong-helical', 'Joined an incompatible Helical partner', 'Match your attached red/green composition with exactly one complementary player.', true)
   else if (!next.helicalResolved && distance(player, partner) < 2.6) next = { ...next, helicalResolved: true }
-  if (age >= 28 && !next.helicalResolved) next = addFailure(next, 'helical-expired', 'Helical Toxins expired', 'Reach the compatible composition before the 28-second matching window ends.', true)
+  if (age >= 13 && !next.helicalResolved) next = addFailure(next, 'helical-expired', 'Helical Toxins expired', 'Reach the compatible composition before the 13-second matching window ends.', true)
   if (age >= STASIS_SECONDS && next.outcome === 'active') {
     if (next.cycle === 2) return { ...next, outcome: 'success', acidHealth: 0, bloodHealth: 0 }
     const cycle = 2 as const
     const assignedSide = sideForSlot(next.selectedSlotId, cycle)
     next = {
       ...next, phase: 'active', phaseStartedAt: next.time, cycle, assignedSide, energy: 0,
-      acidBoss: isTank(next) && assignedSide === 'acid' ? { ...STASIS_ACID } : homeForSide('acid', cycle),
-      bloodBoss: isTank(next) && assignedSide === 'blood' ? { ...STASIS_BLOOD } : homeForSide('blood', cycle),
-      acidMarks: 0, bloodMarks: 0, lastMarkAt: next.time, droplets: [], dropletsSpawned: false,
+      acidBoss: next.acidBoss,
+      bloodBoss: next.bloodBoss,
+      acidMarks: 0, bloodMarks: 0, lastMarkAt: next.time, droplets: [], dropletsSpawned: false, dropletsSpawnedAt: undefined,
       miasmaResolved: false, puddleDropAt: undefined, blightedActive: false, blightedResolved: false,
       protovenomActive: false, protovenomResolved: false, helicalResolved: false,
+      coagulationHealth: 100, coagulationFailed: false, mainCastRemaining: 0, mainTargetId: undefined,
     }
   }
   return next
@@ -263,15 +296,40 @@ export function stepSentinelsDiagramState(state: SentinelsState, commands: Playe
   return timed.phase === 'active' ? stepActive(timed, commands, seconds, true) : stepStasis(timed, commands, seconds, true)
 }
 
+function blendPosition(from: WorldPoint, to: WorldPoint, progress: number): WorldPoint {
+  const amount = Math.max(0, Math.min(1, progress))
+  const smooth = amount * amount * (3 - 2 * amount)
+  return { x: from.x + (to.x - from.x) * smooth, z: from.z + (to.z - from.z) * smooth }
+}
+
+function formationPosition(member: ContractRaidMember, state: SentinelsState): WorldPoint {
+  const side = sideForSlot(member.id, state.cycle); const home = homeForSide(side, state.cycle)
+  if (member.role === 'tank') {
+    const boss = side === 'acid' ? state.acidBoss : state.bloodBoss
+    return { x: boss.x + (boss.x > 0 ? -4 : 4), z: boss.z + (member.id.endsWith('2') ? 2 : -2) }
+  }
+  const peers = contractRaidRoster.filter(candidate => sideForSlot(candidate.id, state.cycle) === side)
+  const index = peers.findIndex(candidate => candidate.id === member.id)
+  const column = index % 3
+  const row = Math.floor(index / 3)
+  return { x: towardCentre(home, 10 + column * 3), z: -13 + row * 8 }
+}
+
 function memberPosition(member: ContractRaidMember, state: SentinelsState): WorldPoint {
   if (member.id === state.selectedSlotId) return state.player
   if (state.phase === 'stasis') {
     const index = contractRaidRoster.findIndex(candidate => candidate.id === member.id)
     const ring = 11 + index % 3 * 4
     const angle = index / contractRaidRoster.length * Math.PI * 2
-    return { x: Math.cos(angle) * ring, z: Math.sin(angle) * ring }
+    const target = { x: Math.cos(angle) * ring, z: Math.sin(angle) * ring }
+    const previous = formationPosition(member, { ...state, phase: 'active' })
+    return blendPosition(previous, target, (state.time - state.phaseStartedAt) / 2)
   }
   const side = sideForSlot(member.id, state.cycle); const home = homeForSide(side, state.cycle)
+  if (member.role === 'tank') {
+    const boss = side === 'acid' ? state.acidBoss : state.bloodBoss
+    return { x: boss.x + (boss.x > 0 ? -4 : 4), z: boss.z + (member.id.endsWith('2') ? 2 : -2) }
+  }
   const peers = contractRaidRoster.filter(candidate => sideForSlot(candidate.id, state.cycle) === side)
   const index = peers.findIndex(candidate => candidate.id === member.id)
   const phaseAge = state.time - state.phaseStartedAt
@@ -280,17 +338,20 @@ function memberPosition(member: ContractRaidMember, state: SentinelsState): Worl
     const droplet = npcDroplets[index % Math.max(1, npcDroplets.length)]
     if (droplet) {
       const angle = index * 2.1
-      return { x: droplet.position.x + Math.cos(angle) * 1.2, z: droplet.position.z + Math.sin(angle) * 1.2 }
+      const target = { x: droplet.position.x + Math.cos(angle) * 1.2, z: droplet.position.z + Math.sin(angle) * 1.2 }
+      return blendPosition(formationPosition(member, state), target, (state.time - (state.dropletsSpawnedAt ?? state.time)) / 2)
     }
   }
   if (side === 'blood' && phaseAge >= 17 && phaseAge < 25) {
     const target = { x: towardCentre(home, 13), z: 16 }
     const angle = index / Math.max(1, peers.length) * Math.PI * 2
-    return { x: target.x + Math.cos(angle) * 5.2, z: target.z + Math.sin(angle) * 5.2 }
+    const soak = { x: target.x + Math.cos(angle) * 5.2, z: target.z + Math.sin(angle) * 5.2 }
+    return blendPosition(formationPosition(member, state), soak, (phaseAge - 17) / 2)
   }
   const column = index % 3
   const row = Math.floor(index / 3)
-  return { x: towardCentre(home, 10 + column * 3), z: -13 + row * 8 }
+  const base = { x: towardCentre(home, 10 + column * 3), z: -13 + row * 8 }
+  return { x: base.x + Math.sin(state.time * .45 + index) * .8, z: base.z + Math.cos(state.time * .38 + index) * .55 }
 }
 
 function toxins(green: number, red: number) {
@@ -305,7 +366,7 @@ export function sentinelsSnapshot(state: SentinelsState): Train3DSnapshot {
   const actors: ActorSnapshot[] = contractRosterForSlot(state.selectedSlotId).map(member => ({
     id: member.controlled ? 'player' : member.id, kind: member.controlled ? 'player' : 'ally', playerClass: member.playerClass,
     position: memberPosition(member, state), facing: member.controlled ? state.player.facing : 0, color: trainingClassColors[member.playerClass], health: member.controlled ? 100 : undefined,
-    auras: member.controlled && state.phase === 'stasis' ? toxins(1, 3) : member.controlled ? [
+    auras: state.phase === 'stasis' && !state.helicalResolved ? (member.controlled ? toxins(1, 3) : toxins((contractRaidRoster.indexOf(member) % 3) + 1, 4 - ((contractRaidRoster.indexOf(member) % 3) + 1))) : member.controlled ? [
       ...(state.acidMarks ? [{ id: 'acid-mark', tone: 'poison' as const, stacks: state.acidMarks }] : []),
       ...(state.bloodMarks ? [{ id: 'blood-mark', tone: 'danger' as const, stacks: state.bloodMarks }] : []),
       ...(state.protovenomActive ? [{ id: 'protovenom', tone: 'danger' as const, stacks: 1 }] : []),
@@ -315,11 +376,11 @@ export function sentinelsSnapshot(state: SentinelsState): Train3DSnapshot {
     { id: 'breath-of-ulatek', kind: 'boss', position: state.acidBoss, facing: 0, color: '#61dc79', auras: [], health: state.acidHealth },
     { id: 'blood-of-ulatek', kind: 'boss', position: state.bloodBoss, facing: Math.PI, color: '#e45663', auras: [], health: state.bloodHealth },
   )
-  if (state.phase === 'active' && phaseAge >= 8 && phaseAge < 28) {
+  if (state.phase === 'active' && phaseAge >= 8 && state.coagulationHealth > 0) {
     const acidHome = homeForSide('acid', state.cycle)
-    actors.push({ id: 'venom-coagulation', kind: 'enemy', position: { x: towardCentre(acidHome, 15), z: 18 }, facing: 0, color: '#79d85e', auras: [], health: Math.max(0, 100 - (phaseAge - 8) * 5) })
+    actors.push({ id: 'venom-coagulation', kind: 'enemy', position: { x: towardCentre(acidHome, 15), z: 18 }, facing: 0, color: '#79d85e', auras: [], health: state.coagulationHealth })
   }
-  if (state.phase === 'stasis') {
+  if (state.phase === 'stasis' && !state.helicalResolved) {
     actors.push({ id: 'helical-partner', kind: 'ally', playerClass: 'priest', position: helicalPartner(state), facing: 0, color: trainingClassColors.priest, auras: toxins(3, 1) })
     actors.push({ id: 'wrong-helical-partner', kind: 'ally', playerClass: 'warlock', position: { x: 12, z: state.cycle === 1 ? -6 : 6 }, facing: 0, color: trainingClassColors.warlock, auras: toxins(2, 2) })
   }
@@ -343,15 +404,20 @@ export function sentinelsSnapshot(state: SentinelsState): Train3DSnapshot {
     const partner = actors.find(actor => actor.id === 'protovenom-partner')
     if (partner) effects.push({ id: 'partner-protovenom-ring', kind: 'ground-spread', position: partner.position, radius: 3, color: '#ff4059', progress: 1, filled: false })
   }
-  if (state.phase === 'stasis') effects.push({ id: 'helical-meeting', kind: 'pulse', position: helicalPartner(state), radius: 3.5, color: '#8be99b', progress: (state.time % 1.5) / 1.5 })
+  if (state.phase === 'stasis' && !state.helicalResolved) effects.push({ id: 'helical-meeting', kind: 'pulse', position: helicalPartner(state), radius: 3.5, color: '#8be99b', progress: (state.time % 1.5) / 1.5 })
   const add = actors.find(actor => actor.id === 'venom-coagulation')
   const cosmeticTarget = add?.position ?? (state.phase === 'active' ? state.assignedSide === 'acid' ? state.acidBoss : state.bloodBoss : STASIS_ACID)
-  return { time: state.time, arena: sentinelsArena, actors, effects: [...effects, ...cosmeticClassProjectiles(actors, cosmeticTarget, state.time)] }
+  const controlled = contractSelectedMember(state.selectedSlotId)
+  const mainProjectile = state.mainProjectileFiredAt !== undefined && state.mainProjectileOrigin && state.mainProjectileTarget
+    ? classProjectileEffects('player-main', state.mainProjectileOrigin, state.mainProjectileTarget, controlled.playerClass, state.time - state.mainProjectileFiredAt, state.mainProjectileOrdinal, .9)
+    : []
+  return { time: state.time, arena: sentinelsArena, actors, effects: [...effects, ...cosmeticClassProjectiles(actors, cosmeticTarget, state.time), ...mainProjectile] }
 }
 
 export function activeSentinelsPrompt(state: SentinelsState) {
   if (state.phase === 'stasis') return state.helicalResolved ? 'Helical resolved — prepare to swap sides' : 'Find the complementary toxin composition'
   const age = state.time - state.phaseStartedAt
+  if (age >= 8 && state.coagulationHealth > 0) return `Target Venom Coagulation · ${Math.ceil(state.coagulationHealth / 20)} Main casts`
   if (state.protovenomActive) return 'Meet only your marked Protovenom partner'
   if (state.assignedSide === 'acid' && age >= 12 && age < 30) return 'Soak your green droplet, then leave its return beam'
   if (state.assignedSide === 'blood' && age >= 17 && age < 25) return 'Join the red group soak'
@@ -363,7 +429,9 @@ export function activeSentinelsPrompt(state: SentinelsState) {
 
 export function nextSentinelsTimer(state: SentinelsState) {
   const age = state.time - state.phaseStartedAt
-  if (state.phase === 'stasis') return { label: 'Helical', seconds: Math.max(0, 28 - age) }
+  if (state.phase === 'stasis') return { label: 'Helical', seconds: Math.max(0, 13 - age) }
+  if (age < 8) return { label: 'Venom add', seconds: Math.max(0, 8 - age) }
+  if (state.coagulationHealth > 0) return { label: 'Noxious Blast', seconds: Math.max(0, 30 - age) }
   const assignedDroplet = state.droplets.find(droplet => droplet.assignedToPlayer)
   if (state.assignedSide === 'acid' && state.dropletsSpawned && assignedDroplet && !assignedDroplet.soaked) return { label: 'Droplet', seconds: Math.max(0, 30 - age) }
   if (state.puddleDropAt !== undefined) return { label: 'Pool', seconds: Math.max(0, state.puddleDropAt - state.time) }
