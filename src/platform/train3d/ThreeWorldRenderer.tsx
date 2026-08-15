@@ -76,6 +76,17 @@ function actorObject(actor: ActorSnapshot) {
     else { accessory.rotation.x = Math.PI / 2; accessory.position.set(-.9, 1.55, -.12) }
     group.add(head, shoulders, chest, accessory, facing)
   }
+  if (actor.kind === 'enemy') {
+    const health = new THREE.Group()
+    health.name = 'world-health'
+    health.position.y = 3.7
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(2.5, .28), new THREE.MeshBasicMaterial({ color: 0x25171b, depthTest: false }))
+    const fill = new THREE.Mesh(new THREE.PlaneGeometry(2.35, .18), new THREE.MeshBasicMaterial({ color: 0x65d98c, depthTest: false }))
+    fill.name = 'world-health-fill'
+    fill.position.z = .01
+    health.add(back, fill)
+    group.add(health)
+  }
   return group
 }
 
@@ -108,6 +119,27 @@ function effectObject(effect: EffectSnapshot) {
         ? new THREE.MeshStandardMaterial({ color: effect.color, emissive: effect.color, emissiveIntensity: 1.8, roughness: .2 })
         : new THREE.MeshBasicMaterial({ color: effect.color }),
     )
+  }
+  if (effect.kind === 'arrow') {
+    const group = new THREE.Group()
+    const shaft = new THREE.Mesh(new THREE.BoxGeometry(.18, .08, 2.2), new THREE.MeshBasicMaterial({ color: effect.color, transparent: true, opacity: .95, depthWrite: false }))
+    shaft.position.z = -1.1
+    const head = new THREE.Mesh(new THREE.ConeGeometry(.42, 1, 4), new THREE.MeshBasicMaterial({ color: effect.color, transparent: true, opacity: .95, depthWrite: false }))
+    head.rotation.x = -Math.PI / 2
+    head.position.z = -2.45
+    group.add(shaft, head)
+    return group
+  }
+  if (effect.kind === 'ground-harmful' || effect.kind === 'ground-soak' || effect.kind === 'ground-spread') {
+    const group = new THREE.Group()
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(effect.radius, 40), new THREE.MeshBasicMaterial({ color: effect.color, side: THREE.DoubleSide, transparent: true, opacity: .28, depthWrite: false }))
+    disc.name = 'effect-fill'
+    disc.rotation.x = -Math.PI / 2
+    const ring = new THREE.Mesh(new THREE.RingGeometry(Math.max(.1, effect.radius - .28), effect.radius, 40), new THREE.MeshBasicMaterial({ color: effect.color, side: THREE.DoubleSide, transparent: true, opacity: .9, depthWrite: false }))
+    ring.rotation.x = -Math.PI / 2
+    ring.position.y = .015
+    group.add(disc, ring)
+    return group
   }
   const ring = new THREE.Mesh(
     new THREE.RingGeometry(Math.max(.1, effect.radius - .35), effect.radius, 40),
@@ -167,34 +199,63 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
     if (import.meta.env.DEV) canvas.dataset.playerMarker = 'humanoid-chevron'
     renderer.setPixelRatio(1)
-    renderer.setClearColor(0x070b12)
+    const arena = snapshotRef.current.arena
+    if (import.meta.env.DEV) {
+      canvas.dataset.arenaShape = arena.shape
+      canvas.dataset.arenaTheme = arena.theme.kind ?? 'default'
+    }
+    const floorColor = new THREE.Color(arena.theme.floor?.startsWith('#') ? arena.theme.floor : '#18221b')
+    const boundaryColor = new THREE.Color(arena.theme.boundary?.startsWith('#') ? arena.theme.boundary : '#7fa98d')
+    renderer.setClearColor(floorColor.clone().multiplyScalar(.24))
     const scene = new THREE.Scene()
-    scene.fog = new THREE.Fog(0x070b12, 52, 96)
+    scene.fog = new THREE.Fog(floorColor.clone().multiplyScalar(.24), 52, 110)
     const camera = new THREE.PerspectiveCamera(58, 1, .1, 160)
     scene.add(new THREE.HemisphereLight(0xc5ffe1, 0x172018, 2.3))
     const light = new THREE.DirectionalLight(0xf1ffe5, 2.1)
     light.position.set(-18, 30, 14)
     scene.add(light)
 
-    const arena = snapshotRef.current.arena
     const visualFloor = renderedFloorDimensions(arena)
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(visualFloor.width, visualFloor.depth),
-      new THREE.MeshStandardMaterial({ color: 0x18221b, roughness: .9 }),
+      arena.shape === 'circle' ? new THREE.CircleGeometry(arena.width * VISUAL_FLOOR_SCALE / 2, 96) : new THREE.PlaneGeometry(visualFloor.width, visualFloor.depth),
+      new THREE.MeshStandardMaterial({ color: floorColor, roughness: .9 }),
     )
     floor.rotation.x = -Math.PI / 2
     scene.add(floor)
-    const grid = new THREE.GridHelper(Math.max(visualFloor.width, visualFloor.depth), 64, 0x405d48, 0x243329)
-    grid.position.y = .03
-    scene.add(grid)
+    if (arena.shape === 'rectangle') {
+      const grid = new THREE.GridHelper(Math.max(visualFloor.width, visualFloor.depth), 64, 0x405d48, 0x243329)
+      grid.position.y = .03
+      scene.add(grid)
+    } else {
+      for (const radius of [10, 22, 34, 44]) {
+        const ring = new THREE.Mesh(new THREE.RingGeometry(radius - .08, radius + .08, 72), new THREE.MeshBasicMaterial({ color: boundaryColor, side: THREE.DoubleSide, transparent: true, opacity: radius === 44 ? .48 : .15 }))
+        ring.rotation.x = -Math.PI / 2
+        ring.position.y = .035
+        scene.add(ring)
+      }
+      if (arena.theme.kind === 'soulcoil') {
+        const well = new THREE.Mesh(new THREE.CylinderGeometry(5.8, 6.5, 1.1, 64), new THREE.MeshStandardMaterial({ color: arena.theme.well || '#07191d', emissive: arena.theme.accent || '#58c9c5', emissiveIntensity: .35, roughness: .35 }))
+        well.position.y = -.25
+        scene.add(well)
+        for (let index = 0; index < 8; index += 1) {
+          const spoke = new THREE.Mesh(new THREE.BoxGeometry(.32, .03, 28), new THREE.MeshBasicMaterial({ color: arena.theme.accent || '#58c9c5', transparent: true, opacity: .12 }))
+          spoke.position.y = .04
+          spoke.rotation.y = index * Math.PI / 4
+          scene.add(spoke)
+        }
+      }
+    }
+    const boundaryPoints = arena.shape === 'circle'
+      ? Array.from({ length: 96 }, (_, index) => { const angle = index * Math.PI * 2 / 96; return new THREE.Vector3(Math.cos(angle) * arena.width / 2, .055, Math.sin(angle) * arena.depth / 2) })
+      : [
+          new THREE.Vector3(-arena.width / 2, .055, -arena.depth / 2),
+          new THREE.Vector3(arena.width / 2, .055, -arena.depth / 2),
+          new THREE.Vector3(arena.width / 2, .055, arena.depth / 2),
+          new THREE.Vector3(-arena.width / 2, .055, arena.depth / 2),
+        ]
     const boundary = new THREE.LineLoop(
-      new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(-arena.width / 2, .055, -arena.depth / 2),
-        new THREE.Vector3(arena.width / 2, .055, -arena.depth / 2),
-        new THREE.Vector3(arena.width / 2, .055, arena.depth / 2),
-        new THREE.Vector3(-arena.width / 2, .055, arena.depth / 2),
-      ]),
-      new THREE.LineBasicMaterial({ color: 0x7fa98d, transparent: true, opacity: .52 }),
+      new THREE.BufferGeometry().setFromPoints(boundaryPoints),
+      new THREE.LineBasicMaterial({ color: boundaryColor, transparent: true, opacity: .52 }),
     )
     scene.add(boundary)
 
@@ -333,6 +394,12 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         }
         const auraGroup = object.getObjectByName('auras')
         if (auraGroup?.userData.signature !== auraSignature(actor)) refreshAuras(object, actor)
+        const healthFill = object.getObjectByName('world-health-fill') as THREE.Mesh | undefined
+        if (healthFill) {
+          const fraction = Math.max(0, Math.min(1, (actor.health ?? 100) / 100))
+          healthFill.scale.x = fraction
+          healthFill.position.x = -(1 - fraction) * 1.175
+        }
       })
       const liveEffectIds = new Set(current.effects.map(effect => effect.id))
       for (const [id, object] of effects) {
@@ -352,7 +419,8 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         const target = effect.target ?? effect.position
         const x = THREE.MathUtils.lerp(effect.position.x, target.x, effect.progress)
         const z = THREE.MathUtils.lerp(effect.position.z, target.z, effect.progress)
-        const y = effect.kind === 'pulse' ? .08 : 1.1 + Math.sin(effect.progress * Math.PI) * (effect.kind === 'cosmetic-projectile' ? 1.2 : 2)
+        const groundEffect = effect.kind === 'pulse' || effect.kind.startsWith('ground-')
+        const y = groundEffect ? .08 : effect.kind === 'arrow' ? .18 : 1.1 + Math.sin(effect.progress * Math.PI) * (effect.kind === 'cosmetic-projectile' ? 1.2 : 2)
         if (object.userData.positionReady) {
           object.position.x = THREE.MathUtils.lerp(object.position.x, x, actorAlpha)
           object.position.y = THREE.MathUtils.lerp(object.position.y, y, actorAlpha)
@@ -365,6 +433,9 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
           const scale = .72 + effect.progress * .35
           object.scale.setScalar(THREE.MathUtils.lerp(object.scale.x, scale, actorAlpha))
         }
+        const fill = object.getObjectByName('effect-fill')
+        if (fill) fill.visible = effect.filled !== false
+        if (effect.kind === 'arrow' && effect.target) object.rotation.y = -Math.atan2(effect.target.x - effect.position.x, -(effect.target.z - effect.position.z))
       })
       const currentMarkers = current.markers ?? []
       const liveMarkerIds = new Set(currentMarkers.map(marker => marker.id))

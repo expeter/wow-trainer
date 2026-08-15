@@ -20,10 +20,11 @@ describe('Midnight Season 2 bootstrap shell', () => {
     render(<Season2App />)
 
     await screen.findByRole('heading', { name: 'Entombed Sentinels' })
-    expect(screen.getByRole('heading', { name: 'Learn 2D' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Train 3D' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Launch Learn 2D' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: 'Launch Train 3D' })).toBeEnabled()
+    const sentinels = screen.getByRole('heading', { name: 'Entombed Sentinels' }).closest('article')!
+    expect(within(sentinels).getByRole('heading', { name: 'Learn 2D' })).toBeVisible()
+    expect(within(sentinels).getByRole('heading', { name: 'Train 3D' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toBeEnabled()
     const catalogue = screen.getByLabelText('Encounter catalogue')
     expect(within(catalogue).getByRole('heading', { name: 'Entombed Sentinels' })).toBeVisible()
     expect(within(catalogue).getAllByText('Coming soon').length).toBeGreaterThan(0)
@@ -33,7 +34,7 @@ describe('Midnight Season 2 bootstrap shell', () => {
     render(<Season2App />)
     await screen.findByRole('heading', { name: 'Entombed Sentinels' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Launch Learn 2D' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }))
     expect(await screen.findByRole('heading', { name: 'Helical Toxins tutorial' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Move forward' })).toBeVisible()
     expect(screen.getAllByRole('img')).toHaveLength(4)
@@ -59,7 +60,7 @@ describe('Midnight Season 2 bootstrap shell', () => {
     render(<Season2App />)
     expect(screen.getByLabelText('Build information')).toBeVisible()
     await screen.findByRole('heading', { name: 'Entombed Sentinels' })
-    fireEvent.click(screen.getByRole('button', { name: 'Launch Learn 2D' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }))
     expect(await screen.findByRole('heading', { name: 'Helical Toxins tutorial' })).toBeVisible()
     expect(screen.queryByLabelText('Build information')).not.toBeInTheDocument()
     expect(screen.getByRole('complementary', { name: 'Recent failures' })).toHaveTextContent('No failures yet')
@@ -87,5 +88,12 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.getByRole('heading', { name: 'Statistics are intentionally offline' })).toBeVisible()
     expect(screen.getAllByText(/API \/v2/)).toHaveLength(2)
     expect(document.body.textContent).not.toContain('/v1/auth')
+  })
+
+  it('labels Easy, Normal, and Hard as trainer assistance rather than raid difficulty', () => {
+    render(<Season2App />)
+    const group = screen.getByRole('group', { name: 'Trainer difficulty' })
+    expect(within(group).getByRole('button', { name: 'Normal' })).toHaveAttribute('aria-pressed', 'true')
+    expect(group).toHaveTextContent('Heroic encounter rules stay fixed')
   })
 })

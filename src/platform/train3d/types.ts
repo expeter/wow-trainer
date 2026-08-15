@@ -25,7 +25,7 @@ export interface AuraSnapshot {
 
 export interface ActorSnapshot {
   id: string
-  kind: 'player' | 'boss' | 'ally'
+  kind: 'player' | 'boss' | 'ally' | 'enemy'
   position: WorldPoint
   facing: number
   color: string
@@ -36,12 +36,14 @@ export interface ActorSnapshot {
 
 export interface EffectSnapshot {
   id: string
-  kind: 'pulse' | 'projectile' | 'cosmetic-projectile'
+  kind: 'pulse' | 'projectile' | 'cosmetic-projectile' | 'ground-harmful' | 'ground-soak' | 'ground-spread' | 'arrow'
   position: WorldPoint
   target?: WorldPoint
   radius: number
   color: string
   progress: number
+  filled?: boolean
+  rotation?: number
 }
 
 export type WorldMarkerKind = 'star' | 'cross' | 'diamond' | 'circle'

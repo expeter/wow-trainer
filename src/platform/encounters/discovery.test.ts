@@ -3,11 +3,14 @@ import sentinels from '../../encounters/entombed-sentinels'
 import { loadEncounterCatalogue } from './discovery'
 
 describe('automatic encounter discovery', () => {
-  it('discovers the isolated Sentinels entry without a central encounter list', async () => {
+  it('discovers every isolated raid entry without a central encounter list', async () => {
     const catalogue = await loadEncounterCatalogue()
 
     expect(catalogue.diagnostics).toEqual([])
-    expect(catalogue.packages.map(entry => entry.manifest.id)).toEqual(['entombed-sentinels'])
+    expect(catalogue.packages.map(entry => entry.manifest.id)).toEqual([
+      'nekzali', 'entombed-sentinels', 'vashnik', 'the-lost-explorers',
+      'sszorak', 'the-twin-fangs', 'the-coiled-altar', 'ulatek',
+    ])
   })
 
   it('excludes malformed packages and reports their source without crashing the catalogue', async () => {

@@ -6,10 +6,10 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page).toHaveTitle('Midnight Season 2 Trainer')
   await expect(page.getByRole('heading', { name: 'Midnight Season 2 Trainer' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Entombed Sentinels' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Learn 2D' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Train 3D' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Launch Learn 2D' })).toBeEnabled()
-  await expect(page.getByRole('button', { name: 'Launch Train 3D' })).toBeEnabled()
+  await expect(page.getByRole('heading', { name: 'Learn 2D' }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Train 3D' }).first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toBeEnabled()
   await expect(page.getByLabel('Encounter catalogue').getByText('Coming soon').first()).toBeVisible()
   await expect(page.locator('.season2-encounter')).toHaveCount(0)
   await expect(page.getByLabel('Build information')).toContainText(/v\d+\.\d+\.\d+ · [a-z0-9]+ ·/)
@@ -18,9 +18,43 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page.getByRole('heading', { name: 'L’ura Trainer' })).toHaveCount(0)
 })
 
+test("discovers all raid panels and launches Nek'zali in separate 2D and 3D arenas", async ({ page }) => {
+  await page.goto('/')
+  const catalogue = page.getByLabel('Encounter catalogue')
+  for (const boss of ["Nek'zali the Soulcoiler", 'Entombed Sentinels', 'Vashnik the Malignant', 'The Lost Explorers', 'Sszorak', 'The Twin Fangs', 'The Coiled Altar', "Ula'tek"]) {
+    await expect(catalogue.getByRole('heading', { name: boss, exact: true })).toBeVisible()
+  }
+  await expect(page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" })).toBeEnabled()
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()
+  const setup2d = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
+  await expect(setup2d).toContainText('Heroic assignment')
+  await expect(setup2d).toContainText(/soak group [12]/)
+  await expect(page.getByLabel("Nek'zali raid-plan training arena")).toBeVisible()
+  await setup2d.getByRole('button', { name: /Tank 1, warrior/ }).click()
+  await expect(setup2d).toContainText('soak group 1')
+  await setup2d.getByRole('button', { name: 'Start', exact: true }).click()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
+  const player = page.getByLabel('Controlled warrior tank player')
+  const before = Number(await player.getAttribute('data-position-y'))
+  await page.keyboard.down('w'); await page.waitForTimeout(300); await page.keyboard.up('w')
+  expect(Number(await player.getAttribute('data-position-y'))).toBeLessThan(before)
+  await expect(page.getByRole('button', { name: 'Main ability' })).toBeVisible()
+  await page.getByRole('button', { name: 'Exit' }).click()
+
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Train 3D" }).click()
+  const arena3d = page.getByLabel('Third-person 3D training arena')
+  await expect(arena3d).toHaveAttribute('data-arena-shape', 'circle')
+  await expect(arena3d).toHaveAttribute('data-arena-theme', 'soulcoil')
+  const setup3d = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
+  await setup3d.getByRole('button', { name: /Tank 1, warrior/ }).click()
+  await setup3d.getByRole('button', { name: 'Start', exact: true }).click()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
+  await expect(page.getByText('Training boss · your aggro')).toBeVisible()
+})
+
 test('moves independently in all four Learn 2D directions and clears input on blur', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
   await expect(page.getByLabel('Controlled character with 1 green and 3 red toxins')).toBeVisible()
   const player = page.getByLabel('Controlled character with 1 green and 3 red toxins')
   const position = async () => ({ x: Number(await player.getAttribute('data-position-x')), y: Number(await player.getAttribute('data-position-y')) })
@@ -49,7 +83,7 @@ test('moves independently in all four Learn 2D directions and clears input on bl
 test('keeps the wide runtime header in one line and preserves the 2D arena aspect', async ({ page }) => {
   await page.setViewportSize({ width: 2048, height: 900 })
   await page.goto('/')
-  await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
 
   await expect(page.getByLabel('Build information')).toHaveCount(0)
   const status = page.locator('.runtime-status-bar')
@@ -64,7 +98,7 @@ test('keeps the wide runtime header in one line and preserves the 2D arena aspec
 
 test('moves the player through the Helical Toxins Learn 2D icon drill', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
 
   await expect(page.getByRole('heading', { name: 'Helical Toxins tutorial' })).toBeVisible()
   await expect(page.getByLabel('Controlled character with 1 green and 3 red toxins')).toBeVisible()
@@ -81,7 +115,7 @@ test('moves the player through the Helical Toxins Learn 2D icon drill', async ({
 
 test('shows a dismissible detailed wipe card while retaining recent failure help', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
   await expect(page.getByLabel('Controlled character with 1 green and 3 red toxins')).toBeVisible()
   await page.keyboard.down('d'); await page.waitForTimeout(1050); await page.keyboard.up('d')
   await page.keyboard.down('s'); await page.waitForTimeout(900); await page.keyboard.up('s')
@@ -189,7 +223,7 @@ test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3
   await expect(page.getByRole('checkbox', { name: 'Show timer' })).toHaveCount(0)
   await expect(page.getByRole('checkbox', { name: 'Show position' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Game settings' }).click()
-  await page.getByRole('button', { name: 'Launch Train 3D' }).click()
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()
 
   await expect(page.getByRole('heading', { name: 'Helical Toxins movement drill' })).toBeVisible()
   await expect(page.getByRole('dialog', { name: 'Contract room entrance' })).toHaveCount(0)
@@ -242,7 +276,7 @@ test('Season 2 shell HUD boxes follow the pointer and persist on release', async
 
 test('keeps left orbit independent, aligns on right press, and moves with both mouse buttons', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Launch Train 3D' }).click()
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()
   const arena = page.getByLabel('Third-person 3D training arena')
   const bounds = await arena.boundingBox()
   if (!bounds) throw new Error('3D arena has no bounds')

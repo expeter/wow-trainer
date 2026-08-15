@@ -97,7 +97,8 @@ encounter development into an independently deployed Season 2 repository.
   pause/status controls land now while failure/results remain open.
 - `FR-077` — planned under `FR-072`: dynamic package-declared actions.
 - `FR-078` — planned under `FR-072`: independent persisted audio services.
-- `FR-079` — planned under `FR-072`: versioned encounter tactic editor.
+- `FR-079` — planned under `FR-072`: versioned encounter tactic editor; the
+  supplied Sentinels raid-plan image is preserved as package evidence.
 - `FR-080` — in progress under `FR-072`: `CR-249` restores reusable live
   failure/points corners; recap and offline result identity remain.
 - `CR-247` — completed under `FR-072`: restore the full-viewport runtime,
@@ -143,6 +144,16 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-257` — completed under `FR-072`: keep central coaching to one-line prompts,
   move lab specifications into its drawer, and support multiple compact named
   countdown helpers.
+- `SPEC-021` — completed: separate Heroic/Mythic encounter rules from the
+  Easy/Normal/Hard trainer-assistance profiles and record the approved Nek'zali
+  priority change.
+- `FR-081` — completed under `FR-075`: expose all eight raid bosses through
+  isolated auto-discovered package panels while keeping six metadata-only.
+- `FR-082` — completed under `FR-075`: implement the supplied Heroic Nek'zali
+  two-phase full fight plus intermission in separate Learn 2D and Train 3D
+  runtimes over one headless encounter contract.
+- `FR-083` — planned under `FR-075`: add the separately sourced Mythic well
+  scenario only after the Heroic simulation is stable.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
@@ -158,19 +169,20 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-234` — deferred until the first static publication: perform a measured
   bundle, runtime, accessibility, responsive, and test-duration optimization
   pass without changing encounter mechanics.
-- `FR-075` — deferred until Sentinels and the optimization pass are stable:
-  open individually ticketed, isolated encounter packages one boss at a time.
-  The captured Nek'zali raid-plan image is indexed as future evidence only and
-  does not begin that encounter package.
+- `FR-075` — in progress with its sequence revised by `SPEC-021`: Nek'zali is
+  the first approved full-fight package; other bosses remain metadata-only until
+  individually approved.
 
-The near-term execution order is `FR-072` → `CR-235` → `CR-236` → `FR-074` →
-`CR-234` → `FR-075`.
+The near-term execution order is now `FR-081` → `FR-082` → `FR-083`, followed
+by the still-required pre-publication `CR-235` → `CR-236` → `FR-074` and the
+measured `CR-234` optimization pass.
 `FR-073` remains a separate later online-platform milestone and does not block
 the static trainer sequence.
 
-No other boss work may start alongside Entombed Sentinels. The L'ura API and
-leaderboard remain frozen legacy reference behavior and cannot deploy from this
-repository.
+No boss beyond Nek'zali and Entombed Sentinels may gain playable mechanics
+without a new approved ticket. Catalogue-only metadata does not authorize an
+encounter runtime. The L'ura API and leaderboard remain frozen legacy reference
+behavior and cannot deploy from this repository.
 
 The remaining milestones below are the frozen L'ura v0.9.1 delivery record.
 They are retained for source archaeology, not as the Season 2 execution order.

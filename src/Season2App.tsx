@@ -141,6 +141,7 @@ export default function Season2App() {
     const Runtime = runtime.Component
     return <Runtime
       scenarioId={runtime.scenarioId}
+      trainingDifficulty={settings.difficulty}
       keyBindings={settings.keyBindings}
       hudSettings={settings.hud}
       cameraSettings={settings.camera}
@@ -161,8 +162,8 @@ export default function Season2App() {
     </div>
     <div className="season2-status" aria-label="Migration status">
       <span>Platform extraction</span>
-      <strong>Entombed Sentinels first</strong>
-      <small>Helical Toxins is the first playable Learn 2D and Train 3D slice. Further encounter packages appear in the catalogue only when their isolated implementation begins.</small>
+      <strong>Nek'zali full fight · Sentinels focused drill</strong>
+      <small>All eight raid bosses have isolated catalogue packages. Only Nek'zali and Entombed Sentinels currently expose playable scenarios.</small>
     </div>
 
     {import.meta.env.DEV && Boolean(catalogue?.diagnostics.length) && <aside className="season2-catalogue-diagnostics">
@@ -189,6 +190,7 @@ export default function Season2App() {
         <p className="hint">{panel.body}</p>
       </div>
       {activeTab === 'Game settings' && <div className="season2-catalogue-grid" aria-label="Encounter catalogue">
+        <fieldset className="season2-training-difficulty"><legend>Trainer difficulty</legend><p>Heroic encounter rules stay fixed. This changes guidance and failure tolerance only.</p><div>{(['easy', 'normal', 'hard'] as const).map(value => <button type="button" key={value} className={settings.difficulty === value ? 'selected' : ''} aria-pressed={settings.difficulty === value} onClick={() => updateSettings(current => ({ ...current, difficulty: value }))}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></fieldset>
         {!catalogue && <article className="season2-encounter-card loading"><p>Discovering encounter packages…</p></article>}
         {catalogueFailed && <article className="season2-encounter-card unavailable"><h3>No conforming encounter package</h3><p>Check development diagnostics before continuing.</p></article>}
         {catalogue?.packages.map(selectedEncounter => <article className="season2-encounter-card" key={selectedEncounter.manifest.id}>
@@ -207,7 +209,7 @@ export default function Season2App() {
                   type="button"
                   key={`${scenario.id}-${scenario.difficulty}`}
                   disabled={scenario.status !== 'ready' || Boolean(runtimeLoading)}
-                  aria-label={scenario.status === 'ready' ? `Launch ${modeLabel}` : `${scenario.name} coming soon in ${modeLabel}`}
+                  aria-label={scenario.status === 'ready' ? `Launch ${selectedEncounter.manifest.name} ${modeLabel}` : `${selectedEncounter.manifest.name} ${scenario.name} coming soon in ${modeLabel}`}
                   onClick={() => void launch(selectedEncounter, mode, scenario.id)}
                 ><span>{scenario.name}</span><strong>{scenario.status === 'ready' ? runtimeLoading === mode ? 'Loading…' : 'Play' : 'Coming soon'}</strong></button>)}</div>
               </section>

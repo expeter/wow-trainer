@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added isolated, automatically discovered setup packages for all eight
+  Venomous Abyss bosses; six remain clearly labelled as catalogue-only while
+  Nek'zali and Entombed Sentinels expose their approved playable work.
+- Added the first Heroic Nek'zali full-fight training contract in separate
+  Learn 2D and Train 3D runtimes, including the circular Soulwell arena,
+  pre-pull role and soak assignment, Essence Rend trails, Possession Barrage
+  tank swaps, killable Amani waves, the two-Echo intermission, corpse burning,
+  and Phase 2 Invoke hazard movement.
+- Separated fixed raid mechanics from Easy, Normal, and Hard trainer assistance
+  profiles. Mythic Nek'zali remains a separate planned scenario and is not
+  mixed into the Heroic implementation.
 - Restored centered terminal drill cards with dismiss, expandable corrective
   details, retry, and setup-exit actions while retaining clickable failures.
 - Added four development-only raid world markers to the Train 3D contract room

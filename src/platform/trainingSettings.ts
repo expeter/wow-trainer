@@ -4,6 +4,7 @@ export type MovementAction = 'forward' | 'backward' | 'left' | 'right' | 'turnLe
 export type CombatAction = 'mainAbility' | 'taunt' | 'healthPot' | 'shield'
 export type SystemAction = 'pause'
 export type TrainingAction = MovementAction | CombatAction | SystemAction
+export type TrainingDifficulty = 'easy' | 'normal' | 'hard'
 
 export interface MovementKeyBindings {
   forward: string
@@ -41,6 +42,7 @@ export const DEFAULT_HUD_LAYOUT: Record<HudBox, HudPoint> = {
 }
 
 export interface TrainingSettings {
+  difficulty: TrainingDifficulty
   keyBindings: MovementKeyBindings
   hud: TrainingHudSettings
   camera: TrainingCameraSettings
@@ -54,6 +56,7 @@ export interface TrainingCameraSettings {
 }
 
 export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
+  difficulty: 'normal',
   keyBindings: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE', pause: 'KeyP', mainAbility: 'KeyF', taunt: 'Numpad1', healthPot: 'NumpadDecimal', shield: 'Numpad7' },
   hud: { showPlayer: true, showAuras: true, showActions: true, showBoss: true, scale: 100, layout: DEFAULT_HUD_LAYOUT },
   camera: { invertX: false, invertY: true, sensitivity: 1, zoom: 22 },
@@ -82,6 +85,7 @@ export function normalizeTrainingSettings(value: unknown): TrainingSettings {
   }
 
   return {
+    difficulty: candidate.difficulty === 'easy' || candidate.difficulty === 'hard' ? candidate.difficulty : 'normal',
     keyBindings: migratedBindings,
     hud: {
       showPlayer: isBoolean(hud?.showPlayer) ? hud.showPlayer : DEFAULT_TRAINING_SETTINGS.hud.showPlayer,

@@ -614,3 +614,19 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   lifecycle, tactics, build metadata, or result/failure presentation.
 - The audit is reviewed before the first encounter release candidate and again
   during `CR-235` legacy retirement.
+
+## SPEC-021 · Raid difficulty and approved encounter sequence
+
+- Encounter difficulty and trainer difficulty are separate axes. Encounter
+  packages select Heroic or Mythic rules; Easy, Normal, and Hard select only
+  assistance, reaction windows, and failure tolerance.
+- Never describe the default Heroic encounter contract as Normal because the
+  trainer profile is named Normal.
+- Nek'zali is explicitly approved as the first full-fight package alongside the
+  existing focused Sentinels slice. Catalogue panels for the remaining raid
+  bosses may expose planned metadata but not playable mechanics.
+- Nek'zali Heroic and Mythic use separate scenario/timing declarations. Mythic
+  mechanics never leak into Heroic, and withdrawn PTR testing cannot supply
+  invented Mythic timing.
+- The detailed encounter contract lives in
+  [`nekzali-encounter.md`](nekzali-encounter.md).

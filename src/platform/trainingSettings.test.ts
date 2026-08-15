@@ -26,6 +26,11 @@ describe('shared Season 2 training settings', () => {
     })
   })
 
+  it('keeps trainer difficulty independent and migrates unknown values to Normal', () => {
+    expect(normalizeTrainingSettings({ difficulty: 'hard' }).difficulty).toBe('hard')
+    expect(normalizeTrainingSettings({ difficulty: 'heroic' }).difficulty).toBe('normal')
+  })
+
   it('round-trips shell settings through the isolated Season 2 storage key', () => {
     const values = new Map<string, string>()
     const storage = {

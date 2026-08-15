@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import type { MovementKeyBindings, TrainingCameraSettings, TrainingHudSettings } from '../trainingSettings'
+import type { MovementKeyBindings, TrainingCameraSettings, TrainingDifficulty, TrainingHudSettings } from '../trainingSettings'
 
 export type EncounterMode = 'learn2d' | 'train3d'
 export type EncounterDifficulty = 'heroic' | 'mythic'
@@ -169,6 +169,7 @@ export interface Train3DScenario extends ScenarioBase {
 
 export interface EncounterRuntimeProps {
   scenarioId: string
+  trainingDifficulty: TrainingDifficulty
   keyBindings: MovementKeyBindings
   hudSettings: TrainingHudSettings
   cameraSettings: TrainingCameraSettings

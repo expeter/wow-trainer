@@ -48,6 +48,12 @@
 .season2-catalogue-diagnostics p { margin: 6px 0 0; color: var(--s2-color-muted); }
 .season2-panel { min-height: 300px; }
 .season2-catalogue-grid { display: grid; gap: 16px; }
+.season2-training-difficulty { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 3px 18px; padding: 13px 15px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); background: rgba(8, 15, 20, .72); }
+.season2-training-difficulty legend { padding: 0 6px; color: var(--s2-color-accent); font: 10px var(--s2-font-mono); text-transform: uppercase; }
+.season2-training-difficulty p { margin: 0; color: var(--s2-color-muted); font-size: 12px; }
+.season2-training-difficulty > div { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: 6px; }
+.season2-training-difficulty button { padding: 7px 11px; font-size: 11px; }
+.season2-training-difficulty button.selected { border-color: var(--s2-color-accent); color: #11150d; background: var(--s2-color-accent); }
 .season2-encounter-card, .season2-contract-room-card {
   padding: 20px;
   border: 1px solid var(--s2-color-border);
@@ -266,6 +272,7 @@
 .contract-pull-overlay { position: absolute; z-index: 30; left: 50%; top: 50%; width: min(650px, calc(100% - 34px)); padding: 18px 20px; transform: translate(-50%, -50%); border: 1px solid var(--s2-color-accent); border-radius: var(--s2-radius-panel); color: var(--s2-color-text); background: rgba(7, 13, 17, .96); box-shadow: 0 18px 65px rgba(0, 0, 0, .72), 0 0 28px rgba(211, 181, 75, .12); }
 .contract-pull-overlay h2 { margin: 4px 0 8px; }
 .contract-pull-overlay p { color: var(--s2-color-muted); line-height: 1.5; }
+.contract-assignment-notice { display: block; padding: 8px 10px; border-left: 3px solid var(--s2-color-accent); color: #f3e5a0; background: rgba(211, 181, 75, .08); font: 10px/1.45 var(--s2-font-mono); }
 .contract-pull-overlay button { width: 100%; }
 .contract-position-plan { position: relative; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; margin: 13px 0 14px; padding: 35px 8px 8px; border: 1px solid var(--s2-color-border); border-radius: 9px; background: radial-gradient(circle at 50% 8%, rgba(239,113,130,.16), transparent 22%), linear-gradient(rgba(115,224,193,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(115,224,193,.04) 1px, transparent 1px), #0a1117; background-size: auto, 10% 25%, 10% 25%, auto; }
 .contract-position-plan button { min-width: 0; padding: 5px 2px; border-color: color-mix(in srgb, currentColor 46%, var(--s2-color-border)); border-radius: 5px; background: rgba(10,17,25,.9); font: 8px var(--s2-font-mono); }
@@ -313,9 +320,11 @@
 .arena-hud-mechanic em { display: block; max-width: 100%; margin-top: 4px; overflow: hidden; color: var(--s2-color-muted); font: normal 8px var(--s2-font-mono); text-overflow: ellipsis; white-space: nowrap; }
 .arena-hud-health { width: min(240px, 26%); padding: 7px 9px; border: 1px solid rgba(113, 221, 153, .55); border-radius: 7px; text-align: center; }
 .arena-hud-health.boss { border-color: rgba(239, 113, 130, .58); }
+.arena-hud-health.boss.owned { border-color: rgba(113, 221, 153, .72); }
 .arena-hud-health > div { height: 9px; margin-top: 4px; overflow: hidden; border-radius: 5px; background: #28131b; }
 .arena-hud-health i { display: block; height: 100%; background: linear-gradient(90deg, #36ad69, #73e0a2); transition: width .15s linear; }
 .arena-hud-health.boss i { background: linear-gradient(90deg, #9c3448, #ef7182); }
+.arena-hud-health.boss.owned i { background: linear-gradient(90deg, #21864e, #71dd99); }
 .arena-hud-health strong { display: block; margin-top: 3px; font: 9px var(--s2-font-mono); }
 .arena-hud-auras { display: grid; min-width: 150px; padding: 6px 9px; border: 1px solid rgba(157, 131, 242, .55); border-radius: 6px; text-align: center; }
 .arena-hud-auras strong { margin-top: 2px; color: #c9baff; font: 9px var(--s2-font-mono); }
@@ -351,6 +360,28 @@
 .runtime-points span, .runtime-points small { display: block; color: var(--s2-color-muted); font: 8px var(--s2-font-mono); letter-spacing: .1em; text-transform: uppercase; }
 .runtime-points strong { display: block; color: var(--s2-color-accent); font: 700 24px/1 var(--s2-font-display); }
 .runtime-points small { margin-top: 2px; letter-spacing: .04em; }
+
+.nekzali-viewport { background: radial-gradient(circle at 50% 48%, rgba(70, 187, 181, .13), transparent 42%), #061012; }
+.learn2d-arena-frame .nekzali-2d-board { width: min(100cqw, calc(100cqh * 1.865)); height: min(100cqh, calc(100cqw / 1.865)); aspect-ratio: 2048 / 1098; }
+.nekzali-2d-board { border-radius: 50%; background-image: linear-gradient(rgba(3, 10, 13, .18), rgba(3, 10, 13, .34)), var(--nekzali-plan); background-position: center; background-size: 100% 100%; box-shadow: inset 0 0 55px rgba(3, 12, 16, .88); }
+.nekzali-2d-board::before { inset: 4.8%; border-color: rgba(99, 217, 211, .38); border-radius: 50%; box-shadow: inset 0 0 26px rgba(59, 180, 177, .14); }
+.nekzali-2d-callout { position: absolute; z-index: 18; left: 50%; top: 5%; transform: translateX(-50%); display: grid; min-width: 240px; justify-items: center; padding: 7px 12px; border: 1px solid rgba(211,181,75,.58); border-radius: 7px; color: var(--s2-color-text); background: rgba(4, 10, 14, .9); pointer-events: none; }
+.nekzali-2d-callout strong { font-size: 11px; }
+.nekzali-2d-callout span { margin-top: 2px; color: var(--s2-color-accent); font: 9px var(--s2-font-mono); }
+.nekzali-2d-effect { position: absolute; z-index: 2; transform: translate(-50%, -50%); border: 3px solid var(--effect-color); border-radius: 50%; background: color-mix(in srgb, var(--effect-color) 30%, transparent); box-shadow: 0 0 18px color-mix(in srgb, var(--effect-color) 36%, transparent); pointer-events: none; }
+.nekzali-2d-effect.outline { background: transparent; box-shadow: none; }
+.nekzali-2d-effect.spread { z-index: 7; border-width: 2px; }
+.nekzali-2d-effect.arrow { z-index: 9; width: auto !important; transform: translate(-50%, -50%) rotate(var(--effect-rotation)); color: var(--effect-color); border: 0; border-radius: 0; background: none; box-shadow: none; font-size: 25px; text-shadow: 0 0 7px #000; }
+.nekzali-2d-corpse { position: absolute; z-index: 3; transform: translate(-50%, -50%); color: #c8a77e; font-size: 18px; text-shadow: 0 0 8px #000; }
+.nekzali-2d-enemy { position: absolute; z-index: 6; transform: translate(-50%, -50%); display: grid; width: 34px; height: 34px; place-items: center; border: 2px solid color-mix(in srgb, var(--enemy-color) 85%, white); border-radius: 45% 45% 40% 40%; color: #f4ffff; background: var(--enemy-color); box-shadow: 0 3px 12px rgba(0,0,0,.65), 0 0 12px color-mix(in srgb, var(--enemy-color) 42%, transparent); font: 700 10px var(--s2-font-mono); }
+.nekzali-2d-enemy.boss { width: 58px; height: 58px; border-radius: 50%; }
+.nekzali-2d-enemy .actor-health { top: calc(100% + 4px); width: 45px; }
+.nekzali-2d-enemy.boss .actor-health { width: 62px; }
+.nekzali-2d-enemy.boss.hostile .actor-health b { background: #ef6678; }
+.nekzali-2d-enemy.boss.owned .actor-health b { background: #62dc8a; }
+.nekzali-runtime .learn2d-character { width: 38px; height: 38px; }
+.nekzali-runtime .learn2d-controls { justify-content: flex-start; }
+.nekzali-runtime .learn2d-controls button { width: auto; padding: 7px 10px; }
 @media (max-width: 760px) {
   .season2-hero-row { grid-template-columns: 1fr; }
   .season2-encounter-card > header { align-items: flex-start; flex-direction: column; }
@@ -367,4 +398,6 @@
   .learn2d-arena-frame, .train3d-stage canvas { min-height: 430px; }
   .runtime-failure-log { width: min(280px, 62%); }
   .season2-footer span { width: 100%; margin-left: 0; }
+  .season2-training-difficulty { grid-template-columns: 1fr; }
+  .season2-training-difficulty > div { grid-column: 1; grid-row: auto; }
 }
