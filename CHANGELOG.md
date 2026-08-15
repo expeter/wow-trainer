@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Completed the Nek'zali presentation and interaction correction batch: visible
+  player/NPC projectiles, reliable cast feedback, dynamic corpse cremation,
+  moving NPC Essence Rend drops, an expanded Well realm, denser dodge patterns,
+  unclipped feedback overlays, and a key-legend-first action presentation.
+
 - Normalized Learn 2D movement so equal-duration up, down, left, and right
   input travels equal visible distance on square and wide encounter boards;
   3D retains its calibrated WoW-like forward, backward, and strafe speeds.

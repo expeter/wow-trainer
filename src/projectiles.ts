@@ -26,7 +26,7 @@ function deterministicUnit(seed: number) {
   return ((value ^ value >>> 16) >>> 0) / 0x100000000
 }
 
-export function combatProjectileShape(playerClass: PlayerClass, shotOrdinal = 0): CombatProjectileShape {
+export function combatProjectileShape(playerClass: PlayerClass | 'rogue', shotOrdinal = 0): CombatProjectileShape {
   if (playerClass === 'mage') return shotOrdinal % 2 === 0 ? 'firebolt' : 'frostbolt'
   if (playerClass === 'shaman' || playerClass === 'augmentation' || playerClass === 'evoker') return 'lightning'
   if (playerClass === 'hunter') return 'arrow'

@@ -580,9 +580,14 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   development lab drawer. The HUD may show multiple compact named countdowns
   when concurrent upcoming events aid reaction, but must not replace them with
   paragraph-style prose.
-- Train 3D snapshots may carry class-colored ambient NPC projectiles toward a
-  boss. These are continuous cosmetic life signals only: rendering never feeds
-  them into collision, damage, scoring, timing validation, or outcomes.
+- Train 3D snapshots may carry scheduled ambient NPC projectiles toward a boss.
+  They reuse the reviewed class-specific L'ura silhouettes, actor-origin travel,
+  near-centre target penetration, and brief impact vocabulary instead of a
+  continuously looping generic sphere. Cadence may be calibrated per trainer,
+  but these remain cosmetic life signals only: rendering never feeds them into
+  collision, damage, scoring, timing validation, or outcomes. Encounter-owned
+  player shots use the same visual vocabulary while their damage remains
+  authoritative in the headless simulation.
 - The development contract room may carry dummy raid world markers to validate
   marker silhouette, height, color, footprint, and apparent yard scale. They
   use shared snapshot/renderer vocabulary, are explicitly non-mechanical, and

@@ -119,12 +119,34 @@ function effectObject(effect: EffectSnapshot) {
     )
   }
   if (effect.kind === 'projectile' || effect.kind === 'cosmetic-projectile') {
-    return new THREE.Mesh(
-      new THREE.SphereGeometry(effect.radius, 10, 7),
-      effect.kind === 'cosmetic-projectile'
-        ? new THREE.MeshStandardMaterial({ color: effect.color, emissive: effect.color, emissiveIntensity: 1.8, roughness: .2 })
-        : new THREE.MeshBasicMaterial({ color: effect.color }),
-    )
+    const material = new THREE.MeshBasicMaterial({ color: effect.color, transparent: true, opacity: .95, depthWrite: false })
+    if (!effect.projectileShape) return new THREE.Mesh(new THREE.SphereGeometry(effect.radius, 10, 7), material)
+    const group = new THREE.Group()
+    if (effect.projectileShape === 'lightning') {
+      const points = [new THREE.Vector3(-1.7, 0, 0), new THREE.Vector3(-1.05, .25, -.12), new THREE.Vector3(-.4, -.22, .1), new THREE.Vector3(.3, .27, -.1), new THREE.Vector3(1, -.18, .12), new THREE.Vector3(1.7, 0, 0)]
+      group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 14, .12, 5, false), material))
+    } else if (effect.projectileShape === 'arrow' || effect.projectileShape === 'spear') {
+      const spear = effect.projectileShape === 'spear'
+      const length = spear ? 3 : 2.5
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(spear ? .12 : .07, spear ? .12 : .07, length, 7), material)
+      shaft.rotation.z = Math.PI / 2
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(spear ? .4 : .25, spear ? 1 : .7, 6), material)
+      tip.rotation.z = -Math.PI / 2
+      tip.position.x = length / 2 + (spear ? .45 : .3)
+      group.add(shaft, tip)
+    } else {
+      const core = new THREE.Mesh(new THREE.CylinderGeometry(.24, .34, 1.9, 8), material)
+      core.rotation.z = Math.PI / 2
+      core.position.x = .25
+      const tail = new THREE.Mesh(new THREE.ConeGeometry(.3, 2, 8), material)
+      tail.rotation.z = -Math.PI / 2
+      tail.position.x = -1.15
+      group.add(core, tail)
+    }
+    return group
+  }
+  if (effect.kind === 'projectile-impact') {
+    return new THREE.Mesh(new THREE.SphereGeometry(effect.radius, 10, 7), new THREE.MeshBasicMaterial({ color: effect.color, transparent: true, opacity: .82, depthWrite: false }))
   }
   if (effect.kind === 'arrow') {
     const group = new THREE.Group()
@@ -439,7 +461,9 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         const x = THREE.MathUtils.lerp(effect.position.x, target.x, effect.progress)
         const z = THREE.MathUtils.lerp(effect.position.z, target.z, effect.progress)
         const groundEffect = effect.kind === 'pulse' || effect.kind.startsWith('ground-') || effect.kind === 'dome'
-        const y = groundEffect ? .08 : effect.kind === 'arrow' ? .18 : 1.1 + Math.sin(effect.progress * Math.PI) * (effect.kind === 'cosmetic-projectile' ? 1.2 : 2)
+        const projectileHeight = THREE.MathUtils.lerp(effect.originHeight ?? 1.1, effect.targetHeight ?? 1.1, effect.progress)
+          + Math.sin(effect.progress * Math.PI) * (effect.projectileShape === 'arrow' ? .75 : effect.projectileShape === 'spear' ? .45 : .18)
+        const y = groundEffect ? .08 : effect.kind === 'arrow' ? .18 : projectileHeight
         if (object.userData.positionReady) {
           object.position.x = THREE.MathUtils.lerp(object.position.x, x, actorAlpha)
           object.position.y = THREE.MathUtils.lerp(object.position.y, y, actorAlpha)
@@ -452,9 +476,14 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
           const scale = .72 + effect.progress * .35
           object.scale.setScalar(THREE.MathUtils.lerp(object.scale.x, scale, actorAlpha))
         }
+        if (effect.kind === 'projectile-impact') {
+          const pulse = Math.sin(effect.progress * Math.PI)
+          object.scale.setScalar(Math.max(.05, pulse))
+        }
         const fill = object.getObjectByName('effect-fill')
         if (fill) fill.visible = effect.filled !== false
         if (effect.kind === 'arrow' && effect.target) object.rotation.y = -Math.atan2(effect.target.x - effect.position.x, -(effect.target.z - effect.position.z))
+        if ((effect.kind === 'projectile' || effect.kind === 'cosmetic-projectile') && effect.target) object.rotation.y = -Math.atan2(effect.target.z - effect.position.z, effect.target.x - effect.position.x)
       })
       const currentMarkers = current.markers ?? []
       const liveMarkerIds = new Set(currentMarkers.map(marker => marker.id))

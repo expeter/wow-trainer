@@ -65,6 +65,10 @@ describe("Nek'zali headless full-fight simulation", () => {
     expect(activeNekzaliPrompt(state)).toBe('Essence Rend active')
     expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras).toHaveLength(0)
     expect(nekzaliSnapshot(state).actors.find(actor => actor.id === state.rendTargetId)?.auras).toContainEqual({ id: 'essence-rend', tone: 'danger', stacks: 1 })
+    state = stepNekzaliState(state, idle, 5.1)
+    const drops = state.hazards.filter(hazard => hazard.id.startsWith('rend-')).map(hazard => hazard.position)
+    expect(drops).toHaveLength(3)
+    expect(Math.hypot(drops[0].x - drops[1].x, drops[0].z - drops[1].z)).toBeGreaterThan(10)
   })
 
   it('fails if the three assigned adds are not dead at the 50% intermission', () => {
@@ -96,6 +100,8 @@ describe("Nek'zali headless full-fight simulation", () => {
     state = stepNekzaliState(state, idle, 12.01)
     expect(state.phase).toBe('echo-2')
     state = { ...state, player: { x: 20, z: 0, facing: 0 } }
+    expect(nekzaliSnapshot(state).effects.some(effect => effect.id === 'corpse-arrow-2')).toBe(false)
+    expect(nekzaliSnapshot(state).effects.some(effect => effect.id === 'corpse-contact-corpse-a')).toBe(true)
     state = stepNekzaliState(state, idle, 12.01)
     expect(state.phase).toBe('phase-2')
     expect(state.corpses.every(corpse => corpse.cremated)).toBe(true)
@@ -145,6 +151,15 @@ describe("Nek'zali Well realm simulation", () => {
     expect(state).toMatchObject({ realmAddHits: 20, realmStage: 'returning', outcome: 'active' })
     state = stepNekzaliState(state, idle, 5.01)
     expect(state).toMatchObject({ realmStage: 'none', soulExhausted: true, outcome: 'active' })
+  })
+
+  it('renders the controlled Main shot and expands the populated realm boundary', () => {
+    let state = startNekzaliMainCast(insideState())
+    state = stepNekzaliState(state, idle, 1.01)
+    const snapshot = nekzaliSnapshot(state)
+    expect(snapshot.effects.some(effect => effect.id.startsWith('player-main-') && effect.kind === 'cosmetic-projectile')).toBe(true)
+    expect(snapshot.effects.find(effect => effect.kind === 'dome')?.radius).toBe(NEKZALI_TIMING.realmRadius)
+    expect(snapshot.effects.filter(effect => effect.id.startsWith('well-spirit-'))).toHaveLength(14)
   })
 
   it('requires the assigned interrupt and keeps Nekzali disruption non-terminal', () => {

@@ -2,7 +2,7 @@ import { contractRaidRoster, contractRosterForSlot, contractSelectedMember, trai
 import type { RuntimeFailure } from '../../platform/RuntimeFeedback'
 import { stepScreenRelativeWorldMovement } from '../../platform/learn2d/worldMovement'
 import { shouldEndTrainingAttempt, type TrainingDifficulty } from '../../platform/trainingSettings'
-import { cosmeticClassProjectiles } from '../../platform/train3d/cosmeticCombat'
+import { classProjectileEffects, cosmeticClassProjectiles } from '../../platform/train3d/cosmeticCombat'
 import { distance, stepPlayerMovement } from '../../platform/train3d/simulation'
 import type { ActorSnapshot, EffectSnapshot, PlayerCommandState, Train3DSnapshot, WorldPoint } from '../../platform/train3d/types'
 import { nekzaliArena } from './train3d/arenas'
@@ -39,6 +39,10 @@ export interface NekzaliState {
   playerAddKills: number
   mainCastRemaining: number
   mainTargetId?: string
+  mainProjectileFiredAt?: number
+  mainProjectileOrigin?: WorldPoint
+  mainProjectileTarget?: WorldPoint
+  mainProjectileOrdinal: number
   invokes: number
   outcome: NekzaliOutcome
   outcomeReason?: string
@@ -57,6 +61,7 @@ export interface NekzaliState {
 }
 
 const WELL_RADIUS = 6
+const REALM_RADIUS = 22
 const ROOM_RADIUS = 45
 const P1_SECONDS = 90
 const ECHO_SECONDS = 12
@@ -102,9 +107,8 @@ function rendTargetForEvent(state: NekzaliState, eventIndex: number) {
 
 function rendNpcDropPosition(state: NekzaliState, drop: number): WorldPoint {
   const targetIndex = Math.max(0, contractRaidRoster.findIndex(member => member.id === state.rendTargetId))
-  const angle = targetIndex / contractRaidRoster.length * Math.PI * 2
-  const radius = 36 + drop * 2.2
-  return { x: Math.cos(angle) * radius, z: Math.sin(angle) * radius }
+  const angle = targetIndex / contractRaidRoster.length * Math.PI * 2 + drop * .38
+  return { x: Math.cos(angle) * 40, z: Math.sin(angle) * 40 }
 }
 
 function stepEssenceRend(state: NekzaliState, eventIndex: number): NekzaliState {
@@ -145,7 +149,7 @@ export function createNekzaliState(selectedSlotId = 'player', trainingDifficulty
   const start = nekzaliMemberPosition(member)
   return { time: 0, phase: 'phase-1', phaseStartedAt: 0, player: { ...start, facing: 0 }, boss: { ...bossHome }, bossHealth: 100, bossEnergy: 0,
     selectedSlotId, soakGroup: groupForSlot(selectedSlotId), aggroOwner: member.role === 'tank' ? selectedSlotId : 'tank-1', addsSpawned: false, adds: [], corpses: [], hazards: [], rendEventIndex: 0, rendDrops: 0,
-    barrageStarted: false, barrageResolved: false, playerAddKills: 0, mainCastRemaining: 0, invokes: 0, outcome: 'active', mistakes: 0, failures: [], trainingDifficulty,
+    barrageStarted: false, barrageResolved: false, playerAddKills: 0, mainCastRemaining: 0, mainProjectileOrdinal: 0, invokes: 0, outcome: 'active', mistakes: 0, failures: [], trainingDifficulty,
     wellGroup: groupForSlot(selectedSlotId), wellEventIndex: 0, realmStage: 'none', realmStartedAt: 0, realmAddHits: 0, innerCastInterrupted: false, disruptionIndex: 0, soulExhausted: false }
 }
 
@@ -201,13 +205,18 @@ function maybeStartRealm(state: NekzaliState): NekzaliState {
 }
 
 function realmHazards(age: number): readonly WorldPoint[] {
-  const orbiting = Array.from({ length: 4 }, (_, index) => {
-    const angle = age * .48 + index * Math.PI / 2
-    return { x: Math.cos(angle) * 5.4, z: Math.sin(angle) * 5.4 }
+  const orbiting = Array.from({ length: 8 }, (_, index) => {
+    const ring = index % 2
+    const angle = age * (ring ? -.42 : .56) + index * Math.PI / 4
+    const radius = ring ? 15 : 9
+    return { x: Math.cos(angle) * radius, z: Math.sin(angle) * radius }
   })
-  const waveAge = age % 10
-  const radius = Math.min(12, waveAge * 1.25)
-  const outward = [{ x: radius, z: 0 }, { x: -radius, z: 0 }, { x: 0, z: radius }, { x: 0, z: -radius }]
+  const waveAge = age % 6
+  const radius = Math.min(REALM_RADIUS - 1, waveAge * 3.5)
+  const outward = Array.from({ length: 6 }, (_, index) => {
+    const angle = index * Math.PI / 3 + Math.floor(age / 6) * .31
+    return { x: Math.cos(angle) * radius, z: Math.sin(angle) * radius }
+  })
   return [...orbiting, ...outward]
 }
 
@@ -230,10 +239,10 @@ function stepRealm(state: NekzaliState, commands: PlayerCommandState, seconds: n
     return next
   }
 
-  const realmBounds = { halfWidth: 11.5, halfDepth: 11.5 }
+  const realmBounds = { halfWidth: REALM_RADIUS - .5, halfDepth: REALM_RADIUS - .5 }
   const moved = screenRelative ? stepScreenRelativeWorldMovement(next.player, commands, seconds, realmBounds, 1, 9) : stepPlayerMovement(next.player, commands, seconds, realmBounds)
   const radius = Math.hypot(moved.x, moved.z)
-  const player = radius > 11.5 ? { ...moved, x: moved.x / radius * 11.5, z: moved.z / radius * 11.5 } : moved
+  const player = radius > REALM_RADIUS - .5 ? { ...moved, x: moved.x / radius * (REALM_RADIUS - .5), z: moved.z / radius * (REALM_RADIUS - .5) } : moved
   next = { ...next, player }
   if (age >= 4 && next.innerCastStartedAt === undefined) next = { ...next, innerCastStartedAt: next.time }
   if (next.innerCastStartedAt !== undefined && !next.innerCastInterrupted && next.time - next.innerCastStartedAt >= 5) return addFailure(next, 'missed-well-interrupt', 'Drowned Echo completed its assigned cast', 'Use the Interrupt binding during the five-second cast inside the Well.', true)
@@ -262,7 +271,7 @@ function resolveMainCast(state: NekzaliState, seconds: number): NekzaliState {
   if (remaining > 0) return { ...state, mainCastRemaining: remaining }
   if (state.mainTargetId === 'drowned-echo') {
     const realmAddHits = Math.min(20, state.realmAddHits + 1)
-    return { ...state, realmAddHits, mainCastRemaining: 0, mainTargetId: undefined,
+    return { ...state, realmAddHits, mainCastRemaining: 0, mainTargetId: undefined, mainProjectileFiredAt: state.time, mainProjectileOrigin: state.player, mainProjectileTarget: { x: 0, z: 0 }, mainProjectileOrdinal: state.mainProjectileOrdinal + 1,
       ...(realmAddHits >= 20 ? { realmStage: 'returning' as const, realmStartedAt: state.time } : {}),
     }
   }
@@ -272,7 +281,7 @@ function resolveMainCast(state: NekzaliState, seconds: number): NekzaliState {
   const targetHealth = Math.max(0, target.health - 55)
   const killed = targetHealth === 0
   const adds = state.adds.map((add, index) => index === targetIndex ? { ...add, health: targetHealth, playerDamage: add.playerDamage + 55 } : add)
-  return { ...state, adds, mainCastRemaining: 0, mainTargetId: undefined,
+  return { ...state, adds, mainCastRemaining: 0, mainTargetId: undefined, mainProjectileFiredAt: state.time, mainProjectileOrigin: state.player, mainProjectileTarget: target.position, mainProjectileOrdinal: state.mainProjectileOrdinal + 1,
     playerAddKills: state.playerAddKills + Number(killed),
     corpses: killed ? [...state.corpses, { id: `corpse-${target.id}`, position: target.position, group: target.corpseGroup, cremated: false }] : state.corpses,
   }
@@ -304,10 +313,6 @@ function transitionToIntermission(state: NekzaliState): NekzaliState {
   return { ...state, phase: 'echo-1', phaseStartedAt: state.time, boss: { x: 0, z: 0 }, bossHealth: 50, hazards: state.hazards.filter(hazard => hazard.kind === 'cultist') }
 }
 
-function spreadCorpse(state: NekzaliState, group: 1 | 2) {
-  return state.corpses.filter(corpse => corpse.group === group && !corpse.cremated).sort((a, b) => distance(state.player, a.position) - distance(state.player, b.position))[0]
-}
-
 function resolveEcho(state: NekzaliState, echo: 1 | 2): NekzaliState {
   const activeSoakGroup = echo
   const playerSoaks = state.soakGroup === activeSoakGroup
@@ -318,14 +323,15 @@ function resolveEcho(state: NekzaliState, echo: 1 | 2): NekzaliState {
   }
   const spreadGroup = echo === 1 ? 2 : 1
   const groupCorpses = next.corpses.filter(corpse => corpse.group === spreadGroup && !corpse.cremated)
+  let contactedCorpseId: string | undefined
   if (!playerSoaks) {
-    const target = spreadCorpse(next, spreadGroup)
-    if (target && distance(next.player, target.position) > 4) return addFailure(next, 'uncleared-corpse', 'Amani corpse survived Cremation', 'Spread to the arrowed corpse before Slithering Flame expires.', true)
+    const contacted = groupCorpses.find(corpse => distance(next.player, corpse.position) <= 4)
+    contactedCorpseId = contacted?.id
+    if (groupCorpses.length && !contacted) return addFailure(next, 'uncleared-corpse', 'Amani corpse survived Cremation', 'Place your spread circle over any remaining corpse before Slithering Flame expires.', true)
     const spreadPlayers = contractRosterForSlot(next.selectedSlotId).filter(member => !member.controlled && groupForSlot(member.id) === spreadGroup)
     if (spreadPlayers.some((member, index) => distance(next.player, npcPosition(member, next, index)) < 6)) return addFailure(next, 'spread-overlap', 'Slithering Flame hit another player', 'Find an unoccupied corpse lane before the red circle expires.', true)
   }
-  const playerTarget = !playerSoaks ? spreadCorpse(next, spreadGroup)?.id : undefined
-  const corpses = next.corpses.map(corpse => corpse.group === spreadGroup ? { ...corpse, cremated: playerSoaks || corpse.id === playerTarget || groupCorpses.length > 1 } : corpse)
+  const corpses = next.corpses.map(corpse => corpse.group === spreadGroup ? { ...corpse, cremated: playerSoaks || corpse.id === contactedCorpseId || groupCorpses.length > 1 } : corpse)
   const burning = groupCorpses.map((corpse, index) => ({ id: `burn-${echo}-${index}`, position: corpse.position, radius: 4, direction: { x: 0, z: 0 }, kind: 'burning' as const, createdAt: next.time }))
   next = { ...next, corpses, hazards: [...next.hazards, ...burning] }
   if (echo === 1) return { ...next, phase: 'echo-2', phaseStartedAt: next.time }
@@ -426,11 +432,14 @@ function npcPosition(member: ContractRaidMember, state: NekzaliState, index: num
   }
   if (state.rendStartedAt !== undefined && state.rendTargetId === member.id) {
     const targetIndex = Math.max(0, contractRaidRoster.findIndex(candidate => candidate.id === member.id))
-    const angle = targetIndex / contractRaidRoster.length * Math.PI * 2
+    const baseAngle = targetIndex / contractRaidRoster.length * Math.PI * 2
+    const age = state.time - state.rendStartedAt
     const progress = Math.min(1, (state.time - state.rendStartedAt) / 2.5)
     const start = nekzaliMemberPosition(member)
-    const edge = { x: Math.cos(angle) * 40, z: Math.sin(angle) * 40 }
-    return { x: start.x + (edge.x - start.x) * progress, z: start.z + (edge.z - start.z) * progress }
+    const entry = { x: Math.cos(baseAngle) * 40, z: Math.sin(baseAngle) * 40 }
+    if (progress < 1) return { x: start.x + (entry.x - start.x) * progress, z: start.z + (entry.z - start.z) * progress }
+    const angle = baseAngle + Math.max(0, age - 2.5) * .38
+    return { x: Math.cos(angle) * 40, z: Math.sin(angle) * 40 }
   }
   if (member.role === 'tank') return member.id === state.aggroOwner ? { x: state.boss.x, z: state.boss.z + 4 } : { x: state.boss.x + 4, z: state.boss.z + 3 }
   return nekzaliMemberPosition(member)
@@ -490,9 +499,9 @@ function realmSnapshot(state: NekzaliState, playerHealth: number): Train3DSnapsh
     const angle = index / 9 * Math.PI * 2
     return { id: member.id, kind: 'ally', playerClass: member.playerClass, position: { x: Math.cos(angle) * 8.5, z: Math.sin(angle) * 8.5 }, facing: angle + Math.PI, color: trainingClassColors[member.playerClass], auras: [], health: 100 }
   }) : []
-  const effects: EffectSnapshot[] = [{ id: 'well-realm-dome', kind: 'dome', position: { x: 0, z: 0 }, radius: 12, color: '#72d8db', progress: 0 }]
+  const effects: EffectSnapshot[] = [{ id: 'well-realm-dome', kind: 'dome', position: { x: 0, z: 0 }, radius: REALM_RADIUS, color: '#72d8db', progress: 0 }]
   if (state.realmStage === 'inside') {
-    realmHazards(age).forEach((point, index) => effects.push({ id: `well-spirit-${index}`, kind: index < 4 ? 'ground-harmful' : 'projectile', position: point, radius: index < 4 ? 1.25 : .72, color: '#83e4dd', progress: 0, filled: true }))
+    realmHazards(age).forEach((point, index) => effects.push({ id: `well-spirit-${index}`, kind: 'ground-harmful', position: point, radius: index < 8 ? 1.25 : .9, color: '#83e4dd', progress: 0, filled: true }))
   }
   const addHealth = Math.max(0, 100 - state.realmAddHits * 5)
   const actors: ActorSnapshot[] = [
@@ -501,7 +510,10 @@ function realmSnapshot(state: NekzaliState, playerHealth: number): Train3DSnapsh
     ...allyActors,
   ]
   const combat = inside && addHealth > 0 ? cosmeticClassProjectiles(actors, { x: 0, z: 0 }, state.time) : []
-  return { time: state.time, arena: nekzaliArena, actors, effects: [...effects, ...combat] }
+  const mainProjectile = state.mainProjectileFiredAt !== undefined && state.mainProjectileOrigin && state.mainProjectileTarget
+    ? classProjectileEffects('player-main', state.mainProjectileOrigin, state.mainProjectileTarget, controlled.playerClass, state.time - state.mainProjectileFiredAt, state.mainProjectileOrdinal, 1.1)
+    : []
+  return { time: state.time, arena: nekzaliArena, actors, effects: [...effects, ...combat, ...mainProjectile] }
 }
 
 export function nekzaliSnapshot(state: NekzaliState, playerHealth = 100): Train3DSnapshot {
@@ -530,18 +542,21 @@ export function nekzaliSnapshot(state: NekzaliState, playerHealth = 100): Train3
     if (playerSoaks) effects.push({ id: `soak-arrow-${echo}`, kind: 'arrow', position: state.player, target: echoPositions[echo], radius: 1, color: '#ffd87a', progress: 0 })
     else {
       effects.push({ id: `spread-${echo}`, kind: 'ground-spread', position: state.player, radius: 4, color: '#ef5c52', progress: age / ECHO_SECONDS, filled: true })
-      const target = spreadCorpse(state, echo === 1 ? 2 : 1)
-      if (target) effects.push({ id: `corpse-arrow-${echo}`, kind: 'arrow', position: state.player, target: target.position, radius: 1, color: '#ffbd5e', progress: 0 })
+      const contacted = state.corpses.find(corpse => corpse.group === (echo === 1 ? 2 : 1) && !corpse.cremated && distance(state.player, corpse.position) <= 4)
+      if (contacted) effects.push({ id: `corpse-contact-${contacted.id}`, kind: 'ground-soak', position: contacted.position, radius: 2.5, color: '#82e6a9', progress: 0, filled: false })
     }
   }
   const activeAdds = addActors.filter(actor => (actor.health ?? 0) > 0)
-  const ambientCombat = npcActors.flatMap((actor, index) => cosmeticClassProjectiles([actor], activeAdds[index % Math.max(1, activeAdds.length)]?.position ?? (state.phase.startsWith('echo') ? echoPositions[echo!] : state.boss), state.time))
+  const ambientCombat = cosmeticClassProjectiles(npcActors, (_actor, index) => activeAdds[index % Math.max(1, activeAdds.length)]?.position ?? (state.phase.startsWith('echo') ? echoPositions[echo!] : state.boss), state.time)
+  const mainProjectile = state.mainProjectileFiredAt !== undefined && state.mainProjectileOrigin && state.mainProjectileTarget
+    ? classProjectileEffects('player-main', state.mainProjectileOrigin, state.mainProjectileTarget, controlled.playerClass, state.time - state.mainProjectileFiredAt, state.mainProjectileOrdinal, 1.1)
+    : []
   const actors: ActorSnapshot[] = [
     { id: 'controlled-player', kind: 'player', position: state.player, facing: state.player.facing, color: trainingClassColors[controlled.playerClass], playerClass: controlled.playerClass, auras: isNekzaliPlayerRendTarget(state) ? [{ id: 'essence-rend', tone: 'danger', stacks: 1 }] : [], health: playerHealth },
     { id: 'nekzali-boss', kind: 'boss', position: state.boss, facing: 0, color: '#43a8a7', auras: [], health: state.bossHealth },
     ...npcActors, ...addActors, ...echoActor,
   ]
-  return { time: state.time, arena: nekzaliArena, actors, effects: [...effects, ...ambientCombat] }
+  return { time: state.time, arena: nekzaliArena, actors, effects: [...effects, ...ambientCombat, ...mainProjectile] }
 }
 
-export const NEKZALI_TIMING = { phaseOneSeconds: P1_SECONDS, echoSeconds: ECHO_SECONDS, wellRadius: WELL_RADIUS, rendSeconds: REND_SECONDS, rendDropLeadSeconds: REND_DROP_LEAD_SECONDS }
+export const NEKZALI_TIMING = { phaseOneSeconds: P1_SECONDS, echoSeconds: ECHO_SECONDS, wellRadius: WELL_RADIUS, realmRadius: REALM_RADIUS, rendSeconds: REND_SECONDS, rendDropLeadSeconds: REND_DROP_LEAD_SECONDS }

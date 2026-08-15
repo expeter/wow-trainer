@@ -44,11 +44,15 @@ function SmoothCastBar({ seconds, secondsSource, style }: { seconds: number; sec
   const labelRef = useRef<HTMLElement>(null)
   useEffect(() => {
     let frame = 0
+    let settledFrames = 0
     const paint = () => {
       const remaining = secondsSource?.() ?? seconds
       if (fillRef.current) fillRef.current.style.width = `${Math.max(0, Math.min(100, (1 - remaining) * 100))}%`
       if (labelRef.current) labelRef.current.textContent = `Main ability · ${remaining.toFixed(1)}s`
-      if (remaining > 0) frame = requestAnimationFrame(paint)
+      settledFrames = remaining > 0 ? 0 : settledFrames + 1
+      // Keep a short post-completion sampling window so a rapid recast cannot
+      // strand the bar at 100%, then release the animation loop cleanly.
+      if (remaining > 0 || settledFrames < 18) frame = requestAnimationFrame(paint)
     }
     paint()
     return () => cancelAnimationFrame(frame)

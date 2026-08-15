@@ -185,6 +185,22 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-262` — completed under `FR-082`: give the provisional Essence Rend drill a
   practical outward lead, three-drop window, and recovery margin while
   preserving calibrated Train 3D movement.
+- `BUG-174` — completed under `FR-072`: keep Learn 2D feedback overlays above
+  the circular board and inside the visible arena frame.
+- `BUG-175` — completed under `FR-082`: move NPC Rend targets around the edge
+  and separate their three puddles.
+- `CR-263` — completed under `FR-077`: retain the key legend while removing
+  duplicated generic Nek'zali action-button banks.
+- `BUG-176` — completed under `FR-077` and `FR-082`: visibly launch and impact
+  controlled-player Main shots in both runtimes.
+- `BUG-177` — completed under `FR-082`: resolve the player's spread against
+  any corpse actually contacted instead of a fixed arrow target.
+- `CR-264` — completed under `FR-072`: reconnect Season 2 snapshots to the
+  reviewed L'ura class projectile scheduler, silhouettes, travel, and impact.
+- `CR-265` — completed under `FR-082`: enlarge and populate the Well realm
+  with a faster, denser dodge pattern.
+- `BUG-178` — completed under `FR-072`: prevent smooth Main cast feedback from
+  stalling across rapid casts and pause/resume.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

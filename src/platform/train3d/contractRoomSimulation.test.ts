@@ -27,7 +27,8 @@ describe('development contract room simulation', () => {
     expect(snapshot.actors[0].auras[0].stacks).toBe(1)
     expect(snapshot.actors).toHaveLength(21)
     expect(snapshot.markers?.map(marker => marker.kind)).toEqual(['star', 'cross', 'diamond', 'circle'])
-    expect(snapshot.effects.filter(effect => effect.kind === 'cosmetic-projectile')).toHaveLength(19)
+    const combatSnapshot = Array.from({ length: 80 }, (_, index) => contractRoomSnapshot({ ...createContractRoomState(), time: index * .05 })).find(candidate => candidate.effects.some(effect => effect.kind === 'cosmetic-projectile'))!
+    expect(combatSnapshot.effects.some(effect => effect.kind === 'cosmetic-projectile' && effect.projectileShape)).toBe(true)
   })
 
   it('keeps the controlled render identity unique after every slot transfer', () => {
