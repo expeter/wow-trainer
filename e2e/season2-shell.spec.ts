@@ -44,7 +44,17 @@ test("discovers all raid panels and launches Nek'zali in separate 2D and 3D aren
   await expect(page.locator('.learn2d-controls')).toContainText('Main F')
   await expect(page.getByRole('button', { name: 'Main ability' })).toHaveCount(0)
   await page.keyboard.press('f')
-  await expect(page.locator('.arena-hud-castbar')).toBeVisible()
+  const attachedCast = player.locator('.actor-main-cast .arena-hud-castbar')
+  await expect(attachedCast).toBeVisible()
+  const castGeometry = await player.evaluate(element => {
+    const playerBounds = element.getBoundingClientRect()
+    const castBounds = element.querySelector('.actor-main-cast .arena-hud-castbar')!.getBoundingClientRect()
+    return { playerBottom: playerBounds.bottom, castTop: castBounds.top, castWidth: castBounds.width }
+  })
+  expect(castGeometry.castTop).toBeGreaterThan(castGeometry.playerBottom)
+  expect(castGeometry.castWidth).toBeLessThan(100)
+  await expect(attachedCast).toHaveCount(0, { timeout: 2000 })
+  await page.keyboard.press('f')
   await expect.poll(() => page.locator('[data-effect-id^="player-main"]').count(), { timeout: 2500 }).toBeGreaterThan(0)
   await page.getByRole('button', { name: 'Exit' }).click()
 
@@ -116,7 +126,7 @@ test("keeps Nek'zali mechanic coaching compact and assignment-neutral before sel
   await expect(mechanic.getByText('Mechanic', { exact: true })).toHaveCount(0)
   await expect(mechanic.getByLabel('Action state')).toHaveCount(0)
   await expect(mechanic).not.toContainText(/Take Essence Rend|assigned adds|soak group/)
-  await expect(mechanic).toContainText(/Rend ~\d+s/)
+  await expect(mechanic).toContainText(/Rend(?: in)? ~\d+s/)
   expect((await mechanic.boundingBox())!.width).toBeLessThanOrEqual(270)
 })
 

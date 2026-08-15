@@ -11,7 +11,7 @@ interface SnapshotEffectsProps {
 export default function SnapshotEffects({ effects, width, depth }: SnapshotEffectsProps) {
   const xPercent = (value: number) => 50 + value / width * 100
   const zPercent = (value: number) => 50 + value / depth * 100
-  const effectClass = (kind: EffectSnapshot['kind']) => kind === 'ground-soak' ? 'soak' : kind === 'ground-spread' ? 'spread' : kind === 'arrow' ? 'arrow' : kind.includes('projectile') ? 'projectile' : kind === 'dome' ? 'dome' : kind === 'pulse' ? 'pulse' : 'harmful'
+  const effectClass = (kind: EffectSnapshot['kind']) => kind === 'ground-soak' ? 'soak' : kind === 'ground-spread' ? 'spread' : kind === 'ground-objective' ? 'objective' : kind === 'arrow' ? 'arrow' : kind.includes('projectile') ? 'projectile' : kind === 'dome' ? 'dome' : kind === 'pulse' ? 'pulse' : 'harmful'
 
   return <>{effects.map(effect => {
     const rendered = effect.target ? {
@@ -22,7 +22,7 @@ export default function SnapshotEffects({ effects, width, depth }: SnapshotEffec
       key={effect.id}
       data-effect-id={effect.id}
       data-effect-kind={effect.kind}
-      data-effect-intent={effect.kind === 'ground-soak' ? 'soak' : effect.kind === 'ground-harmful' || effect.kind === 'ground-spread' ? 'avoid' : undefined}
+      data-effect-intent={effect.kind === 'ground-soak' ? 'soak' : effect.kind === 'ground-harmful' || effect.kind === 'ground-spread' ? 'avoid' : effect.kind === 'ground-objective' ? 'objective' : undefined}
       data-projectile-shape={effect.projectileShape}
       className={`nekzali-2d-effect ${effectClass(effect.kind)}${effect.filled === false ? ' outline' : ''}`}
       style={{ left: `${xPercent(rendered.x)}%`, top: `${zPercent(rendered.z)}%`, width: `${effect.radius / width * 200}%`, aspectRatio: '1', '--effect-color': effect.color, '--effect-rotation': effect.target ? `${Math.atan2(effect.target.z - effect.position.z, effect.target.x - effect.position.x)}rad` : '0rad' } as CSSProperties}

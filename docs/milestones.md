@@ -230,6 +230,19 @@ encounter development into an independently deployed Season 2 repository.
   in the shared 3D renderer while preserving fixed marker anchors.
 - `BUG-186` — completed under `FR-076`: pause-gate shared combat activation and
   freeze an in-progress contract-room cast until resume.
+- `BUG-187` — completed under `FR-082`: make Well entry movement-gated, preserve the
+  outer encounter during assigned realm play, and keep Main lifecycle live
+  across the explicit five-second return.
+- `BUG-188` — completed under `FR-082`: make the complete outer-to-Well Amani wave
+  authoritative and give shared Main nearest-add-first targeting.
+- `BUG-189` — completed under `FR-082`: make Echo soak/Cremation responsibility,
+  expiry, NPC coverage, and zone semantics explicit and reachable.
+- `CR-271` — completed under `FR-082`: have NPC tanks carry Barrage to a genuinely
+  distant outer lane while the off-tank holds Nek'zali and the raid clears it.
+- `CR-272` — completed under `FR-082`: retain every Rend patch, repeat NPC Rend, and
+  feed the complete persistent field into Invoke.
+- `CR-273` — completed under `FR-072`: attach the compact Learn 2D Main cast bar to
+  the controlled player's actor-local health presentation.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

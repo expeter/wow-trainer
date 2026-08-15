@@ -61,6 +61,11 @@ function SmoothCastBar({ seconds, secondsSource, style }: { seconds: number; sec
   return <div className="arena-hud-castbar" style={style}><i ref={fillRef} /><strong ref={labelRef}>Main ability · {seconds.toFixed(1)}s</strong></div>
 }
 
+export function ActorMainCastBar({ enabled, castSeconds = 0, castSecondsSource }: { enabled: boolean; castSeconds?: number; castSecondsSource?: () => number }) {
+  if (!enabled || castSeconds <= 0) return null
+  return <div className="actor-main-cast"><SmoothCastBar seconds={castSeconds} secondsSource={castSecondsSource} style={{}} /></div>
+}
+
 export function EncounterCastBars({ settings, castSeconds = 0, castSecondsSource, enemyCast }: Pick<ArenaTrainingHudProps, 'settings' | 'castSeconds' | 'castSecondsSource' | 'enemyCast'>) {
   if (!settings.showActions) return null
   const position = settings.layout.castbar

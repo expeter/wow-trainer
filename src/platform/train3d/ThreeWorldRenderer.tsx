@@ -158,9 +158,9 @@ function effectObject(effect: EffectSnapshot) {
     group.add(shaft, head)
     return group
   }
-  if (effect.kind === 'ground-harmful' || effect.kind === 'ground-soak' || effect.kind === 'ground-spread') {
+  if (effect.kind === 'ground-harmful' || effect.kind === 'ground-soak' || effect.kind === 'ground-spread' || effect.kind === 'ground-objective') {
     const group = new THREE.Group()
-    const disc = new THREE.Mesh(new THREE.CircleGeometry(effect.radius, 40), new THREE.MeshBasicMaterial({ color: effect.color, side: THREE.DoubleSide, transparent: true, opacity: .28, depthWrite: false }))
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(effect.radius, 40), new THREE.MeshBasicMaterial({ color: effect.color, side: THREE.DoubleSide, transparent: true, opacity: effect.kind === 'ground-objective' ? .08 : .28, depthWrite: false }))
     disc.name = 'effect-fill'
     disc.rotation.x = -Math.PI / 2
     const ring = new THREE.Mesh(new THREE.RingGeometry(Math.max(.1, effect.radius - .28), effect.radius, 40), new THREE.MeshBasicMaterial({ color: effect.color, side: THREE.DoubleSide, transparent: true, opacity: .9, depthWrite: false }))

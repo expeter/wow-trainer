@@ -1,6 +1,7 @@
 # Nek'zali the Soulcoiler encounter contract
 
-Tickets: `SPEC-022`, `FR-081`, `FR-082`, `FR-083`, `CR-261`
+Tickets: `SPEC-022`, `FR-081`, `FR-082`, `FR-083`, `CR-261`, `BUG-187`,
+`BUG-188`, `BUG-189`, `CR-271`, `CR-272`, `CR-273`
 
 This is one complete supplied mechanics contract shared by Learn 2D and Train
 3D. Test, Easy, Normal, and Hard control guidance and failure tolerance only;
@@ -53,18 +54,26 @@ versioned, and visibly replaceable until authoritative live data is available.
   before removal. Target selection remains unknown until applied. When the
   controlled player is selected, a compact attached timer appears; the player
   moves toward a free outer lane and drops exactly three provisional training
-  puddles before the aura ends and ordinary play resumes. One persistent Latent
-  Cultist zone remains at removal. Current journal evidence proves only the
-  final Cultist, so the three-drop training model remains explicit and replaceable.
+  puddles before the aura ends and ordinary play resumes. All three Latent
+  Cultist zones remain after removal. NPC targets repeat the same readable
+  movement/drop vocabulary often enough to seed the later Invoke field; this
+  remains a provisional trainer realization until authoritative timing exists.
 - **Possession Barrage:** the active tank moves away in a clear lane. Spirits
   travel from boss to tank and burst in a small area; raid damage decreases with
   travel distance. Non-tanks avoid the lane and impacts. The off-tank takes
-  aggro so the boss does not chase the Barrage target.
+  aggro so the boss does not chase the Barrage target. When neither tank is
+  controlled, the NPC Barrage tank travels to a far outer edge while the other
+  NPC tank visibly holds Nek'zali at the raid; the encounter never resolves an
+  NPC Barrage at the former close fixed target.
 - **Restless Amani:** at roughly 60 seconds, adds spawn from outer sarcophagi and
   move toward the Well. NPCs switch targets and attack them. The controlled
   player is responsible for killing exactly three marked adds with Main ability;
   each add has an attached health bar. Any living add reaching the Well fails
-  the attempt. Dead Amani leave Vessels of Awakening for intermission.
+  the attempt. The full wave remains authoritative while an assigned half is in
+  the Well realm: outer NPCs finish their responsibilities, but they do not
+  erase the controlled player's assigned duty. Intermission cannot begin while
+  a living Amani remains. Main always selects the nearest living priority add
+  before the boss. Dead Amani leave Vessels of Awakening for intermission.
 
 ## Intermission · Ritual of Awakening
 
@@ -75,7 +84,11 @@ versioned, and visibly replaceable until authoritative live data is available.
   it becomes outline-only. Only the active half soaks.
 - The other half receives small red spread circles, fans into available room,
   and uses the explosions to Cremate every assigned Amani corpse within four
-  yards. The explosion leaves a short-lived burning zone that all players avoid.
+  yards. The controlled spread has an explicit ten-second expiry and must reach
+  one compatible visible corpse; NPCs visibly cover the other residuals. The
+  explosion leaves a distinct short-lived orange burning zone that all players
+  avoid. Nek'zali remains untargetable and Main does not advertise or fire at a
+  false boss target during either Echo.
 - Repeat with the second Echo and the opposite soak half. Any missed group soak,
   harmful overlap, or surviving required corpse is a terminal failure.
 
@@ -104,8 +117,11 @@ versioned, and visibly replaceable until authoritative live data is available.
 - Active phases assign alternating raid halves to Grasping Depths. Only the
   assigned half enters; the other half and outer arena are hidden while the
   controlled player is inside the centre dome.
-- Entry begins with a slight three-second pull toward the Well. The inner team
-  attacks one Drowned Echo; the player contributes 20 completed Main casts.
+- Entry presents a seven-second countdown during which the assigned player must
+  physically enter the centre Well. Crossing that centre boundary transfers the
+  assigned half into the inner realm; missing it records the assignment failure
+  rather than teleporting the player. The inner team attacks one Drowned Echo;
+  the player contributes 20 completed Main casts.
 - The Drowned Echo gives the player one readable five-second assigned cast to
   Interrupt. Missing it is terminal.
 - Four small spirits orbit the Echo. Every ten seconds four additional spirits
@@ -115,7 +131,10 @@ versioned, and visibly replaceable until authoritative live data is available.
   and a non-terminal performance record is emitted. It cannot wipe or deduct
   points until scoring is explicitly implemented.
 - Killing the Echo begins a five-second return cast, after which the player
-  returns to the unchanged outer encounter state with Soul Exhaustion.
+  returns to the outer encounter state with Soul Exhaustion. The outer half's
+  NPC-resolved adds, corpses, hazards, boss pacing, and event time continue while
+  the controlled player is inside; the five-second return cannot freeze a Main
+  cast or leave stale cast feedback.
 
 ## Rendering and validation
 

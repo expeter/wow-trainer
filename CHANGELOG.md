@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Corrected Nek'zali's complete reaction flow from the latest visual review:
+  assigned players now enter the Well by reaching its centre during a
+  seven-second gate and return on the explicit five-second cast while the outer
+  raid continues its work; the full Amani wave travels inward and Main chooses
+  the nearest live add before the boss; NPC tanks carry Possession Barrage to a
+  genuinely distant lane; every three-patch Rend set persists into Invoke; and
+  the ten-second Echo duties distinguish the player's soak or Cremation,
+  neutral corpses, confirmation, and resulting fire. Learn 2D now attaches its
+  compact Main cast bar below the controlled player's health bar.
 - Unified the Season 2 runtime capability boundary across the contract lab,
   Nek'zali, and Entombed Sentinels: both modes now share Main cast/projectile
   lifecycle, NPC class casts, effect intent/travel, pause gating, and smoother
@@ -32,8 +41,8 @@
   before removal.
 - Corrected Nek'zali Essence Rend to select one raid member at application,
   attach its timer to that character, drop exactly three pools,
-  retain only the final Latent Cultist, and avoid revealing the controlled
-  player's reaction before selection.
+  retain all three Latent Cultists under the later `CR-272` clarification, and
+  avoid revealing the controlled player's reaction before selection.
 - Reduced Nek'zali's central Learn 2D and Train 3D mechanic coaching to a
   compact next-event/reaction display without repeated assignment, add-count,
   action-state, or soak-group prose.
