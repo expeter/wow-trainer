@@ -5,19 +5,20 @@ import Season2App from './Season2App'
 describe('Midnight Season 2 bootstrap shell', () => {
   afterEach(cleanup)
 
-  it('keeps the established six-section shell vocabulary around the first encounter', () => {
+  it('keeps the established six-section shell vocabulary around the discovered first encounter', async () => {
     render(<Season2App />)
 
     expect(screen.getByRole('heading', { name: 'Midnight Season 2 Trainer' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Entombed Sentinels' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Entombed Sentinels' })).toBeVisible()
     const navigation = screen.getByRole('navigation', { name: 'Setup sections' })
     expect(within(navigation).getAllByRole('button')).toHaveLength(6)
     expect(within(navigation).getByRole('button', { name: 'Tactical plan' })).toBeVisible()
   })
 
-  it('presents Learn 2D and Train 3D as separate pending runtimes', () => {
+  it('presents Learn 2D and Train 3D as separate pending runtimes', async () => {
     render(<Season2App />)
 
+    await screen.findByRole('heading', { name: 'Entombed Sentinels' })
     expect(screen.getByRole('heading', { name: 'Learn 2D' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Train 3D' })).toBeVisible()
     expect(screen.getAllByRole('button', { name: 'Runtime pending' })).toHaveLength(2)

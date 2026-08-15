@@ -32,9 +32,10 @@ encounter development into an independently deployed Season 2 repository.
   skill, with captures routed into the maintained Season 2 ticket workflow.
 - `SPEC-018` — completed: make the shared-shell/separate-runtime and isolated
   auto-discovered encounter-package boundaries binding.
-- `FR-072` — deferred until `CR-230` and `SPEC-018` are stable: introduce
-  `EncounterPackageV1`, automatic discovery, and Entombed Sentinels as the sole
-  first encounter package.
+- `FR-072` — in progress now that `CR-230` and `SPEC-018` are stable: Stage 4A
+  has introduced `EncounterPackageV1`, conformance validation, lazy automatic
+  discovery, and Entombed Sentinels as the sole non-playable first encounter
+  package. The Helical Toxins Learn 2D vertical slice is next.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 
 No other boss work may start alongside Entombed Sentinels. The L'ura API and

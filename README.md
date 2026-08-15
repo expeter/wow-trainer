@@ -11,10 +11,12 @@ of the L'ura encounter or its online service.
 
 ## Current status
 
-The bootstrap shell is active. Entombed Sentinels is the only selected first
-encounter, but neither training runtime is playable yet. `EncounterPackageV1`,
-automatic encounter discovery, and the isolated Sentinels package are the next
-milestone after the bootstrap contract is stable.
+The bootstrap shell now loads a validated encounter catalogue through
+`EncounterPackageV1`. Entombed Sentinels is automatically discovered as the
+sole research package and is emitted as its own lazy production chunk. Its
+shared facts, PTR timing profile, tactic schema, and separate Learn 2D/Train 3D
+arena declarations are present, but both runtimes remain explicitly planned
+and are not playable yet.
 
 - Product ID: `midnight-season-2`
 - Short ID: `midnight-s2`
@@ -32,8 +34,9 @@ are authoritative. Contributors and coding agents must begin with
 
 The shell owns product navigation, encounter vocabulary, preferences, and
 shared presentation. Learn 2D and Train 3D consume the same encounter package
-but own different simulations and arena geometry. Bosses will live in isolated,
-automatically discovered encounter directories.
+but own different simulations and arena geometry. Bosses live in isolated,
+automatically discovered encounter directories; malformed packages are
+excluded with development diagnostics instead of crashing the catalogue.
 
 The complete L'ura v0.9.1 application remains available only in a development
 server at `?reference=lura-v0.9.1`. Production builds use the Season 2 entry

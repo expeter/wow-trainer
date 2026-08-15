@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- FR-072 (Stage 4A): Add the validated `EncounterPackageV1` contract, lazy
+  automatic encounter discovery, development diagnostics, and the isolated
+  non-playable Entombed Sentinels research package with shared PTR vocabulary
+  and distinct Learn 2D/Train 3D arena declarations. The shell now reads its
+  encounter card and runtime readiness from the discovered catalogue.
 - CR-232: Wire `npm run inbox` and `npm run inbox:list` directly to the global,
   localhost-only Project Inbox skill, with captures stored in `inbox/` and
   explicitly routed into the Season 2 ticket workflow.

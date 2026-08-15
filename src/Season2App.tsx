@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { EncounterCatalogue } from './platform/encounters/discovery'
+import { loadEncounterCatalogue } from './platform/encounters'
 import { LEGACY_REFERENCE_QUERY, PRODUCT } from './product'
 import './styles.css'
 import './styles/tokens.css'
@@ -42,7 +44,20 @@ const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string
 
 export default function Season2App() {
   const [activeTab, setActiveTab] = useState<SetupTab>('Game settings')
+  const [catalogue, setCatalogue] = useState<EncounterCatalogue>()
   const panel = panelCopy[activeTab]
+  const encounter = catalogue?.packages[0]
+  const catalogueFailed = catalogue && !encounter
+  const learn2dReady = encounter?.learn2d.some(scenario => scenario.status === 'ready') ?? false
+  const train3dReady = encounter?.train3d.some(scenario => scenario.status === 'ready') ?? false
+
+  useEffect(() => {
+    let active = true
+    loadEncounterCatalogue().then(result => {
+      if (active) setCatalogue(result)
+    })
+    return () => { active = false }
+  }, [])
 
   return <main className="shell setup-shell season2-shell" id="setup-top">
     <aside className="season2-safety-note">Standalone workspace · public deployment disabled during extraction</aside>
@@ -60,11 +75,24 @@ export default function Season2App() {
     <section className="season2-encounter" aria-labelledby="encounter-catalog-title">
       <div>
         <p className="eyebrow">ENCOUNTER CATALOG</p>
-        <h2 id="encounter-catalog-title">Entombed Sentinels</h2>
-        <p>The first package is in research and contract design. Additional bosses remain locked until this package is stable.</p>
+        <h2 id="encounter-catalog-title">
+          {encounter?.manifest.name ?? (catalogueFailed ? 'No conforming encounter package' : 'Discovering encounter packages…')}
+        </h2>
+        <p>{encounter?.manifest.summary ?? (catalogueFailed
+          ? 'The catalogue excluded every package. Check development diagnostics before continuing.'
+          : 'Loading validated package metadata from isolated encounter directories.')}</p>
       </div>
-      <span className="season2-badge">Blueprint ready · runtime pending</span>
+      {encounter && <span className="season2-badge">
+        {encounter.manifest.availability} · {encounter.timingProfiles[0]?.status ?? 'timing pending'} · runtimes pending
+      </span>}
     </section>
+
+    {import.meta.env.DEV && Boolean(catalogue?.diagnostics.length) && <aside className="season2-catalogue-diagnostics">
+      <strong>Encounter package diagnostics</strong>
+      {catalogue?.diagnostics.map(diagnostic => <p key={diagnostic.source}>
+        {diagnostic.source}: {diagnostic.errors.join(' ')}
+      </p>)}
+    </aside>}
 
     <nav className="setup-tabs" aria-label="Setup sections">
       {tabs.map(tab => <button
@@ -87,13 +115,13 @@ export default function Season2App() {
           <span>01</span>
           <h3>Learn 2D</h3>
           <p>Study mechanic order, assignments, timing, and tactical diagrams in a dedicated two-dimensional runtime.</p>
-          <button type="button" disabled>Runtime pending</button>
+          <button type="button" disabled={!learn2dReady}>{learn2dReady ? 'Launch Learn 2D' : 'Runtime pending'}</button>
         </article>
         <article>
           <span>02</span>
           <h3>Train 3D</h3>
           <p>Rehearse positioning and movement in an independent three-dimensional arena model using the same encounter terms.</p>
-          <button type="button" disabled>Runtime pending</button>
+          <button type="button" disabled={!train3dReady}>{train3dReady ? 'Launch Train 3D' : 'Runtime pending'}</button>
         </article>
       </div>}
       {activeTab !== 'Game settings' && <p className="season2-boundary-note">This shell boundary is reserved; implementation follows EncounterPackageV1 and the Entombed Sentinels package.</p>}

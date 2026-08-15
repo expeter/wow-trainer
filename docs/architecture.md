@@ -1,8 +1,8 @@
 # Midnight Season 2 architecture boundary
 
-This document operationalizes `SPEC-018`. It defines ownership before the
-first encounter runtime is extracted; it does not implement
-`EncounterPackageV1` or Entombed Sentinels.
+This document operationalizes `SPEC-018`. Stage 4A implements the versioned
+package, validation, and discovery boundary while leaving both encounter
+runtimes explicitly non-playable.
 
 ## Product entry points
 
@@ -26,19 +26,26 @@ keys from `App.tsx`, `GameScene.tsx`, or the L'ura `/v1` client.
 | Encounter directory | One boss package, its assets, fixtures, runtime adapters, and focused tests | Other bosses or central registration edits |
 | Online platform | Future `/v2` identity, statistics, achievements, and rankings | Inherited L'ura `/v1` calls |
 
-## Package discovery target
+## Package discovery
 
-Each encounter will live at `src/encounters/<encounter-id>/index.ts` and export
-one `EncounterPackageV1`. A discovery module will use a statically analyzable
-Vite glob equivalent to:
+Each encounter lives at `src/encounters/<encounter-id>/index.ts` and exports
+one `EncounterPackageV1`. `src/platform/encounters/discovery.ts` uses the
+statically analyzable lazy Vite glob:
 
 ```ts
-import.meta.glob('./encounters/*/index.ts', { eager: true })
+import.meta.glob('../../encounters/*/index.ts')
 ```
 
 Adding a boss must not require editing a hand-maintained switch, array, or
-route table. Validation will reject duplicate IDs, incompatible package
-versions, missing runtime adapters, and cross-package imports.
+route table. Validation excludes incompatible versions, duplicate or unstable
+IDs, broken references, missing focused/full-fight declarations, invalid
+defaults/tactics, and timing without provenance. Load failures become sorted
+development diagnostics instead of crashing the catalogue.
+
+Entombed Sentinels is the only current encounter directory. Its package owns
+the `ptr_2026-08-13` profile, tactic declarations, abstract 2D diagram arena,
+independent 3D world arena, and planned scenario metadata. No renderer or
+mechanic resolution has been introduced in Stage 4A.
 
 ## Delivery order
 
