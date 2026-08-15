@@ -192,7 +192,7 @@ export default function Season2App() {
         <p className="hint">{panel.body}</p>
       </div>
       {activeTab === 'Game settings' && <div className="season2-catalogue-grid" aria-label="Encounter catalogue">
-        <fieldset className="season2-training-difficulty"><legend>Trainer difficulty</legend><p>Heroic encounter rules stay fixed. This changes guidance and failure tolerance only.</p><div>{(['easy', 'normal', 'hard'] as const).map(value => <button type="button" key={value} className={settings.difficulty === value ? 'selected' : ''} aria-pressed={settings.difficulty === value} onClick={() => updateSettings(current => ({ ...current, difficulty: value }))}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></fieldset>
+        <fieldset className="season2-training-difficulty"><legend>Trainer difficulty</legend><p>Encounter mechanics stay fixed. This changes guidance and failure tolerance only.</p><div>{(['test', 'easy', 'normal', 'hard'] as const).map(value => <button type="button" key={value} className={settings.difficulty === value ? 'selected' : ''} aria-pressed={settings.difficulty === value} onClick={() => updateSettings(current => ({ ...current, difficulty: value }))}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></fieldset>
         {!catalogue && <article className="season2-encounter-card loading"><p>Discovering encounter packages…</p></article>}
         {catalogueFailed && <article className="season2-encounter-card unavailable"><h3>No conforming encounter package</h3><p>Check development diagnostics before continuing.</p></article>}
         {catalogue?.packages.map(selectedEncounter => <article className="season2-encounter-card" key={selectedEncounter.manifest.id}>
@@ -210,7 +210,7 @@ export default function Season2App() {
                 <p>{mode === 'learn2d' ? 'Study timing and assignments in the tactical model.' : 'Rehearse movement in the independent 3D arena.'}</p>
                 <div className="season2-scenario-list">{scenarios.map(scenario => <button
                   type="button"
-                  key={`${scenario.id}-${scenario.difficulty}`}
+                  key={scenario.id}
                   disabled={scenario.status !== 'ready' || Boolean(runtimeLoading)}
                   aria-label={scenario.status === 'ready' ? primaryReadyScenario?.id === scenario.id ? `Launch ${selectedEncounter.manifest.name} ${modeLabel}` : `Launch ${selectedEncounter.manifest.name} ${scenario.name} ${modeLabel}` : `${selectedEncounter.manifest.name} ${scenario.name} coming soon in ${modeLabel}`}
                   onClick={() => void launch(selectedEncounter, mode, scenario.id)}

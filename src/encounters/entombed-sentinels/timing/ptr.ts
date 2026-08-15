@@ -6,7 +6,6 @@ export const ptrTiming = {
   encounterId: 'entombed-sentinels',
   version: 1,
   status: 'ptr',
-  difficulties: ['heroic', 'mythic'],
   values: [
     { key: 'stasis-energy', value: 100, unit: 'energy', provenance: journalHigh },
     { key: 'stasis-duration', value: 30, unit: 'seconds', provenance: journalHigh },

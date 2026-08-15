@@ -1,6 +1,6 @@
 import { contractRaidRoster, contractRosterForSlot, contractSelectedMember, trainingClassColors, type ContractRaidMember } from '../../platform/contractRoom'
 import type { RuntimeFailure } from '../../platform/RuntimeFeedback'
-import type { TrainingDifficulty } from '../../platform/trainingSettings'
+import { shouldEndTrainingAttempt, type TrainingDifficulty } from '../../platform/trainingSettings'
 import { cosmeticClassProjectiles } from '../../platform/train3d/cosmeticCombat'
 import { distance, stepPlayerMovement } from '../../platform/train3d/simulation'
 import type { ActorSnapshot, EffectSnapshot, PlayerCommandState, Train3DSnapshot, WorldPoint } from '../../platform/train3d/types'
@@ -41,7 +41,6 @@ export interface NekzaliState {
   mistakes: number
   failures: readonly RuntimeFailure[]
   trainingDifficulty: TrainingDifficulty
-  mythic: boolean
   wellGroup: 1 | 2
   wellEventIndex: number
   realmStage: NekzaliRealmStage
@@ -88,17 +87,17 @@ function groupForSlot(slotId: string): 1 | 2 {
   return contractRaidRoster.findIndex(member => member.id === slotId) % 2 === 0 ? 1 : 2
 }
 
-export function createNekzaliState(selectedSlotId = 'player', trainingDifficulty: TrainingDifficulty = 'normal', mythic = false): NekzaliState {
+export function createNekzaliState(selectedSlotId = 'player', trainingDifficulty: TrainingDifficulty = 'normal'): NekzaliState {
   const member = contractSelectedMember(selectedSlotId)
   const start = nekzaliMemberPosition(member)
   return { time: 0, phase: 'phase-1', phaseStartedAt: 0, player: { ...start, facing: 0 }, boss: { ...bossHome }, bossHealth: 100, bossEnergy: 0,
     selectedSlotId, soakGroup: groupForSlot(selectedSlotId), aggroOwner: member.role === 'tank' ? selectedSlotId : 'tank-1', addsSpawned: false, adds: [], corpses: [], hazards: [], lastRendDrop: -1,
     barrageStarted: false, barrageResolved: false, playerAddKills: 0, mainCastRemaining: 0, invokes: 0, outcome: 'active', mistakes: 0, failures: [], trainingDifficulty,
-    mythic, wellGroup: groupForSlot(selectedSlotId), wellEventIndex: 0, realmStage: 'none', realmStartedAt: 0, realmAddHits: 0, innerCastInterrupted: false, disruptionIndex: 0, soulExhausted: false }
+    wellGroup: groupForSlot(selectedSlotId), wellEventIndex: 0, realmStage: 'none', realmStartedAt: 0, realmAddHits: 0, innerCastInterrupted: false, disruptionIndex: 0, soulExhausted: false }
 }
 
 export function prepareNekzaliSlot(state: NekzaliState, selectedSlotId: string): NekzaliState {
-  return createNekzaliState(selectedSlotId, state.trainingDifficulty, state.mythic)
+  return createNekzaliState(selectedSlotId, state.trainingDifficulty)
 }
 
 export function turnNekzaliPlayer(state: NekzaliState, yawDelta: number): NekzaliState {
@@ -121,7 +120,7 @@ function addFailure(state: NekzaliState, code: string, label: string, advice: st
   if (state.failures[0]?.code === code && state.time - state.failures[0].time < .5) return state
   const failure = { id: `nekzali-${code}-${state.time.toFixed(2)}`, code, time: state.time, label, advice }
   const mistakes = state.mistakes + 1
-  const wipe = terminal || state.trainingDifficulty === 'hard' || state.trainingDifficulty === 'normal' && mistakes >= 2
+  const wipe = shouldEndTrainingAttempt(state.trainingDifficulty, mistakes, terminal)
   return { ...state, mistakes, failures: [failure, ...state.failures].slice(0, 5), outcome: wipe ? 'wipe' : state.outcome, outcomeReason: wipe ? label : state.outcomeReason }
 }
 
@@ -138,7 +137,7 @@ export function interruptNekzali(state: NekzaliState): NekzaliState {
 }
 
 function maybeStartRealm(state: NekzaliState): NekzaliState {
-  if (!state.mythic || state.realmStage !== 'none') return state
+  if (state.realmStage !== 'none') return state
   const phaseAge = state.time - state.phaseStartedAt
   const eventGroup = state.phase === 'phase-1' && state.wellEventIndex === 0 && phaseAge >= 45 ? 1
     : state.phase === 'phase-2' && state.wellEventIndex === 1 && phaseAge >= 8 ? 2
@@ -187,7 +186,7 @@ function stepRealm(state: NekzaliState, commands: PlayerCommandState, seconds: n
 
   const activeDisruption = disruptionStarts(next)[next.disruptionIndex]
   if (activeDisruption !== undefined && age >= activeDisruption + 3) {
-    if (next.mainCastRemaining > 0) next = addPerformanceRecord({ ...next, mainCastRemaining: 0, mainTargetId: undefined }, 'mythic-main-interrupted', 'Nek\'zali interrupted your Main cast', 'Watch the three-second disruption cast and avoid beginning Main just before it completes.')
+    if (next.mainCastRemaining > 0) next = addPerformanceRecord({ ...next, mainCastRemaining: 0, mainTargetId: undefined }, 'realm-main-interrupted', 'Nek\'zali interrupted your Main cast', 'Watch the three-second disruption cast and avoid beginning Main just before it completes.')
     next = { ...next, disruptionIndex: next.disruptionIndex + 1 }
   }
   const hazard = realmHazards(age).find(point => distance(player, point) < 1.45)

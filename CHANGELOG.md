@@ -2,29 +2,35 @@
 
 ## Unreleased
 
-- Added a separately selectable provisional Nek'zali Mythic full fight in both
-  Learn 2D and Train 3D: alternating raid halves enter an isolated Well realm,
+- Fixed Nek'zali Learn 2D to project its circular yard-space onto a circular
+  board, preserve the supplied raid-plan aspect ratio through a centered crop,
+  and keep the default player's left/right movement visibly usable.
+- Collapsed Nek'zali into one full fight in both Learn 2D and Train 3D. Its
+  complete mechanics include alternating raid halves entering an isolated Well realm,
   contribute 20 Main hits, interrupt an assigned Drowned Echo cast, dodge
   orbiting/outward spirits, read seeded variable non-wipe Main disruption, and
   return after a five-second cast. Interrupt is a persisted configurable action.
 - Accepted the supplied Vash'nik three-well raid plan and documented `FR-085`
   as the next planned encounter contract without beginning its runtime.
-- Completed Entombed Sentinels Heroic full-fight training in Learn 2D and
+- Accepted the supplied Lost Explorers octagonal raid plan and documented
+  `FR-086` as the following planned three-boss encounter without beginning its
+  runtime.
+- Completed Entombed Sentinels full-fight training in Learn 2D and
   Train 3D with boss separation, side marks, droplets/returning venom,
   Miasma pools, dual energy bars, Stasis matching, side swaps, and repeat cycles.
-- Added a separately selectable provisional Mythic Sentinels full fight with
-  active-cycle Protovenom pairing and a persisted healer-only Dispel binding.
+- Included active-cycle Protovenom pairing and a persisted healer-only Dispel
+  binding in the single Sentinels mechanics contract.
 - Added isolated, automatically discovered setup packages for all eight
   Venomous Abyss bosses; six remain clearly labelled as catalogue-only while
   Nek'zali and Entombed Sentinels expose their approved playable work.
-- Added the first Heroic Nek'zali full-fight training contract in separate
+- Added the first Nek'zali full-fight training contract in separate
   Learn 2D and Train 3D runtimes, including the circular Soulwell arena,
   pre-pull role and soak assignment, Essence Rend trails, Possession Barrage
   tank swaps, killable Amani waves, the two-Echo intermission, corpse burning,
   and Phase 2 Invoke hazard movement.
-- Separated fixed raid mechanics from Easy, Normal, and Hard trainer assistance
-  profiles. Mythic Nek'zali remains a separate scenario and is not mixed into
-  the Heroic implementation.
+- Made Test, Easy, Normal, and Hard trainer assistance/failure-tolerance
+  profiles over one fixed mechanics set per boss, with Test attempts recording
+  mechanic mistakes without ending the run.
 - Restored centered terminal drill cards with dismiss, expandable corrective
   details, retry, and setup-exit actions while retaining clickable failures.
 - Added four development-only raid world markers to the Train 3D contract room

@@ -3,9 +3,9 @@
 Ticket: `FR-085`
 
 This is an accepted implementation brief, not yet an authoritative mechanic
-specification. Vash'nik begins only after Nek'zali Mythic is stable. Heroic is
-the raid-rules baseline; Easy, Normal, and Hard remain trainer-assistance
-profiles rather than raid difficulties.
+specification. Vash'nik begins only after the current full-fight correction is
+stable. The supplied encounter mechanics remain fixed; Test, Easy, Normal, and
+Hard remain trainer-assistance profiles rather than raid difficulties.
 
 ## Evidence and confidence
 
@@ -16,7 +16,7 @@ profiles rather than raid difficulties.
   Learn 2D raid-plan background and as visual evidence for a code-rendered 3D
   interpretation.
 - The rules below come from the user's video review on 2026-08-15. Exact spell
-  names, counts, ranges, cadence, tank-hit behavior, and Heroic/Mythic boundaries
+  names, counts, ranges, cadence, and tank-hit behavior
   still require reconciliation with current authoritative encounter material.
 
 ## Arena, wells, and encounter loop

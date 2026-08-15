@@ -4,7 +4,14 @@ export type MovementAction = 'forward' | 'backward' | 'left' | 'right' | 'turnLe
 export type CombatAction = 'mainAbility' | 'taunt' | 'healthPot' | 'shield' | 'dispel' | 'interrupt'
 export type SystemAction = 'pause'
 export type TrainingAction = MovementAction | CombatAction | SystemAction
-export type TrainingDifficulty = 'easy' | 'normal' | 'hard'
+export type TrainingDifficulty = 'test' | 'easy' | 'normal' | 'hard'
+
+export function shouldEndTrainingAttempt(difficulty: TrainingDifficulty, mistakes: number, encounterFailure: boolean) {
+  if (difficulty === 'test') return false
+  if (encounterFailure) return true
+  if (difficulty === 'hard') return mistakes >= 1
+  return difficulty === 'normal' && mistakes >= 2
+}
 
 export interface MovementKeyBindings {
   forward: string
@@ -87,7 +94,7 @@ export function normalizeTrainingSettings(value: unknown): TrainingSettings {
   }
 
   return {
-    difficulty: candidate.difficulty === 'easy' || candidate.difficulty === 'hard' ? candidate.difficulty : 'normal',
+    difficulty: candidate.difficulty === 'test' || candidate.difficulty === 'easy' || candidate.difficulty === 'hard' ? candidate.difficulty : 'normal',
     keyBindings: migratedBindings,
     hud: {
       showPlayer: isBoolean(hud?.showPlayer) ? hud.showPlayer : DEFAULT_TRAINING_SETTINGS.hud.showPlayer,

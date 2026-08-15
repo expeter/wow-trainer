@@ -39,14 +39,14 @@ import.meta.glob('../../encounters/*/index.ts')
 
 Adding a boss must not require editing a hand-maintained switch, array, or
 route table. Validation excludes incompatible versions, duplicate or unstable
-IDs, broken references, missing focused/full-fight declarations, invalid
+IDs, broken references, missing full-fight declarations, invalid
 defaults/tactics, and timing without provenance. Load failures become sorted
 development diagnostics instead of crashing the catalogue.
 
 Entombed Sentinels remains the architecture-reference encounter. Its package owns
 the `ptr_2026-08-13` profile, tactic declarations, abstract 2D diagram arena,
 independent 3D world arena, scenario metadata, and lazy runtime adapters. The
-focused Helical drill and Heroic/Mythic full fights are `ready`: Learn 2D uses
+single complete full fights are `ready`: Learn 2D uses
 abstract percentage space over the supplied tactical plan, while Train 3D
 resolves side mechanics, energy/Stasis cycles, pairing, movement, and collision
 in a headless fixed-step simulation. The reusable Three.js renderer consumes

@@ -5,11 +5,10 @@ It contains validated shared facts, the `ptr_2026-08-13` timing profile, tactic
 declarations, an abstract Learn 2D arena, an independent Train 3D world arena,
 and package-owned lazy runtime loaders.
 
-The focused `sentinels_helical_toxins` drill and separate Heroic/Mythic
-full-fight scenarios are ready. Learn 2D projects the encounter onto the
-supplied tactical image; Train 3D uses a headless fixed-step mechanic model and
-an independent yard-space arena. The focused Mythic Protovenom tutorial remains
-planned, while the Mythic full fight includes that active-cycle rule.
+One complete full-fight scenario is ready in each runtime. Learn 2D projects
+the encounter onto the supplied tactical image; Train 3D uses a headless
+fixed-step mechanic model and an independent yard-space arena. Helical Toxins
+and Shifting Protovenom are both part of that single mechanics contract.
 
 Movement bindings, the healer Dispel binding, and HUD visibility/scale are
 supplied by the shell through the package runtime contract. The encounter does
@@ -47,8 +46,12 @@ All timings remain PTR-labelled. No live profile exists yet.
 - Helical Toxins appear as four attached red/green icons. Compatible pairs
   combine to the exact-four composition; wrong or third-player contact fails.
   The raid swaps sides after Stasis and repeats the active cycle.
-- Mythic adds Shifting Protovenom only in its own full-fight scenario. Marked
+- Shifting Protovenom marks pairs during the active cycle. Marked
   red-circle partners collide with each other, touching an unmarked player
   fails, and unresolved Protovenom before Stasis is terminal.
 - Bots resolve off-side mechanics deterministically and cannot create an
   unexplained default-mode wipe.
+- Learn 2D input is screen-relative: W/S/A/D always mean up/down/left/right on
+  the raid plan, independent of actor facing. NPC side groups stay visibly
+  inside the green/red playable areas and gather into NPC-owned soak circles;
+  they never cover the controlled player's assigned mechanic.

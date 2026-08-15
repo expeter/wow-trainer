@@ -89,7 +89,7 @@ export const abilities = [
   {
     id: 'sentinels_shifting_protovenom',
     name: 'Shifting Protovenom',
-    description: 'Mythic partners meet in assigned lanes without touching unmarked or incorrect players.',
+    description: 'Marked partners meet in assigned lanes without touching unmarked or incorrect players.',
     severity: 'lethal',
     tags: ['pair', 'movement'],
     timings: [],

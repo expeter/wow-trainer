@@ -2,7 +2,6 @@ import type { ComponentType } from 'react'
 import type { MovementKeyBindings, TrainingCameraSettings, TrainingDifficulty, TrainingHudSettings } from '../trainingSettings'
 
 export type EncounterMode = 'learn2d' | 'train3d'
-export type EncounterDifficulty = 'heroic' | 'mythic'
 export type EncounterAvailability = 'research' | 'ptr-preview' | 'live-validated' | 'retired'
 export type ScenarioKind = 'focused' | 'full-fight'
 export type ScenarioStatus = 'planned' | 'ready'
@@ -18,7 +17,6 @@ export interface SourceProvenance {
 
 export interface EncounterDefaultSelection {
   mode: EncounterMode
-  difficulty: EncounterDifficulty
   scenarioId: string
   timingProfileId: string
   tacticId: string
@@ -33,7 +31,6 @@ export interface EncounterManifest {
   sourceConfidence: Confidence
   availability: EncounterAvailability
   supportedModes: readonly EncounterMode[]
-  supportedDifficulties: readonly EncounterDifficulty[]
   defaults: readonly EncounterDefaultSelection[]
   capabilities: readonly string[]
   summary: string
@@ -89,7 +86,6 @@ export interface TimingProfile {
   encounterId: string
   version: number
   status: 'ptr' | 'live' | 'superseded'
-  difficulties: readonly EncounterDifficulty[]
   values: readonly TimingValue[]
 }
 
@@ -147,7 +143,6 @@ interface ScenarioBase {
   name: string
   kind: ScenarioKind
   status: ScenarioStatus
-  difficulty: EncounterDifficulty
   abilityIds: readonly string[]
   phaseIds: readonly string[]
   roleIds: readonly string[]

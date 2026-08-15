@@ -13,7 +13,6 @@ export function createPlannedEncounterPackage(identity: PlannedEncounterIdentity
   const diagram = { id: `${identity.id}-planned-diagram`, label: `${identity.name} research diagram`, regions: [] }
   const common = {
     status: 'planned' as const,
-    difficulty: 'heroic' as const,
     abilityIds: [], phaseIds: [], roleIds: [], timingProfileIds: [], tacticIds: [],
   }
   return {
@@ -25,19 +24,16 @@ export function createPlannedEncounterPackage(identity: PlannedEncounterIdentity
       sourceConfidence: 'medium',
       availability: 'research',
       supportedModes: ['learn2d', 'train3d'],
-      supportedDifficulties: ['heroic', 'mythic'],
       defaults: [],
       capabilities: [],
     },
     abilities: [], phases: [], roles: [], timingProfiles: [],
     tacticSchema: { version: 1, fields: [] }, tactics: [],
     learn2d: [
-      { ...common, id: `${identity.id}-focused`, name: 'Focused mechanic training', kind: 'focused', mode: 'learn2d', arena: diagram, steps: [] },
-      { ...common, id: `${identity.id}-full-fight`, name: 'Heroic full fight', kind: 'full-fight', mode: 'learn2d', arena: diagram, steps: [] },
+      { ...common, id: `${identity.id}-full-fight`, name: 'Full fight', kind: 'full-fight', mode: 'learn2d', arena: diagram, steps: [] },
     ],
     train3d: [
-      { ...common, id: `${identity.id}-focused`, name: 'Focused mechanic training', kind: 'focused', mode: 'train3d', arenaId, metricIds: [] },
-      { ...common, id: `${identity.id}-full-fight`, name: 'Heroic full fight', kind: 'full-fight', mode: 'train3d', arenaId, metricIds: [] },
+      { ...common, id: `${identity.id}-full-fight`, name: 'Full fight', kind: 'full-fight', mode: 'train3d', arenaId, metricIds: [] },
     ],
     train3dArenas: [{ id: arenaId, label: `${identity.name} planned arena`, shape: 'circle', width: 90, depth: 90, anchors: [], theme: { floor: '#172523' } }],
     runtimeLoaders: {

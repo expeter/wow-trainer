@@ -45,7 +45,7 @@ describe('Entombed Sentinels full-fight contract', () => {
     const initial = createSentinelsState('player', 'easy')
     let state: SentinelsState = { ...initial, time: 59.95, dropletsSpawned: true, droplets: [
       { id: 'd1', position: { x: -38, z: 0 }, assignedToPlayer: true, soaked: true, soakedAt: 20 },
-    ], miasmaResolved: true }
+    ], miasmaResolved: true, protovenomResolved: true }
     state = stepSentinelsState(state, idle, .1)
     expect(state.phase).toBe('stasis')
     expect(state.energy).toBe(100)
@@ -63,14 +63,21 @@ describe('Entombed Sentinels full-fight contract', () => {
     expect(result.assignedSide).toBe('blood')
   })
 
-  it('keeps Protovenom Mythic-only and requires it cleared before Stasis', () => {
-    const heroic = { ...createSentinelsState('player', 'easy', false), time: 40 }
-    expect(stepSentinelsState(heroic, idle, .1).protovenomActive).toBe(false)
-    const mythic = { ...createSentinelsState('player', 'easy', true), time: 59.95, dropletsSpawned: true, droplets: [
+  it('includes Protovenom and requires it cleared before Stasis', () => {
+    const active = { ...createSentinelsState('player', 'easy'), time: 40 }
+    expect(stepSentinelsState(active, idle, .1).protovenomActive).toBe(true)
+    const uncleared = { ...createSentinelsState('player', 'easy'), time: 59.95, dropletsSpawned: true, droplets: [
       { id: 'd1', position: { x: -38, z: 0 }, assignedToPlayer: true, soaked: true, soakedAt: 20 },
     ], miasmaResolved: true }
-    const result = stepSentinelsState(mythic, idle, .1)
+    const result = stepSentinelsState(uncleared, idle, .1)
     expect(result.outcome).toBe('wipe')
     expect(result.failures[0].code).toBe('protovenom-stasis')
+  })
+
+  it('records encounter failures without ending Test attempts', () => {
+    const state = { ...createSentinelsState('player', 'test'), time: 9, acidBoss: { x: -10, z: 0 }, bloodBoss: { x: 10, z: 0 } }
+    const result = stepSentinelsState(state, idle, .1)
+    expect(result.outcome).toBe('active')
+    expect(result.failures[0]?.code).toBe('dominance')
   })
 })

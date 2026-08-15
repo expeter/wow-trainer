@@ -30,16 +30,14 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(within(catalogue).getAllByText('Coming soon').length).toBeGreaterThan(0)
   })
 
-  it('loads the movement-driven Learn 2D runtime with icon-only character toxins', async () => {
+  it('loads the single Sentinels Learn 2D full fight', async () => {
     render(<Season2App />)
     await screen.findByRole('heading', { name: 'Entombed Sentinels' })
 
     fireEvent.click(screen.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }))
-    expect(await screen.findByRole('heading', { name: 'Helical Toxins tutorial' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Move forward' })).toBeVisible()
-    expect(screen.getAllByRole('img')).toHaveLength(4)
-    expect(screen.getByLabelText('Controlled character with 1 green and 3 red toxins')).toBeVisible()
-    expect(screen.queryByText(/1G|3R/)).not.toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Entombed Sentinels full fight' })).toBeVisible()
+    expect(screen.getByLabelText('Entombed Sentinels raid-plan training arena')).toBeVisible()
+    expect(screen.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' })).toHaveTextContent('Protovenom pairing occurs before Stasis')
   })
 
   it('persists unique movement bindings and exposes the configured keys to the shell', async () => {
@@ -61,7 +59,7 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.getByLabelText('Build information')).toBeVisible()
     await screen.findByRole('heading', { name: 'Entombed Sentinels' })
     fireEvent.click(screen.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }))
-    expect(await screen.findByRole('heading', { name: 'Helical Toxins tutorial' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Entombed Sentinels full fight' })).toBeVisible()
     expect(screen.queryByLabelText('Build information')).not.toBeInTheDocument()
     expect(screen.getByRole('complementary', { name: 'Recent failures' })).toHaveTextContent('No failures yet')
     expect(screen.getByRole('complementary', { name: 'Points' })).toHaveTextContent('Not scored')
@@ -90,10 +88,11 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(document.body.textContent).not.toContain('/v1/auth')
   })
 
-  it('labels Easy, Normal, and Hard as trainer assistance rather than raid difficulty', () => {
+  it('labels Test, Easy, Normal, and Hard as trainer tolerance rather than raid difficulty', () => {
     render(<Season2App />)
     const group = screen.getByRole('group', { name: 'Trainer difficulty' })
     expect(within(group).getByRole('button', { name: 'Normal' })).toHaveAttribute('aria-pressed', 'true')
-    expect(group).toHaveTextContent('Heroic encounter rules stay fixed')
+    expect(within(group).getByRole('button', { name: 'Test' })).toBeVisible()
+    expect(group).toHaveTextContent('Encounter mechanics stay fixed')
   })
 })

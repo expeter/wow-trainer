@@ -10,6 +10,9 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page.getByRole('heading', { name: 'Train 3D' }).first()).toBeVisible()
   await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toBeEnabled()
   await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toBeEnabled()
+  const trainerDifficulty = page.getByRole('group', { name: 'Trainer difficulty' })
+  for (const profile of ['Test', 'Easy', 'Normal', 'Hard']) await expect(trainerDifficulty.getByRole('button', { name: profile })).toBeVisible()
+  await expect(page.getByLabel('Encounter catalogue')).not.toContainText(/Heroic|Mythic/)
   await expect(page.getByLabel('Encounter catalogue').getByText('Coming soon').first()).toBeVisible()
   await expect(page.locator('.season2-encounter')).toHaveCount(0)
   await expect(page.getByLabel('Build information')).toContainText(/v\d+\.\d+\.\d+ · [a-z0-9]+ ·/)
@@ -27,7 +30,7 @@ test("discovers all raid panels and launches Nek'zali in separate 2D and 3D aren
   await expect(page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" })).toBeEnabled()
   await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()
   const setup2d = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
-  await expect(setup2d).toContainText('Heroic assignment')
+  await expect(setup2d).toContainText('Choose role and assignment')
   await expect(setup2d).toContainText(/soak group [12]/)
   await expect(page.getByLabel("Nek'zali raid-plan training arena")).toBeVisible()
   await setup2d.getByRole('button', { name: /Tank 1, warrior/ }).click()
@@ -52,31 +55,55 @@ test("discovers all raid panels and launches Nek'zali in separate 2D and 3D aren
   await expect(page.getByText('Training boss · your aggro')).toBeVisible()
 })
 
-test("launches Nek'zali's separate Mythic full fight with well assignment and interrupt controls", async ({ page }) => {
+test("keeps Nek'zali Well mechanics and interrupt controls in its single full fight", async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Provisional Mythic full fight Learn 2D" }).click()
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()
   const setup2d = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
-  await expect(setup2d).toContainText('Mythic assignment')
+  await expect(setup2d).toContainText('Choose role and assignment')
   await expect(setup2d).toContainText(/Well half [12]/)
   await setup2d.getByRole('button', { name: 'Start' }).click()
   await expect(page.locator('.learn2d-controls')).toContainText('Interrupt T')
   await expect(page.getByRole('button', { name: 'Interrupt', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Exit' }).click()
 
-  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Provisional Mythic full fight Train 3D" }).click()
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Train 3D" }).click()
   const setup3d = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
-  await expect(setup3d).toContainText('Mythic assignment')
+  await expect(setup3d).toContainText('Choose role and assignment')
   await expect(setup3d).toContainText(/Well half [12]/)
   await setup3d.getByRole('button', { name: 'Start' }).click()
   await expect(page.locator('.train3d-controls')).toContainText('Interrupt T')
   await expect(page.getByRole('button', { name: /Interrupt T/ })).toBeVisible()
 })
 
-test('launches the Entombed Sentinels Heroic full fight in separate 2D and 3D arenas', async ({ page }) => {
+test("keeps Nek'zali Learn 2D circular, undistorted, and movable left and right", async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Launch Entombed Sentinels Guided full-fight walkthrough Learn 2D' }).click()
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()
+  const setup = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
+  await setup.getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
+
+  const board = page.getByLabel("Nek'zali raid-plan training arena")
+  const geometry = await board.evaluate(element => {
+    const bounds = element.getBoundingClientRect()
+    return { width: bounds.width, height: bounds.height, backgroundSize: getComputedStyle(element).backgroundSize }
+  })
+  expect(Math.abs(geometry.width - geometry.height)).toBeLessThan(1)
+  expect(geometry.backgroundSize).toBe('auto 100%, auto 100%')
+
+  const player = page.getByLabel(/Controlled .* player/)
+  const start = Number(await player.getAttribute('data-position-x'))
+  await page.keyboard.down('a'); await page.waitForTimeout(300); await page.keyboard.up('a')
+  const left = Number(await player.getAttribute('data-position-x'))
+  expect(left).toBeLessThan(start)
+  await page.keyboard.down('d'); await page.waitForTimeout(600); await page.keyboard.up('d')
+  expect(Number(await player.getAttribute('data-position-x'))).toBeGreaterThan(left)
+})
+
+test('launches the single Entombed Sentinels full fight in separate 2D and 3D arenas', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
   const setup2d = page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' })
-  await expect(setup2d).toContainText('Heroic full fight')
+  await expect(setup2d).toContainText('full fight')
   await setup2d.getByRole('button', { name: 'Healer 2, druid' }).click()
   await expect(setup2d).toContainText('Blighted Blood dispel')
   await setup2d.getByRole('button', { name: 'Start' }).click()
@@ -84,7 +111,7 @@ test('launches the Entombed Sentinels Heroic full fight in separate 2D and 3D ar
   await expect(page.getByText(/Dispel R/)).toBeVisible()
   await page.getByRole('button', { name: 'Exit' }).click()
 
-  await page.getByRole('button', { name: 'Launch Entombed Sentinels Provisional Heroic full fight Train 3D' }).click()
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()
   const setup3d = page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' })
   const canvas = page.getByLabel('Third-person 3D training arena')
   await expect(canvas).toHaveAttribute('data-arena-shape', 'rectangle')

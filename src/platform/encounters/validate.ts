@@ -46,7 +46,7 @@ function scenarioSupportsDefault(
   train3d: readonly Train3DScenario[],
 ) {
   const scenarios = selection.mode === 'learn2d' ? learn2d : train3d
-  return scenarios.some(scenario => scenario.id === selection.scenarioId && scenario.difficulty === selection.difficulty)
+  return scenarios.some(scenario => scenario.id === selection.scenarioId)
 }
 
 function validatePackageShape(value: unknown): EncounterValidationResult {
@@ -126,12 +126,10 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
   }
   for (const mode of ['learn2d', 'train3d'] as const) {
     const modeScenarios = mode === 'learn2d' ? pkg.learn2d : pkg.train3d
-    if (!modeScenarios.some(scenario => scenario.kind === 'focused')) errors.push(`${mode} needs a focused scenario.`)
-    if (!modeScenarios.some(scenario => scenario.kind === 'full-fight')) errors.push(`${mode} needs a full-fight scenario.`)
+    if (modeScenarios.filter(scenario => scenario.kind === 'full-fight').length !== 1) errors.push(`${mode} needs exactly one full-fight scenario.`)
   }
   for (const selection of pkg.manifest.defaults) {
     if (!pkg.manifest.supportedModes.includes(selection.mode)) errors.push(`Default uses unsupported mode "${selection.mode}".`)
-    if (!pkg.manifest.supportedDifficulties.includes(selection.difficulty)) errors.push(`Default uses unsupported difficulty "${selection.difficulty}".`)
     if (!scenarioSupportsDefault(selection, pkg.learn2d, pkg.train3d)) errors.push(`Default references unsupported scenario "${selection.scenarioId}".`)
     if (!timingProfileIds.has(selection.timingProfileId)) errors.push(`Default references unknown timing profile "${selection.timingProfileId}".`)
     if (!tacticIds.has(selection.tacticId)) errors.push(`Default references unknown tactic "${selection.tacticId}".`)

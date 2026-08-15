@@ -630,3 +630,29 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   invented Mythic timing.
 - The detailed encounter contract lives in
   [`nekzali-encounter.md`](nekzali-encounter.md).
+
+`SPEC-021` is retained as decision history. Its Heroic/Mythic selection axis is
+superseded by `SPEC-022`; its approved encounter sequence remains in force.
+
+## SPEC-022 · Single encounter contract and trainer tolerance
+
+- Every boss exposes one current encounter-mechanics contract. Learn 2D and
+  Train 3D share that vocabulary and mechanic set while retaining separate
+  runtimes, arena models, and projections.
+- The trainer does not expose LFR, Normal-raid, Heroic, or Mythic selection.
+  All mechanics explicitly accepted for an encounter belong to its one full
+  fight in both modes; a trainer profile cannot add, remove, or retime them.
+- Test, Easy, Normal, and Hard are trainer profiles only. Test prevents
+  mechanic mistakes from ending the attempt, Easy ends only on encounter-level
+  failure conditions, Normal also ends after two recorded mistakes, and Hard
+  ends on the first recorded mistake. Guidance may vary, but assignments,
+  event order, geometry, and timings remain identical.
+- A package has one full-fight scenario per supported mode. Focused scenarios
+  are optional and may be added only by an explicit accepted ticket; they are
+  not generated as default catalogue placeholders.
+- Timing profiles preserve evidence provenance, confidence, and revision
+  history. They are implementation inputs, not player-facing raid-difficulty
+  choices.
+- This contract supersedes the raid-difficulty portions of `SPEC-021`,
+  `FR-082`, `FR-083`, and `FR-084` without discarding the mechanics already
+  supplied under those tickets.

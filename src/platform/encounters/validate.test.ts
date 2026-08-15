@@ -18,7 +18,7 @@ describe('EncounterPackageV1 conformance', () => {
     expect(result.ok).toBe(false)
     if (!result.ok) {
       expect(result.errors).toContain('Ability ID "sentinels_dominance" is duplicated.')
-      expect(result.errors).toContain('Scenario "sentinels_helical_toxins" references unknown ability "missing_ability".')
+      expect(result.errors).toContain('Scenario "sentinels_full_fight" references unknown ability "missing_ability".')
     }
   })
 
@@ -42,5 +42,16 @@ describe('EncounterPackageV1 conformance', () => {
       ok: false,
       errors: ['Package shape is malformed.'],
     })
+  })
+
+  it('allows optional focused drills but requires exactly one full fight per mode', () => {
+    const malformed = {
+      ...sentinels,
+      learn2d: [...sentinels.learn2d, { ...sentinels.learn2d[0], id: 'sentinels_second_full_fight' }],
+    }
+    const result = validateEncounterPackage(malformed)
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.errors).toContain('learn2d needs exactly one full-fight scenario.')
   })
 })

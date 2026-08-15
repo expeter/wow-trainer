@@ -178,7 +178,7 @@ function HelicalLearn2D({ scenarioId, keyBindings, onExit }: EncounterRuntimePro
 }
 
 export default function SentinelsLearn2D(props: EncounterRuntimeProps) {
-  if (props.scenarioId === 'sentinels_full_fight' || props.scenarioId === 'sentinels_mythic_full_fight') {
+  if (props.scenarioId === 'sentinels_full_fight') {
     return <FullFightRuntime {...props} />
   }
   return <HelicalLearn2D {...props} />

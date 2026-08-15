@@ -1,9 +1,9 @@
 import type { TimingProfile } from '../../../platform/encounters'
 
-const supplied = { kind: 'local-tactic', confidence: 'low', asOf: '2026-08-15', note: 'Replaceable Mythic trainer cadence supplied after withdrawn PTR testing; encounter rules remain isolated from Heroic.' } as const
+const supplied = { kind: 'local-tactic', confidence: 'low', asOf: '2026-08-15', note: 'Replaceable Well-realm cadence supplied after withdrawn pre-release testing; timings remain provisional.' } as const
 
-export const mythicTiming = {
-  id: 'nekzali_mythic_training_2026-08-15', encounterId: 'nekzali', version: 1, status: 'ptr', difficulties: ['mythic'],
+export const realmTiming = {
+  id: 'nekzali_realm_training_2026-08-15', encounterId: 'nekzali', version: 1, status: 'ptr',
   values: [
     { key: 'realm-entry-pull', value: 3, unit: 'seconds', provenance: supplied },
     { key: 'drowned-echo-player-hits', value: 20, unit: 'energy', provenance: supplied },

@@ -4,14 +4,14 @@ import { createNekzaliState, interruptNekzali, nekzaliSnapshot, startNekzaliMain
 
 const idle = IDLE_PLAYER_COMMANDS
 
-describe("Nek'zali Heroic headless simulation", () => {
+describe("Nek'zali headless full-fight simulation", () => {
   it('assigns one of two alternating soak groups before pull', () => {
     expect(createNekzaliState('tank-1').soakGroup).toBe(1)
     expect(createNekzaliState('tank-2').soakGroup).toBe(2)
   })
 
   it('spawns nine Amani and requires exactly three marked player kills', () => {
-    let state = stepNekzaliState({ ...createNekzaliState(), time: 59.99 }, idle, .02)
+    let state = stepNekzaliState({ ...createNekzaliState(), time: 59.99, wellEventIndex: 1 }, idle, .02)
     expect(state.adds).toHaveLength(9)
     expect(state.adds.filter(add => add.assignedToPlayer)).toHaveLength(3)
     for (let cast = 0; cast < 6; cast += 1) {
@@ -38,7 +38,7 @@ describe("Nek'zali Heroic headless simulation", () => {
   })
 
   it('fails if the three assigned adds are not dead at the 50% intermission', () => {
-    const state = stepNekzaliState({ ...createNekzaliState(), time: 89.9, addsSpawned: true, adds: [], playerAddKills: 2 }, idle, .2)
+    const state = stepNekzaliState({ ...createNekzaliState(), time: 89.9, wellEventIndex: 1, addsSpawned: true, adds: [], playerAddKills: 2 }, idle, .2)
     expect(state).toMatchObject({ outcome: 'wipe', outcomeReason: 'Your three assigned Amani were not defeated' })
   })
 
@@ -82,9 +82,9 @@ describe("Nek'zali Heroic headless simulation", () => {
   })
 })
 
-describe("Nek'zali Mythic well simulation", () => {
+describe("Nek'zali Well realm simulation", () => {
   const insideState = (): NekzaliState => ({
-    ...createNekzaliState('player', 'normal', true),
+    ...createNekzaliState('player', 'normal'),
     realmStage: 'inside',
     realmStartedAt: 0,
     player: { x: 8, z: 8, facing: Math.PI },
@@ -93,10 +93,10 @@ describe("Nek'zali Mythic well simulation", () => {
   })
 
   it('alternates assigned raid halves and isolates the entered half inside the dome', () => {
-    const assigned = stepNekzaliState({ ...createNekzaliState('player', 'normal', true), time: 44.99 }, idle, .02)
+    const assigned = stepNekzaliState({ ...createNekzaliState('player', 'normal'), time: 44.99 }, idle, .02)
     expect(assigned).toMatchObject({ realmStage: 'pull', wellGroup: 1, wellEventIndex: 1 })
 
-    const unassigned = stepNekzaliState({ ...createNekzaliState('tank-2', 'normal', true), time: 44.99 }, idle, .02)
+    const unassigned = stepNekzaliState({ ...createNekzaliState('tank-2', 'normal'), time: 44.99 }, idle, .02)
     expect(unassigned).toMatchObject({ realmStage: 'none', wellGroup: 2, wellEventIndex: 1 })
 
     const snapshot = nekzaliSnapshot({ ...assigned, realmStage: 'inside', realmStartedAt: assigned.time })
@@ -126,6 +126,13 @@ describe("Nek'zali Mythic well simulation", () => {
     let disrupted: NekzaliState = { ...insideState(), time: 8.9, disruptionIndex: 0, mainCastRemaining: 20, mainTargetId: 'drowned-echo' }
     while (disrupted.time < 18 && disrupted.disruptionIndex === 0) disrupted = stepNekzaliState(disrupted, idle, .2)
     expect(disrupted).toMatchObject({ outcome: 'active', mistakes: 0, mainCastRemaining: 0, disruptionIndex: 1 })
-    expect(disrupted.failures[0]?.code).toBe('mythic-main-interrupted')
+    expect(disrupted.failures[0]?.code).toBe('realm-main-interrupted')
+  })
+
+  it('records terminal mechanic mistakes without ending Test attempts', () => {
+    const testState = { ...insideState(), trainingDifficulty: 'test' as const, time: 8.99, innerCastStartedAt: 4, innerCastInterrupted: false }
+    const result = stepNekzaliState(testState, idle, .02)
+    expect(result.outcome).toBe('active')
+    expect(result.failures[0]?.code).toBe('missed-well-interrupt')
   })
 })

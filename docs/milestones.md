@@ -43,8 +43,8 @@ encounter development into an independently deployed Season 2 repository.
   headless fixed-step 3D mechanics, a snapshot-only third-person renderer, and
   the development contract room. Stage 4D restores input reliability,
   interpolated rendering, the creator/action/HUD platform features, and paired
-  full-raid 2D/3D contract labs. Full-fight, Mythic, plan-image, and scoring
-  work remains.
+  full-raid 2D/3D contract labs. Full-fight and plan-image work is now present;
+  planner editing and scoring remain.
 - `CR-237` — completed under `FR-072`: make Learn 2D movement-driven and
   represent each character's toxin composition with attached icons rather than
   character text while preserving abstract 2D geometry.
@@ -144,27 +144,42 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-257` — completed under `FR-072`: keep central coaching to one-line prompts,
   move lab specifications into its drawer, and support multiple compact named
   countdown helpers.
-- `SPEC-021` — completed: separate Heroic/Mythic encounter rules from the
-  Easy/Normal/Hard trainer-assistance profiles and record the approved Nek'zali
-  priority change.
+- `SPEC-021` — superseded by `SPEC-022`; its Nek'zali priority change remains.
+- `SPEC-022` — completed: one current mechanics contract per encounter, one
+  full-fight scenario per runtime, and Test/Easy/Normal/Hard as assistance and
+  failure-tolerance profiles only.
+- `CR-261` — completed: remove the raid-difficulty axis from package contracts,
+  setup, Nek'zali, and Sentinels, then collapse each implemented boss into its
+  single complete supplied mechanics set.
 - `FR-081` — completed under `FR-075`: expose all eight raid bosses through
   isolated auto-discovered package panels while keeping six metadata-only.
-- `FR-082` — completed under `FR-075`: implement the supplied Heroic Nek'zali
-  two-phase full fight plus intermission in separate Learn 2D and Train 3D
-  runtimes over one headless encounter contract.
-- `FR-083` — completed under `FR-075`: add the separately selectable Mythic
-  full fight with alternating well halves, isolated realm play, Drowned Echo
-  damage/interrupt duty, spirit avoidance, readable disruption, and return.
+- `FR-082` — completed under `FR-075` and collapsed by `CR-261`: implement the
+  supplied Nek'zali active phases and intermission in both runtimes.
+- `FR-083` — completed under `FR-075` and collapsed by `CR-261`: include the
+  alternating Well-realm halves, Drowned Echo duty, spirit avoidance,
+  disruption, and return in Nek'zali's sole full fight.
 - `CR-259` — completed under `FR-077`: add the persisted encounter Interrupt
-  binding required by Nek'zali's assigned Mythic well cast.
-- `FR-084` — completed under `FR-072`: complete the Sentinels reference package
-  with Heroic full-fight cycles in both runtimes and a separately selectable
-  Mythic Protovenom overlay, using the supplied split-room plan.
+  binding required by Nek'zali's assigned Well-realm cast.
+- `FR-084` — completed under `FR-072` and collapsed by `CR-261`: complete the
+  Sentinels reference package with all supplied mechanics, including
+  Protovenom, in one full fight per runtime.
 - `CR-258` — completed under `FR-077`: add a persisted encounter Dispel binding
   that only healer-capable Sentinels roles can resolve.
 - `FR-085` — planned under `FR-075`: implement Vash'nik as the next isolated
-  Heroic full-fight package after Nek'zali Mythic is stable, preserving the
+  full-fight package after `CR-261` is stable, preserving the
   supplied three-well raid plan and provisional player/role mechanic contract.
+- `FR-086` — planned under `FR-075`: implement The Lost Explorers after
+  Vash'nik as an isolated three-boss full fight, preserving the supplied
+  octagonal raid plan and provisional Ikku/Namaa/Gebbo/Morzahi contract.
+- `BUG-170` — completed under `FR-082`: restore a circular, undistorted and
+  movement-complete Nek'zali Learn 2D board from the supplied visual report.
+- `BUG-171` — planned under `FR-082`: replace the continuous Essence Rend trail
+  with an affected-player timer and exactly three movement-driven puddles.
+- `CR-260` — planned under `CR-257`: make Nek'zali's central mechanic display
+  compact and preserve target uncertainty until the player is selected.
+- `BUG-172` — planned under `FR-084`: make Sentinels Learn 2D movement
+  screen-relative and keep simulated side groups visibly inside their colored
+  play/soak areas without covering the player's mechanic.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
@@ -180,21 +195,22 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-234` — deferred until the first static publication: perform a measured
   bundle, runtime, accessibility, responsive, and test-duration optimization
   pass without changing encounter mechanics.
-- `FR-075` — in progress with its sequence revised by `SPEC-021`: Nek'zali is
+- `FR-075` — in progress with its sequence revised by `SPEC-022`: Nek'zali is
   the first approved full-fight package; other bosses remain metadata-only until
   individually approved.
 
-The next approved encounter is `FR-085` Vash'nik. Publication remains separate:
-the still-required pre-publication sequence is `CR-235` → `CR-236` → `FR-074`,
-followed by the measured `CR-234` optimization pass.
+The approved encounter sequence is `FR-085` Vash'nik → `FR-086` The Lost
+Explorers. Publication remains separate: the still-required pre-publication
+sequence is `CR-235` → `CR-236` → `FR-074`, followed by the measured `CR-234`
+optimization pass.
 `FR-073` remains a separate later online-platform milestone and does not block
 the static trainer sequence.
 
 No boss beyond Nek'zali, Entombed Sentinels, and the explicitly approved
-`FR-085` Vash'nik package may gain playable mechanics without a new approved
-ticket. Catalogue-only metadata does not authorize an encounter runtime. The
-L'ura API and leaderboard remain frozen legacy reference behavior and cannot
-deploy from this repository.
+`FR-085` Vash'nik and `FR-086` Lost Explorers packages may gain playable
+mechanics without a new approved ticket. Catalogue-only metadata does not
+authorize an encounter runtime. The L'ura API and leaderboard remain frozen
+legacy reference behavior and cannot deploy from this repository.
 
 The remaining milestones below are the frozen L'ura v0.9.1 delivery record.
 They are retained for source archaeology, not as the Season 2 execution order.

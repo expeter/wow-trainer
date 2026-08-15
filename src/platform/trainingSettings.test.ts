@@ -6,6 +6,7 @@ import {
   loadTrainingSettings,
   normalizeTrainingSettings,
   saveTrainingSettings,
+  shouldEndTrainingAttempt,
 } from './trainingSettings'
 
 describe('shared Season 2 training settings', () => {
@@ -39,8 +40,18 @@ describe('shared Season 2 training settings', () => {
   })
 
   it('keeps trainer difficulty independent and migrates unknown values to Normal', () => {
+    expect(normalizeTrainingSettings({ difficulty: 'test' }).difficulty).toBe('test')
     expect(normalizeTrainingSettings({ difficulty: 'hard' }).difficulty).toBe('hard')
     expect(normalizeTrainingSettings({ difficulty: 'heroic' }).difficulty).toBe('normal')
+  })
+
+  it('applies one shared Test, Easy, Normal, and Hard failure-tolerance contract', () => {
+    expect(shouldEndTrainingAttempt('test', 99, true)).toBe(false)
+    expect(shouldEndTrainingAttempt('easy', 99, false)).toBe(false)
+    expect(shouldEndTrainingAttempt('easy', 1, true)).toBe(true)
+    expect(shouldEndTrainingAttempt('normal', 1, false)).toBe(false)
+    expect(shouldEndTrainingAttempt('normal', 2, false)).toBe(true)
+    expect(shouldEndTrainingAttempt('hard', 1, false)).toBe(true)
   })
 
   it('round-trips shell settings through the isolated Season 2 storage key', () => {

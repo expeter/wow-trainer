@@ -3,21 +3,20 @@ import { validateEncounterPackage } from '../../../platform/encounters'
 import sentinels from '..'
 
 describe('Entombed Sentinels package boundary', () => {
-  it('is a conforming PTR preview with focused Heroic and separate full-fight scenarios ready', () => {
+  it('is a conforming PTR preview with one complete full fight per runtime', () => {
     expect(validateEncounterPackage(sentinels).ok).toBe(true)
     expect(sentinels.manifest.availability).toBe('ptr-preview')
-    const ready = ['sentinels_helical_toxins', 'sentinels_full_fight', 'sentinels_mythic_full_fight']
+    const ready = ['sentinels_full_fight']
     expect(sentinels.learn2d.filter(scenario => scenario.status === 'ready').map(scenario => scenario.id)).toEqual(ready)
     expect(sentinels.train3d.filter(scenario => scenario.status === 'ready').map(scenario => scenario.id)).toEqual(ready)
-    expect(sentinels.learn2d.find(scenario => scenario.id === 'sentinels_full_fight')?.difficulty).toBe('heroic')
-    expect(sentinels.learn2d.find(scenario => scenario.id === 'sentinels_mythic_full_fight')?.difficulty).toBe('mythic')
+    expect(sentinels.learn2d[0].abilityIds).toContain('sentinels_shifting_protovenom')
     expect(typeof sentinels.runtimeLoaders.learn2d).toBe('function')
     expect(typeof sentinels.runtimeLoaders.train3d).toBe('function')
   })
 
   it('shares vocabulary while keeping 2D and 3D arena models distinct', () => {
-    const learnHelical = sentinels.learn2d.find(scenario => scenario.id === 'sentinels_helical_toxins')
-    const trainHelical = sentinels.train3d.find(scenario => scenario.id === 'sentinels_helical_toxins')
+    const learnHelical = sentinels.learn2d[0]
+    const trainHelical = sentinels.train3d[0]
 
     expect(learnHelical?.abilityIds).toEqual(trainHelical?.abilityIds)
     expect(learnHelical?.roleIds).toEqual(trainHelical?.roleIds)

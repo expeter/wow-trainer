@@ -1,6 +1,6 @@
 import { contractRaidRoster, contractRosterForSlot, contractSelectedMember, trainingClassColors, type ContractRaidMember } from '../../platform/contractRoom'
 import type { RuntimeFailure } from '../../platform/RuntimeFeedback'
-import type { TrainingDifficulty } from '../../platform/trainingSettings'
+import { shouldEndTrainingAttempt, type TrainingDifficulty } from '../../platform/trainingSettings'
 import { cosmeticClassProjectiles } from '../../platform/train3d/cosmeticCombat'
 import { distance, stepPlayerMovement } from '../../platform/train3d/simulation'
 import type { ActorSnapshot, EffectSnapshot, PlayerCommandState, Train3DSnapshot, WorldPoint } from '../../platform/train3d/types'
@@ -18,7 +18,6 @@ export interface SentinelsState {
   phase: SentinelsPhase
   phaseStartedAt: number
   cycle: 1 | 2
-  mythic: boolean
   trainingDifficulty: TrainingDifficulty
   selectedSlotId: string
   assignedSide: SentinelSide
@@ -78,9 +77,9 @@ function playerStart(slotId: string, cycle: 1 | 2): { x: number; z: number; faci
   return { x: home.x + (side === 'acid' ? row : -row), z: (index - (peers.length - 1) / 2) * 4, facing: side === 'acid' ? -Math.PI / 2 : Math.PI / 2 }
 }
 
-export function createSentinelsState(selectedSlotId = 'player', trainingDifficulty: TrainingDifficulty = 'normal', mythic = false): SentinelsState {
+export function createSentinelsState(selectedSlotId = 'player', trainingDifficulty: TrainingDifficulty = 'normal'): SentinelsState {
   return {
-    time: 0, phase: 'active', phaseStartedAt: 0, cycle: 1, mythic, trainingDifficulty, selectedSlotId,
+    time: 0, phase: 'active', phaseStartedAt: 0, cycle: 1, trainingDifficulty, selectedSlotId,
     assignedSide: sideForSlot(selectedSlotId, 1), player: playerStart(selectedSlotId, 1),
     acidBoss: { ...ACID_HOME }, bloodBoss: { ...BLOOD_HOME }, acidHealth: 100, bloodHealth: 100, energy: 50,
     acidMarks: 0, bloodMarks: 0, lastMarkAt: 0, droplets: [], dropletsSpawned: false,
@@ -91,7 +90,7 @@ export function createSentinelsState(selectedSlotId = 'player', trainingDifficul
 }
 
 export function prepareSentinelsSlot(state: SentinelsState, selectedSlotId: string): SentinelsState {
-  return createSentinelsState(selectedSlotId, state.trainingDifficulty, state.mythic)
+  return createSentinelsState(selectedSlotId, state.trainingDifficulty)
 }
 
 export function turnSentinelsPlayer(state: SentinelsState, yawDelta: number): SentinelsState {
@@ -102,7 +101,7 @@ function addFailure(state: SentinelsState, code: string, label: string, advice: 
   if (state.failures[0]?.code === code && state.time - state.failures[0].time < .75) return state
   const failure = { id: `sentinels-${code}-${state.time.toFixed(2)}`, code, time: state.time, label, advice }
   const mistakes = state.mistakes + 1
-  const wipe = terminal || state.trainingDifficulty === 'hard' || state.trainingDifficulty === 'normal' && mistakes >= 2
+  const wipe = shouldEndTrainingAttempt(state.trainingDifficulty, mistakes, terminal)
   return { ...state, mistakes, failures: [failure, ...state.failures].slice(0, 5), outcome: wipe ? 'wipe' : state.outcome, outcomeReason: wipe ? label : state.outcomeReason }
 }
 
@@ -196,7 +195,7 @@ function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds
   next = { ...next, blightedActive }
   if (phaseAge >= 52 && next.assignedSide === 'blood' && isHealer(next) && !next.blightedResolved) next = addFailure(next, 'blighted-expired', 'Blighted Blood was not dispelled', `Use Dispel on the infected Blood-side player before the 18-second aura expires.`, true)
 
-  if (next.mythic && phaseAge >= 40 && !next.protovenomResolved) next = { ...next, protovenomActive: true }
+  if (phaseAge >= 40 && !next.protovenomResolved) next = { ...next, protovenomActive: true }
   if (next.protovenomActive && !next.protovenomResolved) {
     const home = homeForSide(next.assignedSide, next.cycle)
     const partner = { x: home.x + (next.assignedSide === 'acid' ? 18 : -18), z: -14 }
@@ -206,7 +205,7 @@ function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds
   }
 
   if (phaseAge >= duration) {
-    if (next.mythic && !next.protovenomResolved) return addFailure(next, 'protovenom-stasis', 'Protovenom remained active at Stasis', 'Clear the marked pair before the bosses reach 100 energy.', true)
+    if (!next.protovenomResolved) return addFailure(next, 'protovenom-stasis', 'Protovenom remained active at Stasis', 'Clear the marked pair before the bosses reach 100 energy.', true)
     next = { ...next, phase: 'stasis', phaseStartedAt: next.time, energy: 100, acidBoss: { ...STASIS_ACID }, bloodBoss: { ...STASIS_BLOOD }, helicalResolved: false }
   }
   return next
@@ -318,7 +317,7 @@ export function sentinelsSnapshot(state: SentinelsState): Train3DSnapshot {
 export function activeSentinelsPrompt(state: SentinelsState) {
   if (state.phase === 'stasis') return state.helicalResolved ? 'Helical resolved — prepare to swap sides' : 'Find the complementary toxin composition'
   const age = state.time - state.phaseStartedAt
-  if (state.mythic && state.protovenomActive) return 'Meet only your marked Protovenom partner'
+  if (state.protovenomActive) return 'Meet only your marked Protovenom partner'
   if (state.assignedSide === 'acid' && age >= 12 && age < 24) return 'Soak your green droplet, then leave its return beam'
   if (state.assignedSide === 'blood' && age >= 17 && age < 25) return 'Join the red group soak'
   if (state.puddleDropAt !== undefined) return 'Move to the outer wall before your pool drops'
