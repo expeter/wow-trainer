@@ -1,6 +1,7 @@
 import type { AuraTone } from './train3d/types'
 
 export type RaidRole = 'tank' | 'healer' | 'melee' | 'ranged'
+export type ContractPlayerRole = 'tank' | 'ranged'
 export type ContractDirection = 'north' | 'east' | 'south' | 'west'
 
 export interface ContractRaidMember { id: string; role: RaidRole; controlled?: boolean }
@@ -20,6 +21,12 @@ export const contractRaidRoster: readonly ContractRaidMember[] = [
   { id: 'player', role: 'ranged', controlled: true },
   ...Array.from({ length: 7 }, (_, index) => ({ id: `ranged-${index + 2}`, role: 'ranged' as const })),
 ]
+
+export function contractMemberForRole(member: ContractRaidMember, playerRole: ContractPlayerRole): ContractRaidMember {
+  if (member.controlled) return { ...member, role: playerRole }
+  if (playerRole === 'tank' && member.id === 'tank-2') return { ...member, role: 'ranged' }
+  return member
+}
 
 function nextRandom(value: number) { return (value * 1664525 + 1013904223) >>> 0 }
 

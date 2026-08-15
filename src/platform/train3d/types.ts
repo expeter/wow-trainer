@@ -29,6 +29,7 @@ export interface ActorSnapshot {
   facing: number
   color: string
   auras: readonly AuraSnapshot[]
+  health?: number
 }
 
 export interface EffectSnapshot {

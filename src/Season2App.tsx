@@ -1,5 +1,6 @@
 import { useEffect, useState, type ComponentType } from 'react'
 import TrainingHud from './platform/TrainingHud'
+import BuildStatus from './platform/BuildStatus'
 import CreatorCard from './platform/CreatorCard'
 import HudLayoutPreview from './platform/HudLayoutPreview'
 import type { EncounterCatalogue } from './platform/encounters/discovery'
@@ -29,6 +30,7 @@ const movementLabels: Record<MovementAction, string> = {
   turnRight: 'Turn right',
 }
 const actionLabels = {
+  pause: 'Pause / resume',
   mainAbility: 'Main ability',
   taunt: 'Taunt / Spott',
   healthPot: 'Health potion',
@@ -135,17 +137,17 @@ export default function Season2App() {
 
   if (runtime) {
     const Runtime = runtime.Component
-    return <Runtime
+    return <><BuildStatus /><Runtime
       scenarioId={runtime.scenarioId}
       keyBindings={settings.keyBindings}
       hudSettings={settings.hud}
       cameraSettings={settings.camera}
       onCameraSettingsChange={camera => setSettings(current => ({ ...current, camera }))}
       onExit={() => setRuntime(undefined)}
-    />
+    /></>
   }
 
-  return <main className="shell setup-shell season2-shell" id="setup-top">
+  return <><BuildStatus /><main className="shell setup-shell season2-shell" id="setup-top">
     <aside className="season2-safety-note">Standalone workspace · public deployment disabled during extraction</aside>
     <div className="season2-hero-row">
       <header className="season2-hero">
@@ -278,5 +280,5 @@ export default function Season2App() {
       {import.meta.env.DEV && <a href={`?${LEGACY_REFERENCE_QUERY}`}>Open development-only L’ura v0.9.1 reference</a>}
       <span>{PRODUCT.shortId} · planned host {PRODUCT.plannedHostname}</span>
     </footer>
-  </main>
+  </main></>
 }

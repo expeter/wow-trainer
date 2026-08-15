@@ -2,7 +2,8 @@ export const TRAINING_SETTINGS_STORAGE_KEY = 'midnight-s2:training-settings:v1'
 
 export type MovementAction = 'forward' | 'backward' | 'left' | 'right' | 'turnLeft' | 'turnRight'
 export type CombatAction = 'mainAbility' | 'taunt' | 'healthPot' | 'shield'
-export type TrainingAction = MovementAction | CombatAction
+export type SystemAction = 'pause'
+export type TrainingAction = MovementAction | CombatAction | SystemAction
 
 export interface MovementKeyBindings {
   forward: string
@@ -11,6 +12,7 @@ export interface MovementKeyBindings {
   right: string
   turnLeft: string
   turnRight: string
+  pause: string
   mainAbility: string
   taunt: string
   healthPot: string
@@ -29,15 +31,16 @@ export interface TrainingHudSettings {
   layout: Record<HudBox, HudPoint>
 }
 
-export type HudBox = 'objective' | 'player' | 'auras' | 'actions' | 'boss'
+export type HudBox = 'objective' | 'player' | 'auras' | 'actions' | 'boss' | 'castbar'
 export interface HudPoint { x: number; y: number }
 
 export const DEFAULT_HUD_LAYOUT: Record<HudBox, HudPoint> = {
-  objective: { x: 50, y: 14 },
-  boss: { x: 50, y: 35 },
-  auras: { x: 72, y: 55 },
-  player: { x: 50, y: 77 },
-  actions: { x: 50, y: 91 },
+  objective: { x: 50, y: 18 },
+  player: { x: 21, y: 53 },
+  auras: { x: 21, y: 65 },
+  boss: { x: 79, y: 53 },
+  castbar: { x: 50, y: 65 },
+  actions: { x: 50, y: 73 },
 }
 
 export interface TrainingSettings {
@@ -54,7 +57,7 @@ export interface TrainingCameraSettings {
 }
 
 export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
-  keyBindings: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE', mainAbility: 'KeyF', taunt: 'Numpad1', healthPot: 'NumpadDecimal', shield: 'Numpad7' },
+  keyBindings: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE', pause: 'KeyP', mainAbility: 'KeyF', taunt: 'Numpad1', healthPot: 'NumpadDecimal', shield: 'Numpad7' },
   hud: { showObjective: true, showTimer: true, showPosition: true, showPlayer: true, showAuras: true, showActions: true, showBoss: true, scale: 100, layout: DEFAULT_HUD_LAYOUT },
   camera: { invertX: false, invertY: true, sensitivity: 1, zoom: 22 },
 }
@@ -68,13 +71,13 @@ export function normalizeTrainingSettings(value: unknown): TrainingSettings {
   const candidate = value as Partial<TrainingSettings>
   const bindings = candidate.keyBindings
   const hud = candidate.hud
-  const keys = bindings && typeof bindings === 'object'
-    ? (['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight', 'mainAbility', 'taunt', 'healthPot', 'shield'] as const).map(action => bindings[action])
-    : []
-  const validKeys = keys.length === 10 && keys.every(key => typeof key === 'string' && key.length > 0) && new Set(keys).size === 10
+  const bindingActions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight', 'pause', 'mainAbility', 'taunt', 'healthPot', 'shield'] as const
+  const migratedBindings = Object.fromEntries(bindingActions.map(action => [action, typeof bindings?.[action] === 'string' && bindings[action].length > 0 ? bindings[action] : DEFAULT_TRAINING_SETTINGS.keyBindings[action]])) as unknown as MovementKeyBindings
+  const keys = Object.values(migratedBindings)
+  const validKeys = new Set(keys).size === bindingActions.length
 
   return {
-    keyBindings: validKeys ? { ...bindings } as MovementKeyBindings : { ...DEFAULT_TRAINING_SETTINGS.keyBindings },
+    keyBindings: validKeys ? migratedBindings : { ...DEFAULT_TRAINING_SETTINGS.keyBindings },
     hud: {
       showObjective: isBoolean(hud?.showObjective) ? hud.showObjective : DEFAULT_TRAINING_SETTINGS.hud.showObjective,
       showTimer: isBoolean(hud?.showTimer) ? hud.showTimer : DEFAULT_TRAINING_SETTINGS.hud.showTimer,

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { EncounterRuntimeProps } from '../../../platform/encounters'
-import TrainingHud from '../../../platform/TrainingHud'
+import { ArenaTrainingHud } from '../../../platform/TrainingHud'
+import RuntimeStatusBar from '../../../platform/RuntimeStatusBar'
+import { useRuntimePause } from '../../../platform/useRuntimePause'
 import { FIXED_STEP_SECONDS } from '../../../platform/train3d/simulation'
 import ThreeWorldRenderer from '../../../platform/train3d/ThreeWorldRenderer'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from '../../../platform/train3d/types'
@@ -14,9 +16,11 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
   const commandsRef = useRef<PlayerCommandState>({ ...IDLE_PLAYER_COMMANDS })
   const keyboardForwardRef = useRef(false)
   const mouseForwardRef = useRef(false)
-  const [snapshot, setSnapshot] = useState(() => helicalSnapshot(stateRef.current))
+  const renderSnapshotRef = useRef(helicalSnapshot(stateRef.current))
+  const [snapshot, setSnapshot] = useState(renderSnapshotRef.current)
   const [outcome, setOutcome] = useState(stateRef.current.outcome)
   const [attempt, setAttempt] = useState(0)
+  const pause = useRuntimePause(keyBindings.pause)
 
   useEffect(() => {
     let frame = 0
@@ -27,21 +31,24 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
     const tick = (now: number) => {
       accumulator += Math.min((now - previous) / 1000, .1)
       previous = now
+      let stepped = false
       while (accumulator >= FIXED_STEP_SECONDS) {
-        stateRef.current = stepHelicalState(stateRef.current, commandsRef.current, FIXED_STEP_SECONDS)
+        if (!pause.pausedRef.current) stateRef.current = stepHelicalState(stateRef.current, commandsRef.current, FIXED_STEP_SECONDS)
         accumulator -= FIXED_STEP_SECONDS
+        stepped = true
       }
-      if (now - lastPublish >= 50 || stateRef.current.outcome !== publishedOutcome) {
+      if (stepped) renderSnapshotRef.current = helicalSnapshot(stateRef.current)
+      if (now - lastPublish >= 100 || stateRef.current.outcome !== publishedOutcome) {
         lastPublish = now
         publishedOutcome = stateRef.current.outcome
-        setSnapshot(helicalSnapshot(stateRef.current))
+        setSnapshot(renderSnapshotRef.current)
         setOutcome(stateRef.current.outcome)
       }
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [attempt])
+  }, [attempt, pause.pausedRef])
 
   useEffect(() => {
     const actions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight'] as const
@@ -49,6 +56,7 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
       const action = actions.find(candidate => keyBindings[candidate] === event.code)
       if (!action) return
       event.preventDefault()
+      if (pause.pausedRef.current) { commandsRef.current[action] = false; return }
       if (action === 'forward') {
         keyboardForwardRef.current = active
         commandsRef.current.forward = active || mouseForwardRef.current
@@ -71,7 +79,7 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
       window.removeEventListener('blur', clear)
       document.removeEventListener('visibilitychange', visibility)
     }
-  }, [keyBindings])
+  }, [keyBindings, pause.pausedRef])
 
   const status = outcome === 'active'
     ? 'Read the icons above each character and meet the one compatible partner in the north sector.'
@@ -85,41 +93,36 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
 
   function restart() {
     stateRef.current = createHelicalState()
+    renderSnapshotRef.current = helicalSnapshot(stateRef.current)
     commandsRef.current = { ...IDLE_PLAYER_COMMANDS }
     keyboardForwardRef.current = false
     mouseForwardRef.current = false
-    setSnapshot(helicalSnapshot(stateRef.current))
+    setSnapshot(renderSnapshotRef.current)
     setOutcome('active')
     setAttempt(value => value + 1)
   }
 
   return <main className="training-shell train3d-runtime">
-    <header className="training-header">
-      <div>
-        <p className="eyebrow">ENTOMBED SENTINELS · TRAIN 3D</p>
-        <h1>{scenario.name}</h1>
-        <p className="lede">Third-person movement and camera practice. Toxin composition is shown by the small colored icons attached to each character.</p>
-      </div>
-      <button type="button" className="secondary" onClick={onExit}>Back to setup</button>
-    </header>
-    <section className="training-runtime-layout">
+    <RuntimeStatusBar meta="ENTOMBED SENTINELS · TRAIN 3D" title={scenario.name} status={status} paused={pause.paused} pauseKey={keyBindings.pause} onTogglePause={pause.toggle} onExit={onExit} />
+    <section className="training-runtime-layout arena-only">
       <div className="train3d-stage">
-        <ThreeWorldRenderer
-          snapshot={snapshot}
-          cameraSettings={cameraSettings}
-          onCameraSettingsChange={onCameraSettingsChange}
-          onPlayerLook={yawDelta => { stateRef.current = turnHelicalPlayer(stateRef.current, yawDelta) }}
-          onBothButtonsForward={active => {
-            mouseForwardRef.current = active
-            commandsRef.current.forward = active || keyboardForwardRef.current
-          }}
-        />
+        <div className="train3d-viewport">
+          <ThreeWorldRenderer
+            snapshot={snapshot}
+            snapshotSource={() => renderSnapshotRef.current}
+            cameraSettings={cameraSettings}
+            onCameraSettingsChange={onCameraSettingsChange}
+            onPlayerLook={yawDelta => { stateRef.current = turnHelicalPlayer(stateRef.current, yawDelta) }}
+            onBothButtonsForward={active => {
+              mouseForwardRef.current = active && !pause.pausedRef.current
+              commandsRef.current.forward = mouseForwardRef.current || keyboardForwardRef.current
+            }}
+          />
+          <ArenaTrainingHud settings={hudSettings} objective="Read your toxin icons and reach the compatible northern partner" secondsRemaining={28 - snapshot.time} position={snapshot.actors[0].position} status={status} auraLabel="Helical Toxins" actionStatus="No encounter action assigned" />
+        </div>
         <p className="train3d-controls">
           Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · Turn {keyLabel(keyBindings.turnLeft)} {keyLabel(keyBindings.turnRight)} · left-drag orbit · right-drag face · both buttons forward · wheel zoom
         </p>
-      </div>
-      <div className="training-sidecar">
-        <TrainingHud settings={hudSettings} mode="Train 3D" objective="Read your toxin icons and reach the compatible northern partner" secondsRemaining={28 - snapshot.time} position={snapshot.actors[0].position} status={status} />
         {outcome !== 'active' && <button type="button" className="training-restart" onClick={restart}>Restart drill</button>}
       </div>
     </section>

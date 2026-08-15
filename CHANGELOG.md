@@ -2,20 +2,48 @@
 
 ## Unreleased
 
+- CR-245: Reuse the reviewed v0.9.1 in-arena HUD layout for Train 3D, with
+  draggable runtime positions and no health bars attached to 3D actors.
+- BUG-164: Make the HUD layout editor responsive with local drag updates,
+  release-time persistence, a subtle alignment grid, and keyboard nudging.
+- CR-246: Restore exact version/build provenance, changelog and issue links,
+  and the deployed-version update prompt across the Season 2 shell.
+- SPEC-019: Add a maintained v0.9.1 extraction parity audit and ticket every
+  reusable platform gap before it can be lost during encounter work.
+- CR-247: Restore the full-viewport arena layout with a compact runtime status
+  bar and a lab-only slide-in configuration panel instead of a right sidecar.
+- FR-076: Restore the shared persisted Pause binding and working pause/resume
+  control in every active Learn 2D and Train 3D runtime.
+- CR-243: Move role/position choice into the movement lab's pre-pull dialog,
+  add its locked 3…2…1 countdown, simplify action references, and keep health
+  attached only to Learn 2D actors.
+- CR-244: Calibrate Train 3D to one yard per unit, 7 yd/s running/strafe and
+  4.5 yd/s backward movement, capped diagonals, and a 90×70-yard lab arena.
+- BUG-163: Remove apparent motion blur by making the follow camera track the
+  rendered player directly without exponential translation/look-target lag.
+- CR-242: Replace the controlled player's ambiguous capsule/reversed cone with
+  a compact head, body, shoulders, front panel, and ground chevron aligned to
+  the simulation's actual forward axis.
+- BUG-162: Move Train 3D visual snapshots off the 20 Hz React HUD path, reduce
+  HUD publication to 10 Hz, render at a bounded 1× pixel ratio, and expose
+  renderer-local FPS and p95 frame time in the development contract room.
+- BUG-161: Restore exact mouse behavior: left-drag orbits independently,
+  right-button press aligns the player to the current view, right-drag turns
+  both, and reliable mixed-button tracking drives both-buttons-forward.
 - CR-241: Restore a persisted HUD configuration preview with draggable boxes
   and independent visibility for objective/timer, player resources, aura
   state, action state, and boss health.
-- CR-240: Restore shared Main ability, role-gated Taunt/Spott, Health potion,
-  and role-aware Shield key bindings and action buttons in the contract lab.
+- CR-240: Restore shared action vocabulary in the contract lab; its interim
+  panel and mode-inappropriate actions are superseded by CR-243/FR-077.
 - BUG-160: Restore the compact SPEC-002 creator business card to the Season 2
   setup header with its avatar, BattleTag, specific external links, and coffee
   action.
 - CR-239: Expand the development harness into separate 2D and 3D contract
   rooms with a simulated 20-player raid and four simultaneous ground reactions
   containing one aura-matching choice and three wrong choices.
-- BUG-159: Smooth display-rate Train 3D actor, effect, and follow-camera motion
-  between deterministic fixed-step snapshots, cap pixel density, and remove
-  repeated post-outcome React publication.
+- BUG-159: Smooth display-rate Train 3D actor/effect motion between deterministic
+  fixed-step snapshots, cap pixel density, and remove repeated publication;
+  BUG-163 subsequently removes follow-camera lag.
 - BUG-158: Make all four Learn 2D directions independently reliable and clear
   held movement after focus, visibility, or pointer cancellation.
 - CR-238: Add a development-only 3D contract room with a deterministic seeded

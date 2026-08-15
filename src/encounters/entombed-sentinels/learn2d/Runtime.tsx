@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import TrainingHud from '../../../platform/TrainingHud'
 import type { EncounterRuntimeProps } from '../../../platform/encounters'
 import { stepDiagramMovement, type DiagramDirection } from '../../../platform/learn2d/movement'
+import RuntimeStatusBar from '../../../platform/RuntimeStatusBar'
 import { keyLabel } from '../../../platform/trainingSettings'
+import { useRuntimePause } from '../../../platform/useRuntimePause'
 import ToxinIcons from '../ToxinIcons'
 import { learn2dScenarios } from './scenarios'
 
@@ -15,7 +16,7 @@ const partners = [
   { id: 'wrong-east', x: 76, y: 58, green: 1, red: 3 },
 ] as const
 
-export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings, onExit }: EncounterRuntimeProps) {
+export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: EncounterRuntimeProps) {
   const scenario = useMemo(() => learn2dScenarios.find(item => item.id === scenarioId) ?? learn2dScenarios[0], [scenarioId])
   const playerRef = useRef({ ...startPosition })
   const pressedRef = useRef(new Set<Direction>())
@@ -25,6 +26,7 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
   const [secondsRemaining, setSecondsRemaining] = useState(28)
   const [outcome, setOutcome] = useState<LessonOutcome>('active')
   const [attempt, setAttempt] = useState(0)
+  const pause = useRuntimePause(keyBindings.pause)
 
   useEffect(() => {
     const codes: Record<Direction, string> = {
@@ -37,7 +39,7 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
       const direction = (Object.keys(codes) as Direction[]).find(candidate => codes[candidate] === event.code)
       if (!direction) return
       event.preventDefault()
-      if (active) pressedRef.current.add(direction)
+      if (active && !pause.pausedRef.current) pressedRef.current.add(direction)
       else pressedRef.current.delete(direction)
     }
     const down = (event: KeyboardEvent) => updateKey(event, true)
@@ -55,7 +57,7 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
       document.removeEventListener('visibilitychange', visibility)
       clear()
     }
-  }, [keyBindings])
+  }, [keyBindings, pause.pausedRef])
 
   useEffect(() => {
     let frame = 0
@@ -64,7 +66,7 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
     const tick = (now: number) => {
       const seconds = Math.min((now - previous) / 1000, .05)
       previous = now
-      if (outcomeRef.current === 'active') {
+      if (outcomeRef.current === 'active' && !pause.pausedRef.current) {
         elapsedRef.current += seconds
         playerRef.current = stepDiagramMovement(playerRef.current, pressedRef.current, seconds)
         const contacted = partners.find(partner => Math.hypot(playerRef.current.x - partner.x, playerRef.current.y - partner.y) < 6)
@@ -81,10 +83,10 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [attempt])
+  }, [attempt, pause.pausedRef])
 
   function setPad(direction: Direction, active: boolean) {
-    if (active) pressedRef.current.add(direction)
+    if (active && !pause.pausedRef.current) pressedRef.current.add(direction)
     else pressedRef.current.delete(direction)
   }
 
@@ -108,15 +110,8 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
         : 'The matching window expired before you reached a partner.'
 
   return <main className="training-shell learn2d-runtime">
-    <header className="training-header">
-      <div>
-        <p className="eyebrow">ENTOMBED SENTINELS · LEARN 2D</p>
-        <h1>{scenario.name}</h1>
-        <p className="lede">Move the gold character through the abstract top-down lesson. Toxin information stays attached as icons, not character text.</p>
-      </div>
-      <button type="button" className="secondary" onClick={onExit}>Back to setup</button>
-    </header>
-    <section className="training-runtime-layout">
+    <RuntimeStatusBar meta={`ENTOMBED SENTINELS · LEARN 2D · ${Math.ceil(secondsRemaining)}S`} title={scenario.name} status={status} paused={pause.paused} pauseKey={keyBindings.pause} onTogglePause={pause.toggle} onExit={onExit} />
+    <section className="training-runtime-layout arena-only">
       <div className="learn2d-stage">
         <div className="learn2d-board" aria-label="Movable Helical Toxins tactical diagram">
           <div className="learn2d-side acid-side"><span>ACID SIDE</span><b>Ula’tek</b></div>
@@ -147,9 +142,6 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
             >{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}
           </div>
         </div>
-      </div>
-      <div className="training-sidecar">
-        <TrainingHud settings={hudSettings} mode="Learn 2D" objective="Move to the compatible northern partner" secondsRemaining={secondsRemaining} status={status} />
         {outcome !== 'active' && <button type="button" className="training-restart" onClick={restart}>Practice again</button>}
       </div>
     </section>

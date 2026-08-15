@@ -14,6 +14,12 @@ describe('shared Season 2 training settings', () => {
       .toEqual(DEFAULT_TRAINING_SETTINGS.keyBindings)
   })
 
+  it('adds the pause binding without discarding an older Season 2 custom binding', () => {
+    const legacy = { ...DEFAULT_TRAINING_SETTINGS.keyBindings, forward: 'ArrowUp' } as Partial<typeof DEFAULT_TRAINING_SETTINGS.keyBindings>
+    delete legacy.pause
+    expect(normalizeTrainingSettings({ keyBindings: legacy }).keyBindings).toMatchObject({ forward: 'ArrowUp', pause: 'KeyP' })
+  })
+
   it('round-trips shell settings through the isolated Season 2 storage key', () => {
     const values = new Map<string, string>()
     const storage = {

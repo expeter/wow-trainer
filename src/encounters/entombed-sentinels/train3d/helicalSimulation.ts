@@ -48,9 +48,9 @@ function toxins(green: number, red: number) {
 
 export function helicalSnapshot(state: HelicalSimulationState): Train3DSnapshot {
   const actors: ActorSnapshot[] = [
-    { id: 'player', kind: 'player', position: state.player, facing: state.player.facing, color: '#f2d36b', auras: toxins(1, 3) },
-    { id: 'acid-boss', kind: 'boss', position: { x: -30, z: 0 }, facing: Math.PI / 2, color: '#65c98b', auras: [] },
-    { id: 'blood-boss', kind: 'boss', position: { x: 30, z: 0 }, facing: -Math.PI / 2, color: '#c75e70', auras: [] },
+    { id: 'player', kind: 'player', position: state.player, facing: state.player.facing, color: '#f2d36b', auras: toxins(1, 3), health: 100 },
+    { id: 'acid-boss', kind: 'boss', position: { x: -30, z: 0 }, facing: Math.PI / 2, color: '#65c98b', auras: [], health: 100 },
+    { id: 'blood-boss', kind: 'boss', position: { x: 30, z: 0 }, facing: -Math.PI / 2, color: '#c75e70', auras: [], health: 100 },
     { id: 'compatible-partner', kind: 'ally', position: correctPartner, facing: Math.PI, color: '#8191ae', auras: toxins(3, 1) },
     { id: 'wrong-partner', kind: 'ally', position: wrongPartner, facing: 0, color: '#8191ae', auras: toxins(2, 2) },
     { id: 'third-player', kind: 'ally', position: thirdPlayer, facing: -.8, color: '#8191ae', auras: toxins(1, 3) },

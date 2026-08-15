@@ -486,11 +486,10 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
 - Ready scenarios are launched through package-owned lazy runtime loaders. The
   product shell may pass shared preferences and select a scenario, but it must
   not import a boss runtime directly or resolve boss mechanics itself.
-- Movement and reusable combat-action bindings plus HUD visibility, scale, and
-  box layout are shell-owned, use Season 2 storage keys, and flow into both
-  runtimes without sharing simulation state. The HUD configuration is a
-  draggable preview for objective/timer, player health and cooldowns, aura
-  state, action state, and boss health.
+- Movement, pause, and reusable encounter-action bindings are shell-owned, use
+  Season 2 storage keys, and flow into both runtimes without sharing simulation
+  state. Train 3D HUD visibility, scale, and box layout are likewise shell-owned;
+  Learn 2D uses diagram-native attached state instead of inheriting 3D frames.
 - Learn 2D may accept the shared movement bindings, but owns only abstract
   percentage-space movement and icon/diagram contact. Character debuffs are
   represented by attached visual icons with accessible labels, not text baked
@@ -500,7 +499,19 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   immutable snapshots and emits input/camera commands; it never decides
   gameplay. The baseline input contract is facing-relative WASD, Q/E turning,
   left-button camera orbit, right-button facing look, both-buttons-forward,
-  wheel zoom, inversion, and persisted camera preferences.
+  wheel zoom, inversion, and persisted camera preferences. Left orbit never
+  changes player facing; pressing right after an orbit aligns the player to the
+  current camera heading before right-drag turns both together.
+- Train 3D rendering consumes the latest fixed-step state outside React's HUD
+  publication cadence. Visual forward uses the same `-Z` basis as simulation
+  movement, camera translation/look-target follow the rendered player directly
+  without lag or apparent blur, production pixel ratio is bounded to one, and
+  the development contract room reports renderer-local FPS and p95 frame time.
+- Train 3D uses one yard per world unit, a sourced 7 yd/s forward/strafe
+  baseline and 4.5 yd/s backwards baseline. Diagonal input is capped at 7 yd/s.
+  Arena dimensions, radii, and travel distances use yards; mechanic timings use
+  seconds and require encounter-specific provenance. Calibration details live
+  in [`wow-movement-calibration.md`](wow-movement-calibration.md).
 - Separate development-only Learn 2D and Train 3D contract rooms may exercise
   shared generic event vocabulary, auras, timers, role-aware actions, position
   checks, and spell primitives through their own geometry and simulation. Each
@@ -509,9 +520,37 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   rounds present multiple simultaneous ground objects with one aura-matching
   answer and explicit wrong answers. These rooms are not encounter packages
   and must be excluded from production builds.
+- Role and starting-position choice inside the contract room belongs only to
+  that development movement lab. Real encounter packages receive the selected
+  role and assignment from setup and the versioned tactic/raid plan.
+- Learn 2D may attach compact health bars to diagram actors. Train 3D does not
+  attach player or boss health bars to world objects; it uses the extracted
+  configurable in-arena interface. Its defaults follow the reviewed v0.9.1
+  composition: player health/status left, boss health right, mechanic/action
+  display upper middle, cast bar lower middle, and optional action buttons
+  beneath the cast bar.
+- Running lessons use a full-viewport arena under one compact status bar. The
+  bar exposes drill/phase context left, current coaching state centrally, and
+  available audio, pause/resume, performance, and exit controls right. Lab-only
+  diagnostics/configuration belong in a closed slide-in drawer that real
+  encounter runtimes do not render. Unimplemented audio channels are visibly
+  unavailable rather than interactive no-ops.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.
 - API `/v2`, public statistics, achievements, rankings, and production hosting
   are later milestones. The inherited L'ura `/v1` service remains frozen and
   has no deployment path from this repository.
+
+## SPEC-019 · Reviewed-platform extraction parity
+
+- [`legacy-feature-extraction-audit.md`](legacy-feature-extraction-audit.md) is
+  the maintained parity matrix between the frozen v0.9.1 platform and Season 2.
+- Every reusable capability is classified as extracted, an active ticketed
+  gap, or explicitly deferred. Encounter-specific L’ura behavior is listed as
+  excluded rather than silently treated as missing platform work.
+- A new encounter may consume only stable shared contracts. It must not grow a
+  private replacement for an active platform gap such as input, HUD, audio,
+  lifecycle, tactics, build metadata, or result/failure presentation.
+- The audit is reviewed before the first encounter release candidate and again
+  during `CR-235` legacy retirement.

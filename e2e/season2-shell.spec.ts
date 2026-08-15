@@ -10,6 +10,8 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page.getByRole('heading', { name: 'Train 3D' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Launch Learn 2D' })).toBeEnabled()
   await expect(page.getByRole('button', { name: 'Launch Train 3D' })).toBeEnabled()
+  await expect(page.getByLabel('Build information')).toContainText(/v\d+\.\d+\.\d+ · [a-z0-9]+ ·/)
+  await expect(page.getByRole('link', { name: 'Changelog ↗' })).toBeVisible()
   await expect(page.getByLabel('About Pestivator')).toContainText('pestivator#2515')
   await expect(page.getByRole('heading', { name: 'L’ura Trainer' })).toHaveCount(0)
 })
@@ -62,29 +64,42 @@ test('opens paired contract rooms with full-raid ground reactions and paced 3D r
   await page.getByRole('button', { name: 'Open Learn 2D room' }).click()
 
   await expect(page.getByRole('heading', { name: 'Top-down reaction lab' })).toBeVisible()
+  const entrance = page.getByRole('dialog', { name: 'Contract room entrance' })
+  await expect(entrance).toBeVisible()
   await expect(page.getByLabel(/ground rune$/)).toHaveCount(4)
   await expect(page.getByLabel(/NPC$/)).toHaveCount(19)
-  await expect(page.getByLabel('Contract combat actions')).toBeVisible()
-  await page.getByLabel('Contract player role').selectOption('tank')
-  await page.getByRole('button', { name: /Shield/ }).click()
-  await expect(page.getByRole('button', { name: /Shield/ })).toContainText(/20\.0s|19\.9s/)
-  await page.getByRole('button', { name: 'Back to setup' }).click()
+  const player2d = page.getByLabel(/Controlled ranged player/)
+  const lockedY = await player2d.getAttribute('data-position-y')
+  await page.keyboard.down('w'); await page.waitForTimeout(220); await page.keyboard.up('w')
+  await expect(player2d).toHaveAttribute('data-position-y', lockedY || '')
+  await entrance.getByLabel('Player role').selectOption('tank')
+  await expect(page.getByLabel(/Controlled tank player/)).toBeVisible()
+  await expect(page.getByLabel('tank NPC')).toHaveCount(1)
+  await entrance.getByRole('button', { name: 'Start 3…2…1' }).click()
+  await expect(page.getByLabel('Pull countdown')).toBeVisible()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
+  await expect(page.getByLabel('Contract combat actions')).toHaveCount(0)
+  await expect(page.getByText(/no Main ability or potion in Learn 2D/)).toBeVisible()
+  await expect(page.locator('.learn2d-character .actor-health')).toHaveCount(1)
+  await expect(page.locator('.contract-2d-boss .actor-health')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Exit' }).click()
   await page.getByRole('button', { name: 'Open Train 3D room' }).click()
 
   await expect(page.getByRole('heading', { name: 'Reaction and movement lab' })).toBeVisible()
-  await expect(page.getByLabel('Third-person 3D training arena')).toBeVisible()
+  const contractArena = page.getByLabel('Third-person 3D training arena')
+  await expect(contractArena).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Contract room entrance' })).toBeVisible()
+  await expect(page.locator('details.contract-lab-drawer')).not.toHaveAttribute('open', '')
+  await page.getByRole('dialog', { name: 'Contract room entrance' }).getByRole('button', { name: 'Start 3…2…1' }).click()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
   await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('event 1')
   await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('20-player raid')
-  const renderedFrames = await page.evaluate(async () => {
-    let frames = 0
-    const start = performance.now()
-    await new Promise<void>(resolve => {
-      const tick = (now: number) => { frames += 1; if (now - start >= 1000) resolve(); else requestAnimationFrame(tick) }
-      requestAnimationFrame(tick)
-    })
-    return frames
-  })
-  expect(renderedFrames).toBeGreaterThanOrEqual(20)
+  await expect(page.locator('.arena-hud-health.player')).toBeVisible()
+  await expect(page.locator('.arena-hud-health.boss')).toBeVisible()
+  await expect(page.getByRole('button', { name: /Main ability/ })).toBeVisible()
+  await expect.poll(async () => Number(await contractArena.getAttribute('data-render-fps')), { timeout: 4000 }).toBeGreaterThanOrEqual(30)
+  expect(Number(await contractArena.getAttribute('data-frame-p95-ms'))).toBeLessThan(50)
+  await expect(page.getByText(/\d+ FPS · p95/)).toBeVisible()
 })
 
 test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3D drill', async ({ page }) => {
@@ -100,16 +115,55 @@ test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3
   await page.getByRole('button', { name: 'Launch Train 3D' }).click()
 
   await expect(page.getByRole('heading', { name: 'Helical Toxins movement drill' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Contract room entrance' })).toHaveCount(0)
+  await expect(page.locator('.contract-lab-drawer')).toHaveCount(0)
   const arena = page.getByLabel('Third-person 3D training arena')
   await expect(arena).toBeVisible()
   await arena.hover()
   await page.mouse.wheel(0, 300)
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('midnight-s2:training-settings:v1') || '{}').camera?.zoom ?? 0)).toBeGreaterThan(22)
   await expect(page.getByRole('complementary', { name: 'Training HUD' }).getByText('Objective')).toHaveCount(0)
+  await page.keyboard.press('p')
+  await expect(page.getByRole('button', { name: /Resume P/ })).toBeVisible()
+  const pausedAt = { x: await arena.getAttribute('data-player-x'), z: await arena.getAttribute('data-player-z') }
+  await page.keyboard.down('ArrowUp'); await page.waitForTimeout(300); await page.keyboard.up('ArrowUp')
+  await expect(arena).toHaveAttribute('data-player-x', pausedAt.x || '')
+  await expect(arena).toHaveAttribute('data-player-z', pausedAt.z || '')
+  await page.keyboard.press('p')
   await page.keyboard.down('ArrowUp')
   await page.waitForTimeout(500)
   await page.keyboard.up('ArrowUp')
   await expect(page.getByRole('complementary', { name: 'Training HUD' }).getByText(/-22\.0 · -/)).toBeVisible()
+})
+
+test('keeps left orbit independent, aligns on right press, and moves with both mouse buttons', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Launch Train 3D' }).click()
+  const arena = page.getByLabel('Third-person 3D training arena')
+  const bounds = await arena.boundingBox()
+  if (!bounds) throw new Error('3D arena has no bounds')
+  const center = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }
+  await page.mouse.move(center.x, center.y)
+  await page.mouse.down({ button: 'left' })
+  await page.mouse.move(center.x + 90, center.y)
+  await page.mouse.up({ button: 'left' })
+  expect(Number(await arena.getAttribute('data-player-facing'))).toBeCloseTo(0, 2)
+
+  await page.mouse.down({ button: 'right' })
+  await expect.poll(async () => Number(await arena.getAttribute('data-player-facing'))).toBeGreaterThan(.25)
+  const alignedFacing = Number(await arena.getAttribute('data-player-facing'))
+  await page.mouse.move(center.x + 130, center.y)
+  await expect.poll(async () => Number(await arena.getAttribute('data-player-facing'))).toBeGreaterThan(alignedFacing)
+
+  const before = { x: Number(await arena.getAttribute('data-player-x')), z: Number(await arena.getAttribute('data-player-z')) }
+  await page.mouse.down({ button: 'left' })
+  await expect.poll(async () => {
+    const current = { x: Number(await arena.getAttribute('data-player-x')), z: Number(await arena.getAttribute('data-player-z')) }
+    return Math.hypot(current.x - before.x, current.z - before.z)
+  }).toBeGreaterThan(2)
+  await page.mouse.up({ button: 'left' })
+  await page.mouse.up({ button: 'right' })
+  await expect(arena).toHaveAttribute('data-player-marker', 'humanoid-chevron')
 })
 
 test('retains the v0.9.1 source application behind a development-only reference route', async ({ page }) => {

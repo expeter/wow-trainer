@@ -57,8 +57,8 @@ encounter development into an independently deployed Season 2 repository.
 - `BUG-158` — completed under `FR-072`: restore independent four-direction
   Learn 2D input and clear held movement when pointer or window focus is lost.
 - `BUG-159` — completed under `FR-072`: interpolate fixed-step Train 3D
-  snapshots at display rate, smooth the follow camera, bound render cost, and
-  remove avoidable snapshot publication after an outcome.
+  snapshots at display rate, bound render cost, and remove avoidable snapshot
+  publication after an outcome; `BUG-163` later removed follow-camera lag.
 - `CR-239` — completed under `FR-072`: provide paired 2D and 3D contract
   rooms with multiple correct/incorrect ground reactions and one simulated
   20-player raid of two tanks, five healers, and mixed melee/ranged damage
@@ -66,12 +66,41 @@ encounter development into an independently deployed Season 2 repository.
 - `BUG-160` — completed under `FR-072`: restore the creator business card
   from its stable `SPEC-002` contract in the extracted Season 2 setup shell.
 - `CR-240` — completed under `FR-072`: restore shared Main ability, Taunt,
-  Health potion, and role-aware Shield bindings/buttons in the contract lab;
-  keep Jump, Pause, Interrupt, and package interaction in the platform
-  inventory until a runtime consumes them honestly.
+  Health potion, and role-aware Shield vocabulary in the contract lab; its
+  interim action panel was revised by `CR-243`, and `FR-077` owns real actions.
 - `CR-241` — completed under `FR-072`: restore a persisted, draggable HUD
   configuration preview for objective/timer, player resources, aura state,
-  actions, and boss health, shared by the separate 2D and 3D runtimes.
+  actions, and boss health; `CR-245` applies it to the Train 3D arena.
+- `BUG-161` — completed under `FR-072`: restore the retained left-orbit,
+  right-align/right-face, and both-buttons-forward mouse interaction contract.
+- `BUG-162` — completed under `FR-072`: move render snapshots off the 20 Hz
+  React publication path, lower pixel cost, and measure renderer-local pacing.
+- `CR-242` — completed under `FR-072`: replace the ambiguous player capsule
+  and reversed cone with a readable humanoid marker and aligned front chevron.
+- `CR-243` — completed under `FR-072`: keep role/starting-position choice in
+  the movement lab only, add its locked overlaid countdown, attach health only
+  to Learn 2D actors, and replace oversized action panels with below-arena keys.
+- `CR-244` — completed under `FR-072`: calibrate Train 3D units, movement
+  speed, arena dimensions, spell radii, and timing vocabulary to sourced WoW
+  yards/second instead of the prototype's arbitrary scale.
+- `BUG-163` — completed under `FR-072`: remove the apparent motion blur by
+  eliminating follow-camera translation/look-target lag during movement.
+- `CR-245` — completed under `FR-072`: extract the reviewed v0.9.1 in-arena
+  HUD layout into Season 2 and keep 3D world actors free of health bars.
+- `BUG-164` — completed under `FR-072`: make HUD positioning smooth with
+  local drag drafts, release-time persistence, a subtle grid, and key nudging.
+- `CR-246` — completed under `FR-072`: restore exact build provenance,
+  changelog/issue links, and deployed-version update notification.
+- `SPEC-019` — completed: maintain the v0.9.1 extraction parity matrix and
+  link every reusable active gap to a Season 2 ticket.
+- `FR-076` — in progress under `FR-072`: shared countdown/pause/failure lifecycle;
+  pause/status controls land now while failure/results remain open.
+- `FR-077` — planned under `FR-072`: dynamic package-declared actions.
+- `FR-078` — planned under `FR-072`: independent persisted audio services.
+- `FR-079` — planned under `FR-072`: versioned encounter tactic editor.
+- `FR-080` — planned under `FR-072`: reusable failure and offline results.
+- `CR-247` — completed under `FR-072`: restore the full-viewport runtime,
+  compact status header, top-right lab performance, and lab-only slide-in panel.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
