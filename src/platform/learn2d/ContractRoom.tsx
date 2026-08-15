@@ -1,27 +1,28 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import AuraIcons from '../AuraIcons'
 import { ContractPullOverlay, useContractPullGate } from '../ContractPullGate'
-import { auraToneColors, contractMemberForRole, contractRaidRoster, CONTRACT_LANDING_SECONDS, type ContractPlayerRole } from '../contractRoom'
+import { auraToneColors, contractRaidRoster, contractRosterForSlot, contractSelectedMember, trainingClassColors, CONTRACT_LANDING_SECONDS } from '../contractRoom'
 import type { EncounterRuntimeProps } from '../encounters'
 import RuntimeStatusBar from '../RuntimeStatusBar'
 import RuntimeFeedback from '../RuntimeFeedback'
 import { keyLabel } from '../trainingSettings'
 import { useContractActions } from '../useContractActions'
 import { useRuntimePause } from '../useRuntimePause'
-import { activeContractEvent2D, contractGroundSlots2D, contractRaidPosition2D, createContractRoom2DState, prepareContractRoom2DRole, stepContractRoom2D } from './contractRoomSimulation'
+import { activeContractEvent2D, contractGroundSlots2D, contractRaidPosition2D, createContractRoom2DState, prepareContractRoom2DSlot, stepContractRoom2D } from './contractRoomSimulation'
 import type { DiagramDirection } from './movement'
 
 export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createContractRoom2DState())
+  const playerElementRef = useRef<HTMLDivElement>(null)
   const pressedRef = useRef(new Set<DiagramDirection>())
   const [view, setView] = useState(stateRef.current)
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
   const actions = useContractActions({ enabled: gate.phase === 'active', role: gate.role, eventIndex: view.eventIndex, keyBindings, includeMainAndPotion: false })
 
-  function chooseRole(role: ContractPlayerRole) {
-    gate.setRole(role)
-    stateRef.current = prepareContractRoom2DRole(stateRef.current, role)
+  function chooseSlot(slotId: string) {
+    gate.setSelectedSlotId(slotId)
+    stateRef.current = prepareContractRoom2DSlot(stateRef.current, slotId)
     pressedRef.current.clear()
     setView(stateRef.current)
   }
@@ -52,6 +53,13 @@ export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntime
       const seconds = Math.min((now - previous) / 1000, .05)
       previous = now
       if (gate.phaseRef.current === 'active' && !pause.pausedRef.current) stateRef.current = stepContractRoom2D(stateRef.current, pressedRef.current, seconds)
+      const playerElement = playerElementRef.current
+      if (playerElement) {
+        playerElement.style.left = `${stateRef.current.player.x}%`
+        playerElement.style.top = `${stateRef.current.player.y}%`
+        playerElement.dataset.positionX = stateRef.current.player.x.toFixed(2)
+        playerElement.dataset.positionY = stateRef.current.player.y.toFixed(2)
+      }
       if (now - lastPublish >= 50) { lastPublish = now; setView(stateRef.current) }
       frame = requestAnimationFrame(tick)
     }
@@ -60,6 +68,8 @@ export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntime
   }, [gate.phaseRef, pause.pausedRef])
 
   const event = activeContractEvent2D(view)
+  const roster = contractRosterForSlot(gate.selectedSlotId)
+  const controlled = contractSelectedMember(gate.selectedSlotId)
   const age = view.time - view.eventStartedAt
   const setPad = (direction: DiagramDirection, active: boolean) => { if (active && gate.phaseRef.current === 'active' && !pause.pausedRef.current) pressedRef.current.add(direction); else pressedRef.current.delete(direction) }
 
@@ -73,9 +83,9 @@ export default function ContractRoom2D({ keyBindings, onExit }: EncounterRuntime
             const slot = contractGroundSlots2D[object.direction]
             return <div key={object.id} className={`contract-ground ${object.tone}${age < CONTRACT_LANDING_SECONDS ? ' incoming' : ''}`} style={{ left: `${slot.x}%`, top: `${slot.y}%`, '--ground-color': auraToneColors[object.tone] } as CSSProperties} aria-label={`${object.tone} ground rune`} />
           })}
-          {contractRaidRoster.filter(member => !member.controlled).map((originalMember, index) => { const member = contractMemberForRole(originalMember, gate.role); const origin = contractRaidPosition2D(member); return <div key={member.id} className={`contract-raid-member ${member.role}`} style={{ left: `${origin.x + Math.sin(view.time * .7 + index) * .6}%`, top: `${origin.y + Math.cos(view.time * .5 + index) * .35}%` }} aria-label={`${member.role} NPC`}><span /></div> })}
-          <div className={`learn2d-character player ${gate.role}`} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.y.toFixed(2)} style={{ left: `${view.player.x}%`, top: `${view.player.y}%` }} aria-label={`Controlled ${gate.role} player with ${event.tone} aura`}><AuraIcons tones={[event.tone]} label={`${event.tone} aura`} /><i className="actor-health"><b style={{ width: `${actions.health}%` }} /></i><span className="character-body" aria-hidden="true" /></div>
-          <ContractPullOverlay role={gate.role} onRoleChange={chooseRole} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" />
+          {roster.filter(member => !member.controlled).map((member, index) => { const origin = contractRaidPosition2D(member); return <div key={member.id} className={`contract-raid-member ${member.role}`} style={{ left: `${origin.x + Math.sin(view.time * .7 + index) * .6}%`, top: `${origin.y + Math.cos(view.time * .5 + index) * .35}%` }} aria-label={`${member.role} NPC`}><span /></div> })}
+          <div ref={playerElementRef} className={`learn2d-character player ${gate.role}`} data-player-class={controlled.playerClass} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.y.toFixed(2)} style={{ left: `${view.player.x}%`, top: `${view.player.y}%`, '--player-class-color': trainingClassColors[controlled.playerClass] } as CSSProperties} aria-label={`Controlled ${controlled.playerClass.replace('-', ' ')} ${gate.role} player with ${event.tone} aura`}><AuraIcons tones={[event.tone]} label={`${event.tone} aura`} /><i className="actor-health"><b style={{ width: `${actions.health}%` }} /></i><span className="character-body" aria-hidden="true" /></div>
+          <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" />
           <RuntimeFeedback failures={view.failures} elapsed={view.time} />
         </div></div>
         <div className="learn2d-controls"><span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · Shield {keyLabel(keyBindings.shield)}{gate.role === 'tank' ? ` · Taunt / Spott ${keyLabel(keyBindings.taunt)}` : ''} · no Main ability or potion in Learn 2D</span><div className="learn2d-dpad" aria-label="2D movement controls">{(['forward', 'left', 'backward', 'right'] as DiagramDirection[]).map(direction => <button type="button" key={direction} aria-label={`Move ${direction}`} disabled={gate.phase !== 'active'} onPointerDown={() => setPad(direction, true)} onPointerUp={() => setPad(direction, false)} onPointerLeave={() => setPad(direction, false)} onPointerCancel={() => setPad(direction, false)}>{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}</div></div>

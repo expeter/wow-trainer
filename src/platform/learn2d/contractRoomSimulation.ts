@@ -1,4 +1,4 @@
-import { contractRaidRoster, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, seededContractEvents, type ContractDirection, type ContractEvent, type ContractPlayerRole, type ContractRaidMember } from '../contractRoom'
+import { CONTRACT_DEFAULT_PLAYER_SLOT, contractRaidRoster, contractRosterForSlot, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, seededContractEvents, type ContractDirection, type ContractEvent, type ContractRaidMember } from '../contractRoom'
 import { stepDiagramMovement, type DiagramDirection } from './movement'
 import type { RuntimeFailure } from '../RuntimeFeedback'
 
@@ -7,8 +7,6 @@ export const contractGroundSlots2D: Record<ContractDirection, { x: number; y: nu
 }
 
 export function contractRaidPosition2D(member: ContractRaidMember) {
-  if (member.controlled) return member.role === 'tank' ? { x: 53, y: 42 } : { x: 50, y: 68 }
-  if (member.id === 'tank-2' && member.role === 'ranged') return { x: 80, y: 57 }
   const peers = contractRaidRoster.filter(candidate => candidate.role === member.role)
   const index = peers.findIndex(candidate => candidate.id === member.id)
   if (member.role === 'tank') return { x: index ? 53 : 47, y: 42 }
@@ -19,12 +17,12 @@ export function contractRaidPosition2D(member: ContractRaidMember) {
   return { x: 50 + Math.cos(angle) * radiusX, y: 48 + Math.sin(angle) * radiusY }
 }
 
-export function contractPlayerStart2D(role: ContractPlayerRole) {
-  return role === 'tank' ? { x: 53, y: 42 } : { x: 50, y: 68 }
+export function contractPlayerStart2D(slotId: string) {
+  return contractRaidPosition2D(contractRosterForSlot(slotId).find(member => member.controlled)!)
 }
 
-export function prepareContractRoom2DRole(state: ContractRoom2DState, role: ContractPlayerRole): ContractRoom2DState {
-  return { ...state, player: contractPlayerStart2D(role) }
+export function prepareContractRoom2DSlot(state: ContractRoom2DState, slotId: string): ContractRoom2DState {
+  return { ...state, player: contractPlayerStart2D(slotId) }
 }
 
 export interface ContractRoom2DState {
@@ -40,7 +38,7 @@ export interface ContractRoom2DState {
 }
 
 export function createContractRoom2DState(seed = 238): ContractRoom2DState {
-  const player = contractRaidRoster.find(member => member.controlled)!
+  const player = contractRosterForSlot(CONTRACT_DEFAULT_PLAYER_SLOT).find(member => member.controlled)!
   return { time: 0, eventStartedAt: 0, eventIndex: 0, player: contractRaidPosition2D(player), events: seededContractEvents(seed), successes: 0, misses: 0, wrongGrounds: 0, failures: [] }
 }
 

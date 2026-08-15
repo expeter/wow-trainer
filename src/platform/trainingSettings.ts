@@ -20,9 +20,6 @@ export interface MovementKeyBindings {
 }
 
 export interface TrainingHudSettings {
-  showObjective: boolean
-  showTimer: boolean
-  showPosition: boolean
   showPlayer: boolean
   showAuras: boolean
   showActions: boolean
@@ -58,7 +55,7 @@ export interface TrainingCameraSettings {
 
 export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
   keyBindings: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE', pause: 'KeyP', mainAbility: 'KeyF', taunt: 'Numpad1', healthPot: 'NumpadDecimal', shield: 'Numpad7' },
-  hud: { showObjective: true, showTimer: true, showPosition: true, showPlayer: true, showAuras: true, showActions: true, showBoss: true, scale: 100, layout: DEFAULT_HUD_LAYOUT },
+  hud: { showPlayer: true, showAuras: true, showActions: true, showBoss: true, scale: 100, layout: DEFAULT_HUD_LAYOUT },
   camera: { invertX: false, invertY: true, sensitivity: 1, zoom: 22 },
 }
 
@@ -87,9 +84,6 @@ export function normalizeTrainingSettings(value: unknown): TrainingSettings {
   return {
     keyBindings: migratedBindings,
     hud: {
-      showObjective: isBoolean(hud?.showObjective) ? hud.showObjective : DEFAULT_TRAINING_SETTINGS.hud.showObjective,
-      showTimer: isBoolean(hud?.showTimer) ? hud.showTimer : DEFAULT_TRAINING_SETTINGS.hud.showTimer,
-      showPosition: isBoolean(hud?.showPosition) ? hud.showPosition : DEFAULT_TRAINING_SETTINGS.hud.showPosition,
       showPlayer: isBoolean(hud?.showPlayer) ? hud.showPlayer : DEFAULT_TRAINING_SETTINGS.hud.showPlayer,
       showAuras: isBoolean(hud?.showAuras) ? hud.showAuras : DEFAULT_TRAINING_SETTINGS.hud.showAuras,
       showActions: isBoolean(hud?.showActions) ? hud.showActions : DEFAULT_TRAINING_SETTINGS.hud.showActions,

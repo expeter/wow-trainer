@@ -13,10 +13,10 @@ import of L’ura encounter code.
 | Product identity, repository links, creator card | Extracted | `CR-230`, `CR-233`, `BUG-160` |
 | Exact SemVer, Git revision, build UTC, copy action | Extracted on setup | `CR-246`, `CR-248` |
 | Relative `version.json` polling and Load new version/Later prompt | Extracted in current batch | `CR-246` |
-| Persistent movement bindings, inversion, sensitivity, zoom | Extracted with per-change autosave and field migration | `BUG-157`, `BUG-161`, `BUG-165` |
+| Persistent movement bindings, inversion, sensitivity, zoom | Extracted with per-change autosave, field migration, and compact reviewed-style controls | `BUG-157`, `BUG-161`, `BUG-165`, `CR-253` |
 | WoW-like left orbit, right face, both-buttons-forward | Extracted in current batch | `BUG-161` |
 | Deterministic fixed-step Train 3D simulation and renderer boundary | Extracted | `BUG-157`, `BUG-162` |
-| Reviewed in-arena HUD frames, cast bar and action position | Extracted in current batch | `CR-245`, `BUG-164` |
+| Reviewed in-arena HUD frames, cast bar and action position | Extracted; mandatory mechanic/timer and display-rate cast progress retained | `CR-245`, `BUG-164`, `BUG-167`, `CR-254` |
 | Pull countdown, pause/resume, restart, failure lifecycle | Partial: lab countdown only | `FR-076` |
 | Dynamic encounter action declarations and bindings | Prototype only; contract gap | `FR-077` |
 | Independent music, encounter SFX and raid-lead/TTS channels | Active gap | `FR-078` |
@@ -29,8 +29,8 @@ import of L’ura encounter code.
 
 ## Boundaries preserved during extraction
 
-- The movement-lab role and starting-position chooser is a development harness,
-  not a real-encounter entry flow. Encounter role and position come from the
+- The movement-lab 20-slot raid-position chooser and temporary class treatment
+  are a development harness, not a real-encounter entry flow. Encounter role and position come from the
   selected tactic/raid plan.
 - Encounter actions are capability records declared by packages. L’ura’s
   permanent global action set is not the Season 2 architecture.

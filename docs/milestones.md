@@ -118,6 +118,15 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-251` — completed under `FR-072`: replace duplicate setup banners with one
   auto-discovered encounter card per package containing its playable and
   Coming soon scenarios.
+- `BUG-167` — completed under `FR-072`: render Learn 2D player motion and Train 3D
+  cast progress at display rate without increasing mechanic or React publication
+  frequency.
+- `CR-252` — completed under `FR-072`: replace the lab role dropdown with an
+  abstract 20-slot position picker and class-readable controlled-player marker.
+- `CR-253` — completed under `FR-072`: return shell-owned bindings and camera
+  preferences to a dense, reviewed-style settings panel.
+- `CR-254` — completed under `FR-072`: make mechanic objective and timer mandatory,
+  remove raw position output, and retain only meaningful optional HUD frames.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

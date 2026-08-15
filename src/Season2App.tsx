@@ -224,18 +224,19 @@ export default function Season2App() {
           </div>
         </article>}
       </div>}
-      {activeTab === 'Keys & Mouse' && <div className="season2-settings-grid">
-        {(Object.keys(settings.keyBindings) as TrainingAction[]).map(action => <div className="season2-keybind" key={action}>
-          <span>{trainingLabels[action]}</span>
-          <button type="button" aria-label={`Rebind ${action}, current ${keyLabel(settings.keyBindings[action])}`} className={rebinding === action ? 'listening' : ''} onClick={() => setRebinding(action)}>
-            {rebinding === action ? 'Press a key…' : keyLabel(settings.keyBindings[action])}
-          </button>
-        </div>)}
-        <button type="button" className="secondary season2-reset" onClick={() => updateSettings(current => ({ ...current, keyBindings: { ...DEFAULT_TRAINING_SETTINGS.keyBindings } }))}>
-          Reset movement keys
-        </button>
+      {activeTab === 'Keys & Mouse' && <div className="season2-settings-grid" role="group" aria-label="Input bindings">
+        <div className="season2-binding-panel">
+          <h3>Keyboard</h3><p>Click a binding, then press its new key.</p>
+          <div className="season2-keybind-grid">{(Object.keys(settings.keyBindings) as TrainingAction[]).map(action => <label className="season2-keybind" key={action}>
+            <span>{trainingLabels[action]}</span>
+            <button type="button" aria-label={`Rebind ${action}, current ${keyLabel(settings.keyBindings[action])}`} className={rebinding === action ? 'listening' : ''} onClick={() => setRebinding(action)}>
+              {rebinding === action ? 'Press a key…' : keyLabel(settings.keyBindings[action])}
+            </button>
+          </label>)}</div>
+          <button type="button" className="secondary season2-reset" onClick={() => updateSettings(current => ({ ...current, keyBindings: { ...DEFAULT_TRAINING_SETTINGS.keyBindings } }))}>Reset keybindings</button>
+        </div>
         <div className="season2-camera-settings">
-          <h3>Train 3D camera</h3>
+          <h3>Mouse camera</h3><p>Train 3D look and camera behavior.</p>
           <label><input type="checkbox" checked={settings.camera.invertX} onChange={event => updateSettings(current => ({ ...current, camera: { ...current.camera, invertX: event.target.checked } }))} /> Invert horizontal mouse-look</label>
           <label><input type="checkbox" checked={settings.camera.invertY} onChange={event => updateSettings(current => ({ ...current, camera: { ...current.camera, invertY: event.target.checked } }))} /> Invert vertical mouse-look</label>
           <label className="season2-camera-sensitivity">Mouse-look speed <strong>{settings.camera.sensitivity.toFixed(1)}×</strong><input type="range" min="0.5" max="2" step="0.1" value={settings.camera.sensitivity} onChange={event => updateSettings(current => ({ ...current, camera: { ...current.camera, sensitivity: Number(event.target.value) } }))} /></label>
@@ -244,9 +245,6 @@ export default function Season2App() {
       {activeTab === 'HUD' && <div className="season2-hud-settings">
         <div className="season2-toggle-grid">
           {([
-            ['showObjective', 'Show objective'],
-            ['showTimer', 'Show timer'],
-            ['showPosition', 'Show position'],
             ['showPlayer', 'Show player health + cooldowns'],
             ['showAuras', 'Show buff / debuff state'],
             ['showActions', 'Show action state'],

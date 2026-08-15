@@ -1,5 +1,5 @@
 import type { WorldArena3D } from '../encounters'
-import { auraToneColors, contractDirections, contractMemberForRole, contractRaidRoster, contractTones, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, seededContractEvents, type ContractDirection, type ContractEvent, type ContractPlayerRole, type ContractRaidMember } from '../contractRoom'
+import { auraToneColors, CONTRACT_DEFAULT_PLAYER_SLOT, contractDirections, contractRaidRoster, contractRosterForSlot, contractSelectedMember, contractTones, trainingClassColors, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, seededContractEvents, type ContractDirection, type ContractEvent, type ContractRaidMember } from '../contractRoom'
 import { distance, stepPlayerMovement } from './simulation'
 import type { PlayerCommandState, Train3DSnapshot, WorldPoint } from './types'
 import type { RuntimeFailure } from '../RuntimeFeedback'
@@ -32,8 +32,6 @@ export interface ContractRoomState {
 export const seededEvents = seededContractEvents
 
 function worldPosition(member: ContractRaidMember): WorldPoint {
-  if (member.controlled) return { x: 0, z: 12 }
-  if (member.id === 'tank-2' && member.role === 'ranged') return { x: 23, z: 5 }
   const peers = contractRaidRoster.filter(candidate => candidate.role === member.role)
   const index = peers.findIndex(candidate => candidate.id === member.id)
   if (member.role === 'tank') return { x: index ? 2.4 : -2.4, z: -4.5 }
@@ -43,16 +41,16 @@ function worldPosition(member: ContractRaidMember): WorldPoint {
   return { x: Math.cos(angle) * radius, z: Math.sin(angle) * radius }
 }
 
-export function contractPlayerStart3D(role: ContractPlayerRole): WorldPoint {
-  return role === 'tank' ? { x: 2.4, z: -4.5 } : { x: 0, z: 12 }
+export function contractPlayerStart3D(slotId: string): WorldPoint {
+  return worldPosition(contractSelectedMember(slotId))
 }
 
-export function prepareContractRoomRole(state: ContractRoomState, role: ContractPlayerRole): ContractRoomState {
-  return { ...state, player: { ...contractPlayerStart3D(role), facing: 0 } }
+export function prepareContractRoomSlot(state: ContractRoomState, slotId: string): ContractRoomState {
+  return { ...state, player: { ...contractPlayerStart3D(slotId), facing: 0 } }
 }
 
 export function createContractRoomState(seed = 238): ContractRoomState {
-  const controlled = contractRaidRoster.find(member => member.controlled)!
+  const controlled = contractSelectedMember(CONTRACT_DEFAULT_PLAYER_SLOT)
   const start = worldPosition(controlled)
   return { time: 0, eventStartedAt: 0, eventIndex: 0, player: { ...start, facing: 0 }, events: seededEvents(seed), successes: 0, misses: 0, wrongGrounds: 0, failures: [] }
 }
@@ -95,12 +93,13 @@ export function stepContractRoom(state: ContractRoomState, commands: PlayerComma
   }
 }
 
-export function contractRoomSnapshot(state: ContractRoomState, playerRole: ContractPlayerRole = 'ranged', playerHealth = 100): Train3DSnapshot {
+export function contractRoomSnapshot(state: ContractRoomState, playerSlotId = CONTRACT_DEFAULT_PLAYER_SLOT, playerHealth = 100): Train3DSnapshot {
   const event = activeContractEvent(state)
   const age = state.time - state.eventStartedAt
   const pulseProgress = Math.max(0, (age - CONTRACT_LANDING_SECONDS) % 1.2) / 1.2
-  const npcActors = contractRaidRoster.filter(member => !member.controlled).map((originalMember, index) => {
-    const member = contractMemberForRole(originalMember, playerRole)
+  const roster = contractRosterForSlot(playerSlotId)
+  const controlled = roster.find(member => member.controlled)!
+  const npcActors = roster.filter(member => !member.controlled).map((member, index) => {
     const origin = worldPosition(member)
     const sway = Math.sin(state.time * .65 + index * 1.7) * (member.role === 'melee' || member.role === 'tank' ? .35 : .7)
     const tone = contractTones[(index + state.eventIndex) % contractTones.length]
@@ -117,7 +116,7 @@ export function contractRoomSnapshot(state: ContractRoomState, playerRole: Contr
     time: state.time,
     arena: contractRoomArena,
     actors: [
-      { id: 'player', kind: 'player', position: state.player, facing: state.player.facing, color: '#f2d36b', auras: [{ id: event.id, tone: event.tone, stacks: 1 }], health: playerHealth },
+      { id: 'player', kind: 'player', position: state.player, facing: state.player.facing, color: trainingClassColors[controlled.playerClass], playerClass: controlled.playerClass, auras: [{ id: event.id, tone: event.tone, stacks: 1 }], health: playerHealth },
       { id: 'spell-dummy', kind: 'boss', position: { x: 0, z: 0 }, facing: 0, color: '#607481', auras: [], health: 100 },
       ...npcActors,
     ],

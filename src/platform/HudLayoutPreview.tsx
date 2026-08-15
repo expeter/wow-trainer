@@ -9,7 +9,7 @@ export default function HudLayoutPreview({ settings, onChange }: { settings: Tra
   const dragOffsetRef = useRef({ x: 0, y: 0 })
   const draftRef = useRef(settings.layout)
   const [draft, setDraft] = useState(settings.layout)
-  const visible: Record<HudBox, boolean> = { objective: settings.showObjective || settings.showTimer, player: settings.showPlayer, auras: settings.showAuras, actions: settings.showActions, boss: settings.showBoss, castbar: settings.showActions }
+  const visible: Record<HudBox, boolean> = { objective: true, player: settings.showPlayer, auras: settings.showAuras, actions: settings.showActions, boss: settings.showBoss, castbar: settings.showActions }
   useEffect(() => {
     if (draggingRef.current) return
     draftRef.current = settings.layout

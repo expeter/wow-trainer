@@ -66,14 +66,18 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.getByRole('complementary', { name: 'Points' })).toHaveTextContent('Not scored')
   })
 
-  it('updates the shared HUD preview from persisted visibility settings', () => {
+  it('keeps mechanic and timer mandatory while optional HUD frames remain configurable', () => {
     render(<Season2App />)
     fireEvent.click(screen.getByRole('button', { name: 'HUD' }))
     expect(screen.queryByRole('complementary', { name: 'Training HUD' })).not.toBeInTheDocument()
     expect(screen.getByLabelText('Draggable HUD preview')).toBeVisible()
 
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Show timer' }))
     expect(screen.getByRole('button', { name: 'Mechanic / action display' })).toBeVisible()
+    expect(screen.queryByRole('checkbox', { name: 'Show objective' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'Show timer' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'Show position' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show boss health' }))
+    expect(screen.queryByRole('button', { name: 'Boss health' })).not.toBeInTheDocument()
   })
 
   it('keeps online features deferred and disconnected from the legacy service', () => {

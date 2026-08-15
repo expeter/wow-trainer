@@ -1,4 +1,5 @@
 import type { WorldArena3D } from '../encounters'
+import type { TrainingClass } from '../contractRoom'
 
 export interface WorldPoint {
   x: number
@@ -28,6 +29,7 @@ export interface ActorSnapshot {
   position: WorldPoint
   facing: number
   color: string
+  playerClass?: TrainingClass
   auras: readonly AuraSnapshot[]
   health?: number
 }

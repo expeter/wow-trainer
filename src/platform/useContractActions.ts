@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ContractPlayerRole } from './contractRoom'
 import type { MovementKeyBindings } from './trainingSettings'
 
@@ -7,16 +7,21 @@ export function useContractActions({ enabled, role, eventIndex, keyBindings, inc
   const [shieldCooldown, setShieldCooldown] = useState(0)
   const [potionUsed, setPotionUsed] = useState(false)
   const [mainCast, setMainCast] = useState(0)
+  const mainCastEndsAtRef = useRef(0)
+
+  const mainCastSecondsSource = useCallback(() => Math.max(0, (mainCastEndsAtRef.current - performance.now()) / 1000), [])
 
   const activateMain = useCallback(() => {
-    if (!enabled || !includeMainAndPotion || mainCast > 0) return false
+    if (!enabled || !includeMainAndPotion || mainCastSecondsSource() > 0) return false
+    mainCastEndsAtRef.current = performance.now() + 1000
     setMainCast(1)
     return true
-  }, [enabled, includeMainAndPotion, mainCast])
+  }, [enabled, includeMainAndPotion, mainCastSecondsSource])
 
   useEffect(() => {
     setHealth(72)
     setPotionUsed(false)
+    mainCastEndsAtRef.current = 0
     setMainCast(0)
     if (role !== 'tank') setShieldCooldown(0)
   }, [eventIndex, role])
@@ -25,10 +30,10 @@ export function useContractActions({ enabled, role, eventIndex, keyBindings, inc
     const timer = window.setInterval(() => {
       setHealth(value => Math.max(18, value - .1))
       setShieldCooldown(value => Math.max(0, value - .1))
-      setMainCast(value => Math.max(0, value - .1))
+      setMainCast(mainCastSecondsSource())
     }, 100)
     return () => window.clearInterval(timer)
-  }, [enabled])
+  }, [enabled, mainCastSecondsSource])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -47,5 +52,5 @@ export function useContractActions({ enabled, role, eventIndex, keyBindings, inc
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [activateMain, enabled, includeMainAndPotion, keyBindings, potionUsed, role, shieldCooldown])
 
-  return { health, mainCast, potionUsed, shieldCooldown, activateMain }
+  return { health, mainCast, mainCastSecondsSource, potionUsed, shieldCooldown, activateMain }
 }

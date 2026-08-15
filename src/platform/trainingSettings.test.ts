@@ -32,7 +32,7 @@ describe('shared Season 2 training settings', () => {
       getItem: (key: string) => values.get(key) ?? null,
       setItem: (key: string, value: string) => values.set(key, value),
     }
-    const settings = { ...DEFAULT_TRAINING_SETTINGS, hud: { ...DEFAULT_TRAINING_SETTINGS.hud, scale: 115, showTimer: false } }
+    const settings = { ...DEFAULT_TRAINING_SETTINGS, hud: { ...DEFAULT_TRAINING_SETTINGS.hud, scale: 115, showBoss: false } }
     saveTrainingSettings(settings, storage)
 
     expect(values.has(TRAINING_SETTINGS_STORAGE_KEY)).toBe(true)

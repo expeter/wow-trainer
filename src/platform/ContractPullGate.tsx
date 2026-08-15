@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ContractPlayerRole } from './contractRoom'
+import { CONTRACT_DEFAULT_PLAYER_SLOT, contractRaidRoster, contractSelectedMember, contractSlotLabel } from './contractRoom'
 
 export type ContractPullPhase = 'setup' | 'countdown' | 'active'
 
 export function useContractPullGate() {
-  const [role, setRole] = useState<ContractPlayerRole>('ranged')
+  const [selectedSlotId, setSelectedSlotId] = useState(CONTRACT_DEFAULT_PLAYER_SLOT)
   const [phase, setPhase] = useState<ContractPullPhase>('setup')
   const [seconds, setSeconds] = useState(3)
   const phaseRef = useRef<ContractPullPhase>('setup')
@@ -26,12 +26,12 @@ export function useContractPullGate() {
   }, [phase])
 
   const start = () => { setSeconds(3); phaseRef.current = 'countdown'; setPhase('countdown') }
-  return { role, setRole, phase, phaseRef, seconds, start }
+  return { selectedSlotId, setSelectedSlotId, role: contractSelectedMember(selectedSlotId).role, phase, phaseRef, seconds, start }
 }
 
-export function ContractPullOverlay({ role, onRoleChange, phase, seconds, onStart, mode }: {
-  role: ContractPlayerRole
-  onRoleChange: (role: ContractPlayerRole) => void
+export function ContractPullOverlay({ selectedSlotId, onSlotChange, phase, seconds, onStart, mode }: {
+  selectedSlotId: string
+  onSlotChange: (slotId: string) => void
   phase: ContractPullPhase
   seconds: number
   onStart: () => void
@@ -40,9 +40,12 @@ export function ContractPullOverlay({ role, onRoleChange, phase, seconds, onStar
   if (phase === 'active') return null
   if (phase === 'countdown') return <div className="contract-pull-overlay countdown" role="status" aria-label="Pull countdown"><strong>{Math.max(1, Math.ceil(seconds))}</strong><span>{mode === 'Train 3D' ? 'Camera look available · movement and actions locked' : 'Movement and actions locked'}</span></div>
   return <div className="contract-pull-overlay setup" role="dialog" aria-label="Contract room entrance">
-    <p className="eyebrow">BEFORE THE PULL</p><h2>Choose your training role</h2>
-    <p>The raid composition adjusts to remain exactly two tanks. Your role is locked after the pull begins.</p>
-    <label>Player role<select value={role} onChange={event => onRoleChange(event.target.value as ContractPlayerRole)}><option value="ranged">Ranged damage</option><option value="tank">Tank</option></select></label>
-    <button type="button" onClick={onStart}>Start 3…2…1</button>
+    <p className="eyebrow">BEFORE THE PULL</p><h2>Choose your raid position</h2>
+    <p>Select one of the 20 abstract raid-plan slots. Its role and temporary class are locked for this lab pull.</p>
+    <div className="contract-position-plan" role="group" aria-label="20-player raid positions">
+      {contractRaidRoster.map(member => <button type="button" key={member.id} className={`${member.role}${selectedSlotId === member.id ? ' selected' : ''}`} aria-pressed={selectedSlotId === member.id} aria-label={`${contractSlotLabel(member)}, ${member.playerClass.replace('-', ' ')}`} onClick={() => onSlotChange(member.id)}><span>{contractSlotLabel(member)}</span><i>{member.playerClass.replace('-', ' ')}</i></button>)}
+      <b className="contract-plan-boss">Boss</b>
+    </div>
+    <button type="button" className="contract-start" onClick={onStart}>Start</button>
   </div>
 }

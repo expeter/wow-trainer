@@ -90,28 +90,30 @@
 .season2-footer span { margin-left: auto; }
 .season2-settings-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-.season2-keybind {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 14px;
+  grid-template-columns: minmax(0, 2.15fr) minmax(230px, .85fr);
+  gap: 14px;
+  padding: 14px;
   border: 1px solid var(--s2-color-border);
-  border-radius: var(--s2-radius-control);
-  color: var(--s2-color-muted);
-  text-transform: capitalize;
+  border-radius: var(--s2-radius-panel);
 }
-.season2-keybind button { min-width: 112px; padding: 9px 12px; color: var(--s2-color-text); }
+.season2-binding-panel { min-width: 0; padding-right: 14px; border-right: 1px solid var(--s2-color-border); }
+.season2-binding-panel h3, .season2-camera-settings h3 { margin: 0; font-size: 15px; }
+.season2-binding-panel > p, .season2-camera-settings > p { margin: 3px 0 10px; color: var(--s2-color-muted); font-size: 11px; }
+.season2-keybind-grid { display: grid; grid-template-columns: repeat(6, minmax(72px, 1fr)); gap: 7px; }
+.season2-keybind {
+  display: grid;
+  gap: 4px;
+  color: var(--s2-color-muted);
+  font-size: 10px;
+}
+.season2-keybind span { min-width: 0; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; }
+.season2-keybind button { width: 100%; min-width: 0; padding: 7px 5px; color: var(--s2-color-text); font: 11px var(--s2-font-mono); }
 .season2-keybind button.listening { border-color: var(--s2-color-warning); color: var(--s2-color-warning); }
-.season2-reset { grid-column: 1 / -1; padding: 10px 12px; }
-.season2-camera-settings { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 4px; padding: 14px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); }
-.season2-camera-settings h3 { grid-column: 1 / -1; margin: 0 0 3px; font-size: 16px; }
+.season2-reset { margin-top: 9px; padding: 7px 10px; font-size: 11px; }
+.season2-camera-settings { display: grid; align-content: start; gap: 8px; }
 .season2-camera-settings label { display: flex; align-items: center; gap: 9px; color: var(--s2-color-muted); font-size: 13px; }
 .season2-camera-settings input[type='checkbox'] { width: auto; }
-.season2-camera-settings .season2-camera-sensitivity { grid-column: 1 / -1; display: block; padding-top: 7px; }
+.season2-camera-settings .season2-camera-sensitivity { display: block; padding-top: 7px; }
 .season2-camera-sensitivity strong { float: right; color: var(--s2-color-accent); }
 .season2-camera-sensitivity input { margin-top: 9px; }
 .season2-hud-settings { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(320px, 1.2fr); gap: 20px; }
@@ -217,6 +219,12 @@
 .learn2d-character .character-body { position: absolute; inset: 8px; display: block; border: 2px solid rgba(255, 255, 255, .72); border-radius: 50% 50% 44% 44%; background: #728198; box-shadow: 0 4px 14px rgba(0, 0, 0, .4); }
 .learn2d-character.player { z-index: 6; }
 .learn2d-character.player .character-body { border-color: #fff0a5; background: #b49430; box-shadow: 0 0 0 4px rgba(242, 211, 107, .16), 0 0 20px rgba(242, 211, 107, .42); }
+.learn2d-character.player[data-player-class] .character-body { inset: 10px 13px 7px; border-radius: 42% 42% 34% 34%; background: var(--player-class-color); }
+.learn2d-character.player[data-player-class] .character-body::before { content: ''; position: absolute; left: 50%; top: -9px; width: 14px; height: 14px; transform: translateX(-50%); border: 2px solid rgba(255,255,255,.78); border-radius: 50%; background: #d6ad8d; box-shadow: -11px 8px 0 -4px var(--player-class-color), 11px 8px 0 -4px var(--player-class-color); }
+.learn2d-character.player[data-player-class] .character-body::after { content: ''; position: absolute; right: -8px; top: 5px; width: 4px; height: 22px; transform: rotate(-24deg); border-radius: 3px; background: #d8c9a5; box-shadow: 0 0 0 1px rgba(0,0,0,.42); }
+.learn2d-character.player[data-player-class='warrior'] .character-body::after,
+.learn2d-character.player[data-player-class='paladin'] .character-body::after,
+.learn2d-character.player[data-player-class='death-knight'] .character-body::after { right: auto; left: -9px; top: 7px; width: 13px; height: 17px; transform: none; border: 2px solid rgba(255,255,255,.55); border-radius: 50% 50% 6px 6px; background: var(--player-class-color); }
 .toxin-icons { position: absolute; z-index: 3; left: 50%; bottom: calc(100% - 4px); transform: translateX(-50%); display: flex; gap: 2px; min-width: max-content; padding: 2px 3px; border-radius: 4px; background: rgba(5, 9, 13, .78); }
 .toxin-icon { width: 8px; height: 8px; display: block; border: 1px solid rgba(255, 255, 255, .52); border-radius: 2px; transform: rotate(45deg); }
 .toxin-icon.green { background: #6ce58d; box-shadow: 0 0 5px rgba(108, 229, 141, .7); }
@@ -255,12 +263,21 @@
 .actor-health b { display: block; height: 100%; background: #6cdb8d; transition: width .1s linear; }
 .contract-2d-boss .actor-health { top: calc(100% + 7px); width: 58px; }
 .contract-2d-boss .actor-health b { background: #d85e70; }
-.contract-pull-overlay { position: absolute; z-index: 30; left: 50%; top: 50%; width: min(370px, calc(100% - 34px)); padding: 20px; transform: translate(-50%, -50%); border: 1px solid var(--s2-color-accent); border-radius: var(--s2-radius-panel); color: var(--s2-color-text); background: rgba(7, 13, 17, .96); box-shadow: 0 18px 65px rgba(0, 0, 0, .72), 0 0 28px rgba(211, 181, 75, .12); }
+.contract-pull-overlay { position: absolute; z-index: 30; left: 50%; top: 50%; width: min(650px, calc(100% - 34px)); padding: 18px 20px; transform: translate(-50%, -50%); border: 1px solid var(--s2-color-accent); border-radius: var(--s2-radius-panel); color: var(--s2-color-text); background: rgba(7, 13, 17, .96); box-shadow: 0 18px 65px rgba(0, 0, 0, .72), 0 0 28px rgba(211, 181, 75, .12); }
 .contract-pull-overlay h2 { margin: 4px 0 8px; }
 .contract-pull-overlay p { color: var(--s2-color-muted); line-height: 1.5; }
-.contract-pull-overlay label { display: grid; gap: 6px; margin: 14px 0; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); text-transform: uppercase; letter-spacing: .08em; }
-.contract-pull-overlay select { padding: 9px 10px; }
 .contract-pull-overlay button { width: 100%; }
+.contract-position-plan { position: relative; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; margin: 13px 0 14px; padding: 35px 8px 8px; border: 1px solid var(--s2-color-border); border-radius: 9px; background: radial-gradient(circle at 50% 8%, rgba(239,113,130,.16), transparent 22%), linear-gradient(rgba(115,224,193,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(115,224,193,.04) 1px, transparent 1px), #0a1117; background-size: auto, 10% 25%, 10% 25%, auto; }
+.contract-position-plan button { min-width: 0; padding: 5px 2px; border-color: color-mix(in srgb, currentColor 46%, var(--s2-color-border)); border-radius: 5px; background: rgba(10,17,25,.9); font: 8px var(--s2-font-mono); }
+.contract-position-plan button.tank { color: #76a5ff; }
+.contract-position-plan button.healer { color: #71dd99; }
+.contract-position-plan button.melee { color: #e18a58; }
+.contract-position-plan button.ranged { color: #b690e8; }
+.contract-position-plan button.selected { outline: 2px solid var(--s2-color-accent); outline-offset: 1px; color: var(--s2-color-text); background: rgba(60,53,21,.78); }
+.contract-position-plan button span, .contract-position-plan button i { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.contract-position-plan button i { margin-top: 2px; opacity: .66; font: normal 6px var(--s2-font-mono); text-transform: uppercase; }
+.contract-plan-boss { position: absolute; left: 50%; top: 7px; transform: translateX(-50%); padding: 4px 18px; border: 1px solid rgba(239,113,130,.5); border-radius: 999px; color: #ef7182; font: 8px var(--s2-font-mono); text-transform: uppercase; }
+.contract-pull-overlay .contract-start { padding: 9px 12px; color: #11150d; border-color: var(--s2-color-accent); background: var(--s2-color-accent); font-weight: 800; }
 .contract-pull-overlay.countdown { display: grid; justify-items: center; gap: 7px; width: auto; min-width: 230px; padding: 24px 32px; pointer-events: none; text-align: center; }
 .contract-pull-overlay.countdown strong { color: var(--s2-color-accent); font: 700 72px/1 var(--s2-font-display); text-shadow: 0 0 24px rgba(211, 181, 75, .35); }
 .contract-pull-overlay.countdown span { color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
@@ -323,6 +340,9 @@
   .season2-encounter-card > header { align-items: flex-start; flex-direction: column; }
   .season2-encounter-modes { grid-template-columns: 1fr; }
   .season2-settings-grid, .season2-hud-settings, .training-runtime-layout { grid-template-columns: 1fr; }
+  .season2-binding-panel { padding-right: 0; padding-bottom: 12px; border-right: 0; border-bottom: 1px solid var(--s2-color-border); }
+  .season2-keybind-grid { grid-template-columns: repeat(3, minmax(72px, 1fr)); }
+  .contract-position-plan { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .training-header { flex-direction: column; }
   .training-shell { height: auto; min-height: 100dvh; padding: 8px; overflow: visible; }
   .runtime-status-bar { grid-template-columns: 1fr; }

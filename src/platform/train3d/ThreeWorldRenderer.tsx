@@ -55,15 +55,26 @@ function actorObject(actor: ActorSnapshot) {
   if (actor.kind === 'player') {
     const head = new THREE.Mesh(new THREE.SphereGeometry(.5, 12, 8), new THREE.MeshStandardMaterial({ color: 0xf2c9a0, roughness: .78 }))
     head.position.y = 2.75
-    const shoulders = new THREE.Mesh(new THREE.BoxGeometry(1.55, .28, .42), new THREE.MeshStandardMaterial({ color: 0xd8b84f, roughness: .55 }))
+    const shoulders = new THREE.Mesh(new THREE.BoxGeometry(1.65, .34, .48), new THREE.MeshStandardMaterial({ color: actor.color, roughness: .48, metalness: .12 }))
     shoulders.position.set(0, 2.05, 0)
-    const chest = new THREE.Mesh(new THREE.BoxGeometry(.6, .65, .16), new THREE.MeshBasicMaterial({ color: 0xffef9b }))
+    const chest = new THREE.Mesh(new THREE.BoxGeometry(.62, .72, .18), new THREE.MeshBasicMaterial({ color: actor.color }))
     chest.position.set(0, 1.72, -.68)
     const facing = new THREE.Mesh(new THREE.ConeGeometry(.55, 1.35, 3), new THREE.MeshBasicMaterial({ color: 0xffe58a, transparent: true, opacity: .92, depthWrite: false }))
     facing.name = 'facing-chevron'
     facing.rotation.x = -Math.PI / 2
     facing.position.set(0, .09, -1.25)
-    group.add(head, shoulders, chest, facing)
+    const casterClasses = new Set(['mage', 'priest', 'warlock', 'shaman', 'evoker'])
+    const agileClasses = new Set(['rogue', 'hunter', 'monk', 'demon-hunter', 'druid'])
+    const accessory = casterClasses.has(actor.playerClass ?? '')
+      ? new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 2.6, 6), new THREE.MeshStandardMaterial({ color: 0xa98b63, roughness: .8 }))
+      : agileClasses.has(actor.playerClass ?? '')
+        ? new THREE.Mesh(new THREE.BoxGeometry(.12, 1.55, .12), new THREE.MeshStandardMaterial({ color: 0xd6cfb0, roughness: .58 }))
+        : new THREE.Mesh(new THREE.CylinderGeometry(.58, .68, .16, 12), new THREE.MeshStandardMaterial({ color: actor.color, roughness: .42, metalness: .3 }))
+    accessory.name = `class-${actor.playerClass ?? 'adventurer'}`
+    if (casterClasses.has(actor.playerClass ?? '')) { accessory.rotation.z = -.3; accessory.position.set(.95, 1.55, .05) }
+    else if (agileClasses.has(actor.playerClass ?? '')) { accessory.rotation.z = .72; accessory.position.set(-.72, 1.72, .2) }
+    else { accessory.rotation.x = Math.PI / 2; accessory.position.set(-.9, 1.55, -.12) }
+    group.add(head, shoulders, chest, accessory, facing)
   }
   return group
 }

@@ -496,7 +496,9 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
 - Learn 2D may accept the shared movement bindings, but owns only abstract
   percentage-space movement and icon/diagram contact. Character debuffs are
   represented by attached visual icons with accessible labels, not text baked
-  into actor tokens.
+  into actor tokens. Controlled-player transforms update directly at display
+  rate while React publishes mechanic/HUD summaries less frequently; throttled
+  UI state must not make movement appear stepped.
 - Train 3D uses a deterministic headless fixed-step simulation for movement,
   events, collision, bots, and mechanic outcomes. A general renderer consumes
   immutable snapshots and emits input/camera commands; it never decides
@@ -527,14 +529,21 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   event window. The rendered room floor may extend into fog beyond the 90×70-
   yard lab, but collision stays clamped to those explicit playable bounds.
 - Role and starting-position choice inside the contract room belongs only to
-  that development movement lab. Real encounter packages receive the selected
-  role and assignment from setup and the versioned tactic/raid plan.
+  that development movement lab. Its entrance exposes all 20 abstract raid-plan
+  slots directly; selecting a slot transfers control to that existing raid
+  member, preserving the two-tank/five-healer composition and deriving the
+  locked role, start, and temporary class treatment. Real encounter packages
+  receive the selected role and assignment from setup and the versioned tactic/
+  raid plan.
 - Learn 2D may attach compact health bars to diagram actors. Train 3D does not
   attach player or boss health bars to world objects; it uses the extracted
   configurable in-arena interface. Its defaults follow the reviewed v0.9.1
   composition: player health/status left, boss health right, mechanic/action
   display upper middle, cast bar lower middle, and optional action buttons
-  beneath the cast bar.
+  beneath the cast bar. Objective and timer are mandatory training information;
+  they have no visibility toggles. Raw world coordinates are not player-facing
+  HUD information. Cast progress paints at display rate without increasing
+  mechanic or React publication frequency.
 - Running lessons use a full-viewport arena under one compact status bar. The
   bar exposes drill/phase context left, current coaching state centrally, and
   available audio, pause/resume, performance, and exit controls right. Lab-only
@@ -560,6 +569,9 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   without a second report-style HUD summary above it. Dragging tracks the
   pointer without animated positional lag, persists once on release, and keeps
   grid snapping plus keyboard nudging.
+- Keys & Mouse retains the complete autosaved binding and camera contract in a
+  dense keyboard grid beside compact mouse-camera controls; individual actions
+  must not expand into oversized full-width cards.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.

@@ -130,7 +130,7 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
               commandsRef.current.forward = mouseForwardRef.current || keyboardForwardRef.current
             }}
           />
-          <ArenaTrainingHud settings={hudSettings} objective="Read your toxin icons and reach the compatible northern partner" secondsRemaining={28 - snapshot.time} position={snapshot.actors[0].position} status={status} auraLabel="Helical Toxins" actionStatus="No encounter action assigned" />
+          <ArenaTrainingHud settings={hudSettings} objective="Read your toxin icons and reach the compatible northern partner" secondsRemaining={28 - snapshot.time} status={status} auraLabel="Helical Toxins" actionStatus="No encounter action assigned" />
           <RuntimeFeedback failures={failures} elapsed={snapshot.time} />
         </div>
         <p className="train3d-controls">

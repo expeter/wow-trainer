@@ -20,6 +20,7 @@ const partners = [
 export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: EncounterRuntimeProps) {
   const scenario = useMemo(() => learn2dScenarios.find(item => item.id === scenarioId) ?? learn2dScenarios[0], [scenarioId])
   const playerRef = useRef({ ...startPosition })
+  const playerElementRef = useRef<HTMLDivElement>(null)
   const pressedRef = useRef(new Set<Direction>())
   const elapsedRef = useRef(0)
   const outcomeRef = useRef<LessonOutcome>('active')
@@ -71,6 +72,13 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: En
       if (outcomeRef.current === 'active' && !pause.pausedRef.current) {
         elapsedRef.current += seconds
         playerRef.current = stepDiagramMovement(playerRef.current, pressedRef.current, seconds)
+        const playerElement = playerElementRef.current
+        if (playerElement) {
+          playerElement.style.left = `${playerRef.current.x}%`
+          playerElement.style.top = `${playerRef.current.y}%`
+          playerElement.dataset.positionX = playerRef.current.x.toFixed(2)
+          playerElement.dataset.positionY = playerRef.current.y.toFixed(2)
+        }
         const contacted = partners.find(partner => Math.hypot(playerRef.current.x - partner.x, playerRef.current.y - partner.y) < 6)
         if (contacted) outcomeRef.current = contacted.id === 'compatible' ? 'success' : 'wrong-partner'
         else if (elapsedRef.current >= 28) outcomeRef.current = 'expired'
@@ -136,7 +144,7 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: En
             <ToxinIcons green={partner.green} red={partner.red} />
             <span className="character-body" aria-hidden="true" />
           </div>)}
-          <div className="learn2d-character player" data-position-x={player.x.toFixed(2)} data-position-y={player.y.toFixed(2)} style={{ left: `${player.x}%`, top: `${player.y}%` }} aria-label="Controlled character with 1 green and 3 red toxins">
+          <div ref={playerElementRef} className="learn2d-character player" data-position-x={player.x.toFixed(2)} data-position-y={player.y.toFixed(2)} style={{ left: `${player.x}%`, top: `${player.y}%` }} aria-label="Controlled character with 1 green and 3 red toxins">
             <ToxinIcons green={1} red={3} />
             <span className="character-body" aria-hidden="true" />
           </div>

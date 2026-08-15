@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { EncounterRuntimeProps } from '../encounters'
 import { ContractPullOverlay, useContractPullGate } from '../ContractPullGate'
-import type { ContractPlayerRole } from '../contractRoom'
 import RuntimeStatusBar from '../RuntimeStatusBar'
 import RuntimeFeedback from '../RuntimeFeedback'
 import { ArenaTrainingHud } from '../TrainingHud'
@@ -11,7 +10,7 @@ import { useRuntimePause } from '../useRuntimePause'
 import { FIXED_STEP_SECONDS } from './simulation'
 import ThreeWorldRenderer from './ThreeWorldRenderer'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from './types'
-import { activeContractEvent, CONTRACT_EVENT_SECONDS, contractRoomSnapshot, createContractRoomState, prepareContractRoomRole, stepContractRoom, turnContractRoomPlayer } from './contractRoomSimulation'
+import { activeContractEvent, CONTRACT_EVENT_SECONDS, contractRoomSnapshot, createContractRoomState, prepareContractRoomSlot, stepContractRoom, turnContractRoomPlayer } from './contractRoomSimulation'
 
 export default function ContractRoom({ keyBindings, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createContractRoomState())
@@ -25,21 +24,19 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
   const actions = useContractActions({ enabled: gate.phase === 'active', role: gate.role, eventIndex: summary.eventIndex, keyBindings, includeMainAndPotion: true })
-  const roleRef = useRef(gate.role)
   const healthRef = useRef(actions.health)
-  roleRef.current = gate.role
   healthRef.current = actions.health
 
-  function chooseRole(role: ContractPlayerRole) {
-    gate.setRole(role)
-    stateRef.current = prepareContractRoomRole(stateRef.current, role)
-    renderSnapshotRef.current = contractRoomSnapshot(stateRef.current, role, actions.health)
+  function chooseSlot(slotId: string) {
+    gate.setSelectedSlotId(slotId)
+    stateRef.current = prepareContractRoomSlot(stateRef.current, slotId)
+    renderSnapshotRef.current = contractRoomSnapshot(stateRef.current, slotId, actions.health)
     setSnapshot(renderSnapshotRef.current)
   }
 
   useEffect(() => {
-    renderSnapshotRef.current = contractRoomSnapshot(stateRef.current, gate.role, actions.health)
-  }, [actions.health, gate.role])
+    renderSnapshotRef.current = contractRoomSnapshot(stateRef.current, gate.selectedSlotId, actions.health)
+  }, [actions.health, gate.selectedSlotId])
 
   useEffect(() => {
     let frame = 0
@@ -55,7 +52,7 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
         accumulator -= FIXED_STEP_SECONDS
         stepped = true
       }
-      if (stepped) renderSnapshotRef.current = contractRoomSnapshot(stateRef.current, roleRef.current, healthRef.current)
+      if (stepped) renderSnapshotRef.current = contractRoomSnapshot(stateRef.current, gate.selectedSlotId, healthRef.current)
       if (now - lastPublish >= 100) {
         lastPublish = now
         setSnapshot(renderSnapshotRef.current)
@@ -65,7 +62,7 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [gate.phaseRef, pause.pausedRef])
+  }, [gate.phaseRef, gate.selectedSlotId, pause.pausedRef])
 
   useEffect(() => {
     const actions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight'] as const
@@ -118,8 +115,8 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
             }}
             onPerformanceSample={setPerformanceSample}
           />
-          <ArenaTrainingHud settings={hudSettings} objective={`Match the ${event.tone} ground rune`} secondsRemaining={secondsRemaining} position={snapshot.actors[0].position} status={`${summary.successes} resolved · ${summary.misses} missed · 20-player raid · event ${summary.eventIndex + 1}`} playerHealth={actions.health} auraLabel={`${event.tone} aura`} actionStatus={actions.mainCast > 0 ? 'Main ability casting' : 'Main ability ready'} castSeconds={actions.mainCast} actionButton={<button type="button" onClick={actions.activateMain} disabled={gate.phase !== 'active' || actions.mainCast > 0}>Main ability <kbd>{keyLabel(keyBindings.mainAbility)}</kbd></button>} />
-          <ContractPullOverlay role={gate.role} onRoleChange={chooseRole} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Train 3D" />
+          <ArenaTrainingHud settings={hudSettings} objective={`Match the ${event.tone} ground rune`} secondsRemaining={secondsRemaining} status={`${summary.successes} resolved · ${summary.misses} missed · 20-player raid · event ${summary.eventIndex + 1}`} playerHealth={actions.health} auraLabel={`${event.tone} aura`} actionStatus={actions.mainCast > 0 ? 'Main ability casting' : 'Main ability ready'} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} actionButton={<button type="button" onClick={actions.activateMain} disabled={gate.phase !== 'active' || actions.mainCast > 0}>Main ability <kbd>{keyLabel(keyBindings.mainAbility)}</kbd></button>} />
+          <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Train 3D" />
           <RuntimeFeedback failures={stateRef.current.failures} elapsed={snapshot.time} />
         </div>
         <p className="train3d-controls">Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · turn {keyLabel(keyBindings.turnLeft)} {keyLabel(keyBindings.turnRight)} · Main {keyLabel(keyBindings.mainAbility)} · Shield {keyLabel(keyBindings.shield)} · Potion {keyLabel(keyBindings.healthPot)}{gate.role === 'tank' ? ` · Taunt / Spott ${keyLabel(keyBindings.taunt)}` : ''} · mouse-look, both-buttons-forward, wheel zoom</p>

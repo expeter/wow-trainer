@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Made controlled-player movement in both Learn 2D runtimes paint at display
+  rate while mechanic/HUD publication stays throttled, and made the Train 3D
+  Main ability cast bar progress continuously between state updates.
+- Replaced the development lab's role dropdown with a clickable abstract
+  20-position raid plan that preserves the 2/5/5/8 roster, derives role and
+  starting position, and assigns a class-colored player silhouette/accessory.
+- Returned Keys & Mouse to a compact keyboard-and-camera panel without losing
+  immediate autosave, and simplified HUD settings by keeping objective/timer
+  mandatory while removing raw position display.
 - Pulled the four Train 3D contract-room reaction targets into a range where
   every consecutive target is reachable at 7 yd/s within six seconds, while
   extending the rendered floor into fog beyond the unchanged 90×70-yard
