@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- CR-241: Restore a persisted HUD configuration preview with draggable boxes
+  and independent visibility for objective/timer, player resources, aura
+  state, action state, and boss health.
+- CR-240: Restore shared Main ability, role-gated Taunt/Spott, Health potion,
+  and role-aware Shield key bindings and action buttons in the contract lab.
+- BUG-160: Restore the compact SPEC-002 creator business card to the Season 2
+  setup header with its avatar, BattleTag, specific external links, and coffee
+  action.
+- CR-239: Expand the development harness into separate 2D and 3D contract
+  rooms with a simulated 20-player raid and four simultaneous ground reactions
+  containing one aura-matching choice and three wrong choices.
+- BUG-159: Smooth display-rate Train 3D actor, effect, and follow-camera motion
+  between deterministic fixed-step snapshots, cap pixel density, and remove
+  repeated post-outcome React publication.
+- BUG-158: Make all four Learn 2D directions independently reliable and clear
+  held movement after focus, visibility, or pointer cancellation.
 - CR-238: Add a development-only 3D contract room with a deterministic seeded
   aura stream, six-second reaction windows, named position checks, animated
   pulse/projectile primitives, live HUD feedback, and the shared player/camera

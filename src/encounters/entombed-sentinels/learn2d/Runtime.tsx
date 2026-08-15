@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import TrainingHud from '../../../platform/TrainingHud'
 import type { EncounterRuntimeProps } from '../../../platform/encounters'
+import { stepDiagramMovement, type DiagramDirection } from '../../../platform/learn2d/movement'
 import { keyLabel } from '../../../platform/trainingSettings'
 import ToxinIcons from '../ToxinIcons'
 import { learn2dScenarios } from './scenarios'
 
-type Direction = 'forward' | 'backward' | 'left' | 'right'
+type Direction = DiagramDirection
 type LessonOutcome = 'active' | 'success' | 'wrong-partner' | 'expired'
 const startPosition = { x: 27, y: 62 }
 const partners = [
@@ -41,11 +42,18 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
     }
     const down = (event: KeyboardEvent) => updateKey(event, true)
     const up = (event: KeyboardEvent) => updateKey(event, false)
+    const clear = () => pressedRef.current.clear()
+    const visibility = () => { if (document.hidden) clear() }
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
+    window.addEventListener('blur', clear)
+    document.addEventListener('visibilitychange', visibility)
     return () => {
       window.removeEventListener('keydown', down)
       window.removeEventListener('keyup', up)
+      window.removeEventListener('blur', clear)
+      document.removeEventListener('visibilitychange', visibility)
+      clear()
     }
   }, [keyBindings])
 
@@ -58,13 +66,7 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
       previous = now
       if (outcomeRef.current === 'active') {
         elapsedRef.current += seconds
-        const horizontal = Number(pressedRef.current.has('right')) - Number(pressedRef.current.has('left'))
-        const vertical = Number(pressedRef.current.has('backward')) - Number(pressedRef.current.has('forward'))
-        const length = Math.hypot(horizontal, vertical) || 1
-        playerRef.current = {
-          x: Math.max(5, Math.min(95, playerRef.current.x + horizontal / length * 24 * seconds)),
-          y: Math.max(5, Math.min(95, playerRef.current.y + vertical / length * 24 * seconds)),
-        }
+        playerRef.current = stepDiagramMovement(playerRef.current, pressedRef.current, seconds)
         const contacted = partners.find(partner => Math.hypot(playerRef.current.x - partner.x, playerRef.current.y - partner.y) < 6)
         if (contacted) outcomeRef.current = contacted.id === 'compatible' ? 'success' : 'wrong-partner'
         else if (elapsedRef.current >= 28) outcomeRef.current = 'expired'
@@ -126,7 +128,7 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
             <ToxinIcons green={partner.green} red={partner.red} />
             <span className="character-body" aria-hidden="true" />
           </div>)}
-          <div className="learn2d-character player" style={{ left: `${player.x}%`, top: `${player.y}%` }} aria-label="Controlled character with 1 green and 3 red toxins">
+          <div className="learn2d-character player" data-position-x={player.x.toFixed(2)} data-position-y={player.y.toFixed(2)} style={{ left: `${player.x}%`, top: `${player.y}%` }} aria-label="Controlled character with 1 green and 3 red toxins">
             <ToxinIcons green={1} red={3} />
             <span className="character-body" aria-hidden="true" />
           </div>
@@ -141,6 +143,7 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, hudSettings,
               onPointerDown={() => setPad(direction, true)}
               onPointerUp={() => setPad(direction, false)}
               onPointerLeave={() => setPad(direction, false)}
+              onPointerCancel={() => setPad(direction, false)}
             >{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}
           </div>
         </div>

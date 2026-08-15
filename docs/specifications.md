@@ -486,8 +486,11 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
 - Ready scenarios are launched through package-owned lazy runtime loaders. The
   product shell may pass shared preferences and select a scenario, but it must
   not import a boss runtime directly or resolve boss mechanics itself.
-- Movement bindings and HUD visibility/scale are shell-owned, use Season 2
-  storage keys, and flow into both runtimes without sharing simulation state.
+- Movement and reusable combat-action bindings plus HUD visibility, scale, and
+  box layout are shell-owned, use Season 2 storage keys, and flow into both
+  runtimes without sharing simulation state. The HUD configuration is a
+  draggable preview for objective/timer, player health and cooldowns, aura
+  state, action state, and boss health.
 - Learn 2D may accept the shared movement bindings, but owns only abstract
   percentage-space movement and icon/diagram contact. Character debuffs are
   represented by attached visual icons with accessible labels, not text baked
@@ -498,9 +501,14 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   gameplay. The baseline input contract is facing-relative WASD, Q/E turning,
   left-button camera orbit, right-button facing look, both-buttons-forward,
   wheel zoom, inversion, and persisted camera preferences.
-- A development-only platform contract room may exercise generic events,
-  auras, timers, position checks, and spell primitives. It is not an encounter
-  package and must be excluded from production builds.
+- Separate development-only Learn 2D and Train 3D contract rooms may exercise
+  shared generic event vocabulary, auras, timers, role-aware actions, position
+  checks, and spell primitives through their own geometry and simulation. Each
+  room represents a 20-player raid with two tanks, five healers, and thirteen
+  mixed melee/ranged damage players including the controlled player. Reaction
+  rounds present multiple simultaneous ground objects with one aura-matching
+  answer and explicit wrong answers. These rooms are not encounter packages
+  and must be excluded from production builds.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.

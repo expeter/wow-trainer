@@ -1,5 +1,7 @@
 .season2-shell { min-height: 100vh; }
 .season2-shell > :not(header) { grid-column: 1 / -1; }
+.season2-hero-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 320px); align-items: start; gap: 28px; }
+.season2-hero-row .creator-card { grid-column: auto; grid-row: auto; }
 .season2-safety-note {
   margin: 0 0 18px;
   padding: 9px 13px;
@@ -69,6 +71,7 @@
 .season2-mode-grid p, .season2-boundary-note { color: var(--s2-color-muted); line-height: 1.6; }
 .season2-mode-grid button { width: 100%; margin-top: 10px; }
 .season2-mode-grid .season2-contract-room-card { grid-column: 1 / -1; background: linear-gradient(135deg, rgba(66, 54, 117, .28), var(--s2-color-surface)); }
+.season2-contract-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .season2-boundary-note {
   padding: 18px;
   border: 1px dashed var(--s2-color-border);
@@ -131,12 +134,19 @@
 .season2-hud-preview {
   min-height: 260px;
   padding: 18px;
-  display: grid;
-  place-items: start end;
+  display: block;
   border: 1px dashed var(--s2-color-border);
   border-radius: var(--s2-radius-panel);
   background: radial-gradient(circle at 20% 20%, var(--s2-color-accent-soft), transparent 34%), #090e18;
 }
+.hud-layout-editor { display: grid; gap: 9px; margin-top: 12px; }
+.hud-layout-preview { position: relative; min-height: 360px; overflow: hidden; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: radial-gradient(circle at 50% 45%, rgba(75, 121, 91, .24), transparent 25%), linear-gradient(#10181a, #090d13); }
+.hud-layout-preview::before { content: 'DRAG HUD BOXES'; position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,.12); font: 12px var(--s2-font-mono); letter-spacing: .18em; }
+.hud-preview-box { position: absolute; transform: translate(-50%, -50%); min-width: 125px; padding: 8px 10px; border: 1px solid var(--s2-color-accent); color: var(--s2-color-text); background: rgba(8, 15, 20, .92); font: 10px var(--s2-font-mono); cursor: move; touch-action: none; }
+.hud-preview-box.player { border-color: #71dd99; }
+.hud-preview-box.auras { border-color: #9d83f2; }
+.hud-preview-box.actions { border-color: #d8c680; }
+.hud-preview-box.boss { border-color: #ef7182; }
 .season2-region-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .season2-region-list span { padding: 7px 9px; border: 1px solid var(--s2-color-border); border-radius: 999px; color: var(--s2-color-muted); font: 11px var(--s2-font-mono); }
 
@@ -197,6 +207,22 @@
 .toxin-icon { width: 8px; height: 8px; display: block; border: 1px solid rgba(255, 255, 255, .52); border-radius: 2px; transform: rotate(45deg); }
 .toxin-icon.green { background: #6ce58d; box-shadow: 0 0 5px rgba(108, 229, 141, .7); }
 .toxin-icon.red { background: #eb6e7d; box-shadow: 0 0 5px rgba(235, 110, 125, .65); }
+.platform-aura-icons { position: absolute; z-index: 8; left: 50%; bottom: calc(100% - 4px); transform: translateX(-50%); display: flex; gap: 3px; padding: 3px 4px; border-radius: 5px; background: rgba(5, 9, 13, .86); }
+.platform-aura-icon { width: 11px; height: 11px; border: 1px solid rgba(255, 255, 255, .7); border-radius: 2px; transform: rotate(45deg); }
+.platform-aura-icon.beneficial { background: #72e5c0; box-shadow: 0 0 7px #72e5c0; }
+.platform-aura-icon.poison { background: #70dc87; box-shadow: 0 0 7px #70dc87; }
+.platform-aura-icon.danger { background: #ef7182; box-shadow: 0 0 7px #ef7182; }
+.platform-aura-icon.spectral { background: #9d83f2; box-shadow: 0 0 7px #9d83f2; }
+.contract-2d-board { background: radial-gradient(circle at 50% 47%, rgba(91, 117, 103, .28), transparent 24%), linear-gradient(145deg, #111b1b, #0b1018); }
+.contract-2d-boss { position: absolute; z-index: 3; left: 50%; top: 42%; transform: translate(-50%, -50%); width: 68px; height: 68px; display: grid; place-items: center; border: 3px solid #91a1ac; border-radius: 50%; color: #c5d0d8; background: #3d4a53; font: 10px var(--s2-font-mono); box-shadow: 0 0 30px rgba(177, 202, 211, .18); }
+.contract-ground { position: absolute; z-index: 2; width: 74px; height: 74px; transform: translate(-50%, -50%); border: 4px solid var(--ground-color); border-radius: 50%; background: color-mix(in srgb, var(--ground-color) 18%, transparent); box-shadow: 0 0 20px color-mix(in srgb, var(--ground-color) 42%, transparent), inset 0 0 20px color-mix(in srgb, var(--ground-color) 24%, transparent); animation: contract-ground-pulse 1.2s ease-in-out infinite alternate; }
+.contract-ground.incoming { border-style: dashed; opacity: .48; animation: contract-ground-land 1.1s ease-out both; }
+.contract-raid-member { position: absolute; z-index: 4; width: 18px; height: 18px; transform: translate(-50%, -50%); border: 2px solid rgba(255, 255, 255, .58); border-radius: 50%; background: #b690e8; box-shadow: 0 2px 6px rgba(0,0,0,.55); }
+.contract-raid-member.tank { width: 23px; height: 23px; border-radius: 5px; background: #6f9cff; }
+.contract-raid-member.healer { background: #71dd99; }
+.contract-raid-member.melee { background: #e18a58; }
+@keyframes contract-ground-pulse { to { transform: translate(-50%, -50%) scale(1.08); opacity: .78; } }
+@keyframes contract-ground-land { from { transform: translate(-50%, -50%) scale(.2); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: .48; } }
 .learn2d-controls { min-height: 58px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; gap: 14px; color: var(--s2-color-muted); background: var(--s2-color-surface); font: 10px var(--s2-font-mono); }
 .learn2d-dpad { display: grid; grid-template-columns: repeat(4, 38px); gap: 5px; }
 .learn2d-dpad button { width: 38px; height: 38px; padding: 0; touch-action: none; }
@@ -207,7 +233,21 @@
 .train3d-controls { margin: 0; padding: 10px 13px; color: var(--s2-color-muted); background: var(--s2-color-surface); font: 10px var(--s2-font-mono); }
 .training-restart { width: 100%; padding: 11px 12px; }
 .contract-room-note { margin: 0; padding: 13px 15px; border: 1px dashed var(--s2-color-border); border-radius: var(--s2-radius-control); color: var(--s2-color-muted); font-size: 12px; line-height: 1.55; }
+.contract-action-panel { padding: 13px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: var(--s2-color-surface); }
+.contract-action-panel > header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.contract-action-panel > header label { display: flex; align-items: center; gap: 7px; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
+.contract-action-panel select { min-width: 110px; padding: 5px 7px; }
+.contract-resource-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
+.contract-resource-row > div { height: 8px; overflow: hidden; border-radius: 999px; background: #351b24; }
+.contract-resource-row i { display: block; height: 100%; background: linear-gradient(90deg, #a83e54, #71dd99); transition: width .12s linear; }
+.contract-cast { position: relative; margin-top: 8px; padding: 5px; overflow: hidden; border: 1px solid #806e35; color: #fff0a5; font: 10px var(--s2-font-mono); text-align: center; }
+.contract-cast i { position: absolute; z-index: -1; inset: 0 auto 0 0; background: #5c4c20; }
+.contract-action-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 10px; }
+.contract-action-buttons button { min-width: 0; padding: 8px; text-align: left; font-size: 11px; }
+.contract-action-buttons kbd { float: right; color: var(--s2-color-accent); }
+.contract-action-buttons small { display: block; margin-top: 3px; color: var(--s2-color-muted); font: 9px var(--s2-font-mono); }
 @media (max-width: 760px) {
+  .season2-hero-row { grid-template-columns: 1fr; }
   .season2-encounter { align-items: flex-start; flex-direction: column; }
   .season2-mode-grid { grid-template-columns: 1fr; }
   .season2-settings-grid, .season2-hud-settings, .training-runtime-layout { grid-template-columns: 1fr; }

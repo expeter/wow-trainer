@@ -10,7 +10,35 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page.getByRole('heading', { name: 'Train 3D' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Launch Learn 2D' })).toBeEnabled()
   await expect(page.getByRole('button', { name: 'Launch Train 3D' })).toBeEnabled()
+  await expect(page.getByLabel('About Pestivator')).toContainText('pestivator#2515')
   await expect(page.getByRole('heading', { name: 'L’ura Trainer' })).toHaveCount(0)
+})
+
+test('moves independently in all four Learn 2D directions and clears input on blur', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
+  const player = page.getByLabel('Controlled character with 1 green and 3 red toxins')
+  const position = async () => ({ x: Number(await player.getAttribute('data-position-x')), y: Number(await player.getAttribute('data-position-y')) })
+  let before = await position()
+  await page.keyboard.down('a'); await page.waitForTimeout(260); await page.keyboard.up('a')
+  let after = await position(); expect(after.x).toBeLessThan(before.x)
+  before = after
+  await page.keyboard.down('d'); await page.waitForTimeout(420); await page.keyboard.up('d')
+  after = await position(); expect(after.x).toBeGreaterThan(before.x)
+  before = after
+  await page.keyboard.down('s'); await page.waitForTimeout(260); await page.keyboard.up('s')
+  after = await position(); expect(after.y).toBeGreaterThan(before.y)
+  before = after
+  await page.keyboard.down('w'); await page.waitForTimeout(260); await page.keyboard.up('w')
+  after = await position(); expect(after.y).toBeLessThan(before.y)
+
+  await page.keyboard.down('w'); await page.waitForTimeout(180)
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')))
+  await page.waitForTimeout(100)
+  const stopped = await position()
+  await page.waitForTimeout(300)
+  expect(Math.abs((await position()).y - stopped.y)).toBeLessThan(.2)
+  await page.keyboard.up('w')
 })
 
 test('moves the player through the Helical Toxins Learn 2D icon drill', async ({ page }) => {
@@ -29,14 +57,34 @@ test('moves the player through the Helical Toxins Learn 2D icon drill', async ({
   await expect(page.getByText('Resolved: your pair combines to exactly four green.')).toBeVisible()
 })
 
-test('opens the development contract room with seeded aura and spell events', async ({ page }) => {
+test('opens paired contract rooms with full-raid ground reactions and paced 3D rendering', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Open contract room' }).click()
+  await page.getByRole('button', { name: 'Open Learn 2D room' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Top-down reaction lab' })).toBeVisible()
+  await expect(page.getByLabel(/ground rune$/)).toHaveCount(4)
+  await expect(page.getByLabel(/NPC$/)).toHaveCount(19)
+  await expect(page.getByLabel('Contract combat actions')).toBeVisible()
+  await page.getByLabel('Contract player role').selectOption('tank')
+  await page.getByRole('button', { name: /Shield/ }).click()
+  await expect(page.getByRole('button', { name: /Shield/ })).toContainText(/20\.0s|19\.9s/)
+  await page.getByRole('button', { name: 'Back to setup' }).click()
+  await page.getByRole('button', { name: 'Open Train 3D room' }).click()
 
   await expect(page.getByRole('heading', { name: 'Reaction and movement lab' })).toBeVisible()
   await expect(page.getByLabel('Third-person 3D training arena')).toBeVisible()
   await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('event 1')
-  await expect(page.getByText(/fixed steps per second/)).toBeVisible()
+  await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('20-player raid')
+  const renderedFrames = await page.evaluate(async () => {
+    let frames = 0
+    const start = performance.now()
+    await new Promise<void>(resolve => {
+      const tick = (now: number) => { frames += 1; if (now - start >= 1000) resolve(); else requestAnimationFrame(tick) }
+      requestAnimationFrame(tick)
+    })
+    return frames
+  })
+  expect(renderedFrames).toBeGreaterThanOrEqual(20)
 })
 
 test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3D drill', async ({ page }) => {
@@ -45,6 +93,8 @@ test('uses rebound movement keys and shared HUD settings in the Helical Toxins 3
   await page.getByRole('button', { name: 'Rebind forward, current W' }).click()
   await page.keyboard.press('ArrowUp')
   await page.getByRole('button', { name: 'HUD' }).click()
+  await expect(page.getByLabel('Draggable HUD preview')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Player health + cooldowns' })).toBeVisible()
   await page.getByRole('checkbox', { name: 'Show objective' }).uncheck()
   await page.getByRole('button', { name: 'Game settings' }).click()
   await page.getByRole('button', { name: 'Launch Train 3D' }).click()

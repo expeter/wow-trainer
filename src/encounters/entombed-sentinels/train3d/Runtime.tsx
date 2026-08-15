@@ -23,6 +23,7 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
     let previous = performance.now()
     let accumulator = 0
     let lastPublish = 0
+    let publishedOutcome = stateRef.current.outcome
     const tick = (now: number) => {
       accumulator += Math.min((now - previous) / 1000, .1)
       previous = now
@@ -30,8 +31,9 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
         stateRef.current = stepHelicalState(stateRef.current, commandsRef.current, FIXED_STEP_SECONDS)
         accumulator -= FIXED_STEP_SECONDS
       }
-      if (now - lastPublish >= 50 || stateRef.current.outcome !== 'active') {
+      if (now - lastPublish >= 50 || stateRef.current.outcome !== publishedOutcome) {
         lastPublish = now
+        publishedOutcome = stateRef.current.outcome
         setSnapshot(helicalSnapshot(stateRef.current))
         setOutcome(stateRef.current.outcome)
       }
@@ -42,7 +44,7 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
   }, [attempt])
 
   useEffect(() => {
-    const actions = Object.keys(keyBindings) as (keyof typeof keyBindings)[]
+    const actions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight'] as const
     const setKey = (event: KeyboardEvent, active: boolean) => {
       const action = actions.find(candidate => keyBindings[candidate] === event.code)
       if (!action) return
@@ -54,11 +56,20 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
     }
     const down = (event: KeyboardEvent) => setKey(event, true)
     const up = (event: KeyboardEvent) => setKey(event, false)
+    const clear = () => {
+      commandsRef.current = { ...IDLE_PLAYER_COMMANDS, forward: mouseForwardRef.current }
+      keyboardForwardRef.current = false
+    }
+    const visibility = () => { if (document.hidden) clear() }
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
+    window.addEventListener('blur', clear)
+    document.addEventListener('visibilitychange', visibility)
     return () => {
       window.removeEventListener('keydown', down)
       window.removeEventListener('keyup', up)
+      window.removeEventListener('blur', clear)
+      document.removeEventListener('visibilitychange', visibility)
     }
   }, [keyBindings])
 

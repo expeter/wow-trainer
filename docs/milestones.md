@@ -41,7 +41,9 @@ encounter development into an independently deployed Season 2 repository.
   2D and Train 3D runtimes, with shell-owned persisted movement bindings and
   HUD preferences. Corrective Stage 4C adds movable icon-based 2D practice,
   headless fixed-step 3D mechanics, a snapshot-only third-person renderer, and
-  the development contract room. Full-fight, Mythic, plan-image, and scoring
+  the development contract room. Stage 4D restores input reliability,
+  interpolated rendering, the creator/action/HUD platform features, and paired
+  full-raid 2D/3D contract labs. Full-fight, Mythic, plan-image, and scoring
   work remains.
 - `CR-237` — completed under `FR-072`: make Learn 2D movement-driven and
   represent each character's toxin composition with attached icons rather than
@@ -52,6 +54,24 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-238` — completed under `FR-072`: provide a development-only abstract
   contract room with seeded aura events, reaction prompts, position checks,
   spell primitives, and the same reusable 3D host used by encounter drills.
+- `BUG-158` — completed under `FR-072`: restore independent four-direction
+  Learn 2D input and clear held movement when pointer or window focus is lost.
+- `BUG-159` — completed under `FR-072`: interpolate fixed-step Train 3D
+  snapshots at display rate, smooth the follow camera, bound render cost, and
+  remove avoidable snapshot publication after an outcome.
+- `CR-239` — completed under `FR-072`: provide paired 2D and 3D contract
+  rooms with multiple correct/incorrect ground reactions and one simulated
+  20-player raid of two tanks, five healers, and mixed melee/ranged damage
+  players.
+- `BUG-160` — completed under `FR-072`: restore the creator business card
+  from its stable `SPEC-002` contract in the extracted Season 2 setup shell.
+- `CR-240` — completed under `FR-072`: restore shared Main ability, Taunt,
+  Health potion, and role-aware Shield bindings/buttons in the contract lab;
+  keep Jump, Pause, Interrupt, and package interaction in the platform
+  inventory until a runtime consumes them honestly.
+- `CR-241` — completed under `FR-072`: restore a persisted, draggable HUD
+  configuration preview for objective/timer, player resources, aura state,
+  actions, and boss health, shared by the separate 2D and 3D runtimes.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

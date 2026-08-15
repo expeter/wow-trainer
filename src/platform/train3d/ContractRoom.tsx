@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { EncounterRuntimeProps } from '../encounters'
+import ContractActionBar from '../ContractActionBar'
 import TrainingHud from '../TrainingHud'
 import { keyLabel } from '../trainingSettings'
 import { FIXED_STEP_SECONDS } from './simulation'
 import ThreeWorldRenderer from './ThreeWorldRenderer'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from './types'
-import { activeContractEvent, contractRoomSnapshot, createContractRoomState, stepContractRoom, turnContractRoomPlayer } from './contractRoomSimulation'
+import { activeContractEvent, CONTRACT_EVENT_SECONDS, contractRoomSnapshot, createContractRoomState, stepContractRoom, turnContractRoomPlayer } from './contractRoomSimulation'
 
 export default function ContractRoom({ keyBindings, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createContractRoomState())
@@ -13,7 +14,7 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
   const keyboardForwardRef = useRef(false)
   const mouseForwardRef = useRef(false)
   const [snapshot, setSnapshot] = useState(() => contractRoomSnapshot(stateRef.current))
-  const [summary, setSummary] = useState({ successes: 0, misses: 0, eventIndex: 0 })
+  const [summary, setSummary] = useState({ successes: 0, misses: 0, wrongGrounds: 0, eventIndex: 0 })
 
   useEffect(() => {
     let frame = 0
@@ -30,7 +31,7 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
       if (now - lastPublish >= 50) {
         lastPublish = now
         setSnapshot(contractRoomSnapshot(stateRef.current))
-        setSummary({ successes: stateRef.current.successes, misses: stateRef.current.misses, eventIndex: stateRef.current.eventIndex })
+        setSummary({ successes: stateRef.current.successes, misses: stateRef.current.misses, wrongGrounds: stateRef.current.wrongGrounds, eventIndex: stateRef.current.eventIndex })
       }
       frame = requestAnimationFrame(tick)
     }
@@ -39,7 +40,7 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
   }, [])
 
   useEffect(() => {
-    const actions = Object.keys(keyBindings) as (keyof typeof keyBindings)[]
+    const actions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight'] as const
     const update = (event: KeyboardEvent, active: boolean) => {
       const action = actions.find(candidate => keyBindings[candidate] === event.code)
       if (!action) return
@@ -51,23 +52,29 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
     }
     const down = (event: KeyboardEvent) => update(event, true)
     const up = (event: KeyboardEvent) => update(event, false)
+    const clear = () => { commandsRef.current = { ...IDLE_PLAYER_COMMANDS, forward: mouseForwardRef.current }; keyboardForwardRef.current = false }
+    const visibility = () => { if (document.hidden) clear() }
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
+    window.addEventListener('blur', clear)
+    document.addEventListener('visibilitychange', visibility)
     return () => {
       window.removeEventListener('keydown', down)
       window.removeEventListener('keyup', up)
+      window.removeEventListener('blur', clear)
+      document.removeEventListener('visibilitychange', visibility)
     }
   }, [keyBindings])
 
   const event = activeContractEvent(stateRef.current)
-  const secondsRemaining = 6 - (stateRef.current.time - stateRef.current.eventStartedAt)
+  const secondsRemaining = CONTRACT_EVENT_SECONDS - (stateRef.current.time - stateRef.current.eventStartedAt)
 
   return <main className="training-shell contract-room-runtime">
     <header className="training-header">
       <div>
         <p className="eyebrow">DEVELOPMENT · PLATFORM CONTRACT ROOM</p>
         <h1>Reaction and movement lab</h1>
-        <p className="lede">A seeded sequence changes the icon attached to your character. React to the HUD direction before the spell pulse expires.</p>
+        <p className="lede">A seeded sequence changes the icon attached to your character. Choose the matching ground rune among four simultaneous correct and incorrect reactions.</p>
       </div>
       <button type="button" className="secondary" onClick={onExit}>Back to setup</button>
     </header>
@@ -86,8 +93,9 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
         <p className="train3d-controls">Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · turn {keyLabel(keyBindings.turnLeft)} {keyLabel(keyBindings.turnRight)} · mouse-look, both-buttons-forward, and wheel zoom enabled</p>
       </div>
       <div className="training-sidecar">
-        <TrainingHud settings={hudSettings} mode="Train 3D" objective={`React ${event.direction} to the new character icon`} secondsRemaining={secondsRemaining} position={snapshot.actors[0].position} status={`${summary.successes} resolved · ${summary.misses} expired · event ${summary.eventIndex + 1}`} />
-        <p className="contract-room-note">The event order is randomized from a stable seed. Position checks and expiry run headlessly at 60 fixed steps per second; the renderer only displays snapshots.</p>
+        <TrainingHud settings={hudSettings} mode="Train 3D" objective={`Match the ${event.tone} ground rune`} secondsRemaining={secondsRemaining} position={snapshot.actors[0].position} status={`${summary.successes} resolved · ${summary.misses} missed (${summary.wrongGrounds} wrong rune) · 20-player raid · event ${summary.eventIndex + 1}`} />
+        <ContractActionBar keyBindings={keyBindings} eventIndex={summary.eventIndex} />
+        <p className="contract-room-note">Four ground objects and their spell projectiles are simulated together. The boss, two tanks, five healers, and thirteen mixed melee/ranged damage players make a 20-player raid including you.</p>
       </div>
     </section>
   </main>

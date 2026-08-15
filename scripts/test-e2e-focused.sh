@@ -18,7 +18,7 @@ case "${preset}" in
     grep_pattern='Main ability visibly fills'
     ;;
   season2-shell)
-    grep_pattern='Season 2 shell|Helical Toxins|contract room|development-only reference route'
+    grep_pattern='Season 2 shell|Helical Toxins|four Learn 2D directions|contract room|development-only reference route'
     ;;
   '')
     printf 'Usage: %s <season2-shell|crystal|p4-tank|phase2|main-ability|free text>\n' "$0" >&2

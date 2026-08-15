@@ -13,6 +13,15 @@ interface ThreeWorldRendererProps {
 
 const auraColors = { beneficial: 0x72e5c0, poison: 0x70dc87, danger: 0xe96f80, spectral: 0x9d83f2 } as const
 
+function auraSignature(actor: ActorSnapshot) {
+  return actor.auras.map(aura => `${aura.id}:${aura.tone}:${aura.stacks}`).join('|')
+}
+
+function lerpAngle(current: number, target: number, alpha: number) {
+  const delta = Math.atan2(Math.sin(target - current), Math.cos(target - current))
+  return current + delta * alpha
+}
+
 function disposeObject(object: THREE.Object3D) {
   object.traverse(child => {
     if (child instanceof THREE.Mesh) {
@@ -58,7 +67,7 @@ function refreshAuras(group: THREE.Group, actor: ActorSnapshot) {
     icon.position.set((index - (icons.length - 1) / 2) * .62, actor.kind === 'boss' ? 6.5 : 3.25, 0)
     auraGroup.add(icon)
   })
-  auraGroup.userData.signature = JSON.stringify(actor.auras)
+  auraGroup.userData.signature = auraSignature(actor)
   group.add(auraGroup)
 }
 
@@ -91,7 +100,7 @@ export default function ThreeWorldRenderer({ snapshot, cameraSettings, onCameraS
     const canvas = canvasRef.current
     if (!canvas) return
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     renderer.setClearColor(0x070b12)
     const scene = new THREE.Scene()
     scene.fog = new THREE.Fog(0x070b12, 52, 96)
@@ -131,7 +140,8 @@ export default function ThreeWorldRenderer({ snapshot, cameraSettings, onCameraS
       updateBothButtons()
     }
     const onPointerUp = (event: PointerEvent) => {
-      mouseButtons.delete(event.button)
+      if (event.type === 'pointercancel') mouseButtons.clear()
+      else mouseButtons.delete(event.button)
       if (!mouseButtons.size) dragging = false
       if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId)
       updateBothButtons()
@@ -175,8 +185,19 @@ export default function ThreeWorldRenderer({ snapshot, cameraSettings, onCameraS
       }
     }
 
+    let previousFrameTime = performance.now()
+    let cameraReady = false
+    const cameraLookTarget = new THREE.Vector3()
+    const desiredCamera = new THREE.Vector3()
+    const desiredLookTarget = new THREE.Vector3()
+
     function animate() {
       resize()
+      const frameTime = performance.now()
+      const frameDelta = Math.min((frameTime - previousFrameTime) / 1000, .05)
+      previousFrameTime = frameTime
+      const actorAlpha = 1 - Math.exp(-18 * frameDelta)
+      const cameraAlpha = 1 - Math.exp(-14 * frameDelta)
       const current = snapshotRef.current
       const liveActorIds = new Set(current.actors.map(actor => actor.id))
       for (const [id, object] of actors) {
@@ -190,13 +211,17 @@ export default function ThreeWorldRenderer({ snapshot, cameraSettings, onCameraS
         let object = actors.get(actor.id)
         if (!object) {
           object = actorObject(actor)
+          object.position.set(actor.position.x, 0, actor.position.z)
+          object.rotation.y = actor.facing
           actors.set(actor.id, object)
           scene.add(object)
+        } else {
+          object.position.x = THREE.MathUtils.lerp(object.position.x, actor.position.x, actorAlpha)
+          object.position.z = THREE.MathUtils.lerp(object.position.z, actor.position.z, actorAlpha)
+          object.rotation.y = lerpAngle(object.rotation.y, actor.facing, actorAlpha)
         }
-        object.position.set(actor.position.x, 0, actor.position.z)
-        object.rotation.y = actor.facing
         const auraGroup = object.getObjectByName('auras')
-        if (auraGroup?.userData.signature !== JSON.stringify(actor.auras)) refreshAuras(object, actor)
+        if (auraGroup?.userData.signature !== auraSignature(actor)) refreshAuras(object, actor)
       })
       const liveEffectIds = new Set(current.effects.map(effect => effect.id))
       for (const [id, object] of effects) {
@@ -216,19 +241,43 @@ export default function ThreeWorldRenderer({ snapshot, cameraSettings, onCameraS
         const target = effect.target ?? effect.position
         const x = THREE.MathUtils.lerp(effect.position.x, target.x, effect.progress)
         const z = THREE.MathUtils.lerp(effect.position.z, target.z, effect.progress)
-        object.position.set(x, effect.kind === 'projectile' ? 1.1 + Math.sin(effect.progress * Math.PI) * 2 : .08, z)
-        if (effect.kind === 'pulse') object.scale.setScalar(.72 + effect.progress * .35)
+        const y = effect.kind === 'projectile' ? 1.1 + Math.sin(effect.progress * Math.PI) * 2 : .08
+        if (object.userData.positionReady) {
+          object.position.x = THREE.MathUtils.lerp(object.position.x, x, actorAlpha)
+          object.position.y = THREE.MathUtils.lerp(object.position.y, y, actorAlpha)
+          object.position.z = THREE.MathUtils.lerp(object.position.z, z, actorAlpha)
+        } else {
+          object.position.set(x, y, z)
+          object.userData.positionReady = true
+        }
+        if (effect.kind === 'pulse') {
+          const scale = .72 + effect.progress * .35
+          object.scale.setScalar(THREE.MathUtils.lerp(object.scale.x, scale, actorAlpha))
+        }
       })
       const player = current.actors.find(actor => actor.kind === 'player')
       if (player) {
-        const yaw = player.facing + cameraYawOffset
+        const renderedPlayer = actors.get(player.id)
+        const playerX = renderedPlayer?.position.x ?? player.position.x
+        const playerZ = renderedPlayer?.position.z ?? player.position.z
+        const renderedFacing = renderedPlayer?.rotation.y ?? player.facing
+        const yaw = renderedFacing + cameraYawOffset
         const zoom = settingsRef.current.zoom
-        camera.position.set(
-          player.position.x - Math.sin(yaw) * zoom,
+        desiredCamera.set(
+          playerX - Math.sin(yaw) * zoom,
           3.2 + zoom * (.38 + cameraPitch),
-          player.position.z + Math.cos(yaw) * zoom,
+          playerZ + Math.cos(yaw) * zoom,
         )
-        camera.lookAt(player.position.x, 1.35, player.position.z)
+        if (!cameraReady) {
+          camera.position.copy(desiredCamera)
+          cameraLookTarget.set(playerX, 1.35, playerZ)
+          cameraReady = true
+        } else {
+          camera.position.lerp(desiredCamera, cameraAlpha)
+          desiredLookTarget.set(playerX, 1.35, playerZ)
+          cameraLookTarget.lerp(desiredLookTarget, cameraAlpha)
+        }
+        camera.lookAt(cameraLookTarget)
       }
       renderer.render(scene, camera)
     }
