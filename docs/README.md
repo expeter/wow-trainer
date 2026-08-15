@@ -52,6 +52,7 @@ Expected: only the active T/X/O pair resolves; other contacts are ignored.
 
 | ID | Status | Request |
 | --- | --- | --- |
+| `CR-231` | Implemented | Pin the reviewed Vite 8.2.1, Vitest 4.1.10, and Playwright 1.62.1 toolchain, install it through `sec-helper` using only the user-authorized Vite/Vitest artifact approvals, and keep the Vite configuration compatible with its native loader. Verified by the complete Vitest suite, `node --test scripts/bootstrap-contract.test.mjs`, the production build, and `./scripts/test-e2e-focused.sh season2-shell`. |
 | `CR-230` | Implemented | Bootstrap the standalone Season 2 repository: establish its product identity and documentation, make the new shell the default runtime, retain L'ura v0.9.1 as a development-only reference, remediate the dependency lock through `sec-helper`, and disable inherited production deployments. Focused contract: `node --test scripts/bootstrap-contract.test.mjs`. |
 | `SPEC-018` | Implemented | Define the Season 2 platform boundary: shared product shell and vocabulary, separate Learn 2D and Train 3D runtimes/arena models, isolated auto-discovered encounter packages, and deferred online services. |
 | `FR-072` | Deferred | Implement `EncounterPackageV1`, automatic encounter discovery, and the first isolated Entombed Sentinels package after the bootstrap and architecture contract are stable. No other boss may begin in parallel. |

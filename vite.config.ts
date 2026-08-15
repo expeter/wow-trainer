@@ -2,8 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { execFileSync } from 'node:child_process'
 import packageJson from './package.json' with { type: 'json' }
-import { feedbackInboxPlugin } from './tools/feedbackInboxPlugin'
-import { onlineSubmitLabPlugin } from './tools/onlineSubmitLabPlugin'
+import { feedbackInboxPlugin } from './tools/feedbackInboxPlugin.ts'
+import { onlineSubmitLabPlugin } from './tools/onlineSubmitLabPlugin.ts'
 
 const buildTime = new Date().toISOString()
 const gitRevision = (() => {

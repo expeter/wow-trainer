@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- CR-231: Pin the reviewed Vite 8.2.1, Vitest 4.1.10, and Playwright 1.62.1
+  bootstrap toolchain through `sec-helper`, and make local Vite plugin imports
+  compatible with the native configuration loader.
 - CR-230: Bootstrap the standalone Midnight Season 2 product identity and
   familiar six-section shell, with separate pending Learn 2D and Train 3D
   modes, Entombed Sentinels as the sole first encounter, and the complete L'ura

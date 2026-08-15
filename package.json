@@ -18,10 +18,10 @@
     "react-dom": "latest",
     "three": "latest",
     "typescript": "latest",
-    "vite": "latest"
+    "vite": "8.2.1"
   },
   "devDependencies": {
-    "@playwright/test": "latest",
+    "@playwright/test": "1.62.1",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
     "@testing-library/user-event": "latest",
@@ -30,6 +30,6 @@
     "@types/react-dom": "latest",
     "@types/three": "latest",
     "jsdom": "latest",
-    "vitest": "latest"
+    "vitest": "4.1.10"
   }
 }

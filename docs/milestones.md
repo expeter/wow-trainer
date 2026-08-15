@@ -25,6 +25,9 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-230` — completed: establish the standalone product identity, default
   Season 2 shell, development-only L'ura reference, documentation set,
   dependency baseline, and hard deployment safeguards.
+- `CR-231` — completed: pin and verify the reviewed Vite 8.2.1, Vitest
+  4.1.10, and Playwright 1.62.1 bootstrap toolchain through `sec-helper`, with
+  a native-loader-compatible Vite configuration.
 - `SPEC-018` — completed: make the shared-shell/separate-runtime and isolated
   auto-discovered encounter-package boundaries binding.
 - `FR-072` — deferred until `CR-230` and `SPEC-018` are stable: introduce
