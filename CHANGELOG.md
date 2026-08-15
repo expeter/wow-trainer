@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Restored centered terminal drill cards with dismiss, expandable corrective
+  details, retry, and setup-exit actions while retaining clickable failures.
+- Added four development-only raid world markers to the Train 3D contract room
+  and continuous class-colored cosmetic NPC casts toward bosses.
+- Shortened central mechanic coaching to one-line prompts, added compact named
+  countdown helpers, and moved contract-lab timing/specification prose into its
+  closed configuration drawer.
 - Fixed repeated Train 3D raid-position selection so the controlled player and
   vacated default slot keep unique render identities and the camera follows
   every newly selected position.

@@ -281,6 +281,20 @@
 .contract-pull-overlay.countdown { display: grid; justify-items: center; gap: 7px; width: auto; min-width: 230px; padding: 24px 32px; pointer-events: none; text-align: center; }
 .contract-pull-overlay.countdown strong { color: var(--s2-color-accent); font: 700 72px/1 var(--s2-font-display); text-shadow: 0 0 24px rgba(211, 181, 75, .35); }
 .contract-pull-overlay.countdown span { color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
+.runtime-outcome-card { position: absolute; z-index: 28; left: 50%; top: 50%; width: min(370px, calc(100% - 34px)); padding: 18px 20px; transform: translate(-50%, -50%); border: 1px solid rgba(239,113,130,.65); border-radius: 9px; color: var(--s2-color-text); background: rgba(8,7,14,.96); box-shadow: 0 18px 60px rgba(0,0,0,.72), 0 0 0 9999px rgba(2,4,8,.14); text-align: center; }
+.runtime-outcome-card.success { border-color: rgba(115,224,193,.62); }
+.runtime-outcome-card > span { color: #ef7182; font: 8px var(--s2-font-mono); letter-spacing: .14em; }
+.runtime-outcome-card.success > span { color: var(--s2-color-accent); }
+.runtime-outcome-card h2 { margin: 5px 0 6px; font-size: 20px; }
+.runtime-outcome-card > strong { display: block; font-size: 13px; line-height: 1.4; }
+.runtime-outcome-card details { margin: 12px 0; padding: 7px 9px; border: 1px solid var(--s2-color-border); border-radius: 6px; color: var(--s2-color-muted); text-align: left; }
+.runtime-outcome-card summary { color: var(--s2-color-accent); font: 9px var(--s2-font-mono); cursor: pointer; }
+.runtime-outcome-card details p { margin: 7px 0 0; font-size: 11px; line-height: 1.45; }
+.runtime-outcome-card > div { display: flex; justify-content: center; gap: 7px; }
+.runtime-outcome-card > div button { padding: 8px 12px; font-size: 11px; }
+.runtime-outcome-card .runtime-outcome-primary { color: #171208; border-color: #ff8290; background: #ff8290; font-weight: 800; }
+.runtime-outcome-card.success .runtime-outcome-primary { border-color: var(--s2-color-accent); background: var(--s2-color-accent); }
+.runtime-outcome-dismiss { position: absolute; right: 7px; top: 7px; width: 23px; height: 23px; padding: 0; color: var(--s2-color-muted); font: 14px/1 var(--s2-font-mono); }
 .contract-lab-drawer { position: fixed; z-index: 45; top: 96px; right: 0; color: var(--s2-color-text); }
 .contract-lab-drawer summary { margin-left: auto; width: max-content; padding: 8px 11px; border: 1px solid var(--s2-color-border); border-right: 0; border-radius: 7px 0 0 7px; color: var(--s2-color-accent); background: rgba(7, 13, 18, .94); font: 9px var(--s2-font-mono); cursor: pointer; list-style: none; }
 .contract-lab-drawer summary::-webkit-details-marker { display: none; }
@@ -293,6 +307,8 @@
 .arena-hud-mechanic small, .arena-hud-health small, .arena-hud-auras small { color: var(--s2-color-muted); font: 8px var(--s2-font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .arena-hud-mechanic strong { margin-top: 2px; font-size: 11px; }
 .arena-hud-mechanic span { color: var(--s2-color-accent); font: 9px var(--s2-font-mono); }
+.arena-hud-countdowns { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; margin-top: 2px; }
+.arena-hud-countdowns i { color: var(--s2-color-accent); font: normal 9px var(--s2-font-mono); white-space: nowrap; }
 .arena-hud-mechanic b { margin-top: 4px; color: #70caff; font: 8px var(--s2-font-mono); text-transform: uppercase; }
 .arena-hud-mechanic em { display: block; max-width: 100%; margin-top: 4px; overflow: hidden; color: var(--s2-color-muted); font: normal 8px var(--s2-font-mono); text-overflow: ellipsis; white-space: nowrap; }
 .arena-hud-health { width: min(240px, 26%); padding: 7px 9px; border: 1px solid rgba(113, 221, 153, .55); border-radius: 7px; text-align: center; }

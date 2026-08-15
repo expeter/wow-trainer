@@ -3,6 +3,7 @@ import type { EncounterRuntimeProps } from '../../../platform/encounters'
 import { ArenaTrainingHud } from '../../../platform/TrainingHud'
 import RuntimeStatusBar from '../../../platform/RuntimeStatusBar'
 import RuntimeFeedback, { type RuntimeFailure } from '../../../platform/RuntimeFeedback'
+import RuntimeOutcomeOverlay from '../../../platform/RuntimeOutcomeOverlay'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
 import { FIXED_STEP_SECONDS } from '../../../platform/train3d/simulation'
 import ThreeWorldRenderer from '../../../platform/train3d/ThreeWorldRenderer'
@@ -84,7 +85,7 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
   }, [keyBindings, pause.pausedRef])
 
   const status = outcome === 'active'
-    ? 'Read the icons above each character and meet the one compatible partner in the north sector.'
+    ? 'Reach the compatible northern partner.'
     : outcome === 'success'
       ? 'Resolved: exactly four green, with no third player in contact.'
       : outcome === 'wrong-partner'
@@ -93,14 +94,17 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
           ? 'Third-player collision: only the assigned pair may meet.'
           : 'The 28-second matching window expired.'
 
-  useEffect(() => {
-    if (outcome === 'active' || outcome === 'success') return
-    const details = outcome === 'wrong-partner'
+  const outcomeDetail = outcome === 'success'
+    ? ['Helical Toxins resolved', 'Your pair combined to exactly four green toxins without a third player in contact.']
+    : outcome === 'wrong-partner'
       ? ['Joined an incompatible toxin partner', 'Add the green toxin icons on both characters and choose the pair that totals exactly four.']
       : outcome === 'third-player'
         ? ['Allowed a third player into the toxin pair', 'Resolve with only the assigned compatible partner; keep every other player outside the contact radius.']
         : ['Toxin matching window expired', 'Read the attached icons, face the compatible northern partner, and start moving before the timer expires.']
-    setFailures(current => [{ id: `helical-3d-${attempt}-${outcome}`, code: outcome, time: stateRef.current.time, label: details[0], advice: details[1] }, ...current].slice(0, 5))
+
+  useEffect(() => {
+    if (outcome === 'active' || outcome === 'success') return
+    setFailures(current => [{ id: `helical-3d-${attempt}-${outcome}`, code: outcome, time: stateRef.current.time, label: outcomeDetail[0], advice: outcomeDetail[1] }, ...current].slice(0, 5))
   }, [attempt, outcome])
 
   function restart() {
@@ -130,13 +134,13 @@ export default function SentinelsTrain3D({ scenarioId, keyBindings, hudSettings,
               commandsRef.current.forward = mouseForwardRef.current || keyboardForwardRef.current
             }}
           />
-          <ArenaTrainingHud settings={hudSettings} objective="Read your toxin icons and reach the compatible northern partner" secondsRemaining={28 - snapshot.time} status={status} auraLabel="Helical Toxins" actionStatus="No encounter action assigned" />
+          <ArenaTrainingHud settings={hudSettings} objective="Match toxins with your partner" timers={[{ label: 'Toxins', seconds: 28 - snapshot.time }]} status={status} auraLabel="Helical Toxins" actionStatus="No encounter action assigned" />
           <RuntimeFeedback failures={failures} elapsed={snapshot.time} />
+          {outcome !== 'active' && <RuntimeOutcomeOverlay resultKey={`${attempt}-${outcome}`} kind={outcome === 'success' ? 'success' : 'wipe'} reason={outcomeDetail[0]} advice={outcomeDetail[1]} onRetry={restart} onExit={onExit} />}
         </div>
         <p className="train3d-controls">
           Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · Turn {keyLabel(keyBindings.turnLeft)} {keyLabel(keyBindings.turnRight)} · left-drag orbit · right-drag face · both buttons forward · wheel zoom
         </p>
-        {outcome !== 'active' && <button type="button" className="training-restart" onClick={restart}>Restart drill</button>}
       </div>
     </section>
   </main>

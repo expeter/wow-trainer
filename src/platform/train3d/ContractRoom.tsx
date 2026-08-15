@@ -10,7 +10,7 @@ import { useRuntimePause } from '../useRuntimePause'
 import { FIXED_STEP_SECONDS } from './simulation'
 import ThreeWorldRenderer from './ThreeWorldRenderer'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from './types'
-import { activeContractEvent, CONTRACT_EVENT_SECONDS, contractRoomSnapshot, createContractRoomState, prepareContractRoomSlot, stepContractRoom, turnContractRoomPlayer } from './contractRoomSimulation'
+import { activeContractEvent, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, contractRoomSnapshot, createContractRoomState, prepareContractRoomSlot, stepContractRoom, turnContractRoomPlayer } from './contractRoomSimulation'
 
 export default function ContractRoom({ keyBindings, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createContractRoomState())
@@ -96,7 +96,8 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
   }, [gate.phaseRef, keyBindings, pause.pausedRef])
 
   const event = activeContractEvent(stateRef.current)
-  const secondsRemaining = CONTRACT_EVENT_SECONDS - (stateRef.current.time - stateRef.current.eventStartedAt)
+  const eventAge = stateRef.current.time - stateRef.current.eventStartedAt
+  const secondsRemaining = CONTRACT_EVENT_SECONDS - eventAge
 
   return <main className="training-shell contract-room-runtime">
     <RuntimeStatusBar meta={`DEVELOPMENT · TRAIN 3D LAB · ${gate.role.toUpperCase()}`} title="Reaction and movement lab" status={`Match ${event.tone} · ${summary.successes} resolved · event ${summary.eventIndex + 1}`} performance={`${performanceSample.fps || '…'} FPS · p95 ${performanceSample.p95Ms || '…'} ms`} paused={pause.paused} pauseKey={keyBindings.pause} onTogglePause={pause.toggle} onExit={onExit} />
@@ -115,13 +116,13 @@ export default function ContractRoom({ keyBindings, hudSettings, cameraSettings,
             }}
             onPerformanceSample={setPerformanceSample}
           />
-          <ArenaTrainingHud settings={hudSettings} objective={`Match the ${event.tone} ground rune`} secondsRemaining={secondsRemaining} status={`${summary.successes} resolved · ${summary.misses} missed · 20-player raid · event ${summary.eventIndex + 1}`} playerHealth={actions.health} auraLabel={`${event.tone} aura`} actionStatus={actions.mainCast > 0 ? 'Main ability casting' : 'Main ability ready'} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} actionButton={<button type="button" onClick={actions.activateMain} disabled={gate.phase !== 'active' || actions.mainCast > 0}>Main ability <kbd>{keyLabel(keyBindings.mainAbility)}</kbd></button>} />
+          <ArenaTrainingHud settings={hudSettings} objective={`Match the ${event.tone} rune`} timers={[{ label: 'React', seconds: secondsRemaining }, { label: 'Ground', seconds: CONTRACT_LANDING_SECONDS - eventAge }]} status={`${summary.successes} resolved · ${summary.misses} missed · 20-player raid · event ${summary.eventIndex + 1}`} playerHealth={actions.health} auraLabel={`${event.tone} aura`} actionStatus={actions.mainCast > 0 ? 'Main ability casting' : 'Main ability ready'} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} actionButton={<button type="button" onClick={actions.activateMain} disabled={gate.phase !== 'active' || actions.mainCast > 0}>Main ability <kbd>{keyLabel(keyBindings.mainAbility)}</kbd></button>} />
           <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Train 3D" />
           <RuntimeFeedback failures={stateRef.current.failures} elapsed={snapshot.time} />
         </div>
         <p className="train3d-controls">Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · turn {keyLabel(keyBindings.turnLeft)} {keyLabel(keyBindings.turnRight)} · Main {keyLabel(keyBindings.mainAbility)} · Shield {keyLabel(keyBindings.shield)} · Potion {keyLabel(keyBindings.healthPot)}{gate.role === 'tank' ? ` · Taunt / Spott ${keyLabel(keyBindings.taunt)}` : ''} · mouse-look, both-buttons-forward, wheel zoom</p>
       </div>
     </section>
-    <details className="contract-lab-drawer"><summary>Lab configuration</summary><div><p>Four ground objects and their spell projectiles are simulated together.</p><p>The boss, two tanks, five healers, and thirteen mixed melee/ranged damage players make a 20-player raid including you.</p><p>{summary.successes} resolved · {summary.misses} missed · {summary.wrongGrounds} wrong rune</p></div></details>
+    <details className="contract-lab-drawer"><summary>Lab configuration</summary><div><p><strong>Reaction:</strong> four ground runes appear together; enter only the one matching your attached aura.</p><p><strong>Timing:</strong> projectiles land after {CONTRACT_LANDING_SECONDS.toFixed(1)}s and each reaction expires after {CONTRACT_EVENT_SECONDS}s.</p><p><strong>Visual checks:</strong> four dummy raid markers and continuous class-colored NPC casts are cosmetic only.</p><p><strong>Raid:</strong> two tanks, five healers, five melee, and eight ranged players including you.</p><p>{summary.successes} resolved · {summary.misses} missed · {summary.wrongGrounds} wrong rune</p></div></details>
   </main>
 }

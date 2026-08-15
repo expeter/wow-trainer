@@ -565,6 +565,24 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   stable reason code and clickable corrective explanation. The points frame
   reads as unscored until a package supplies an approved scoring contract; it
   must not invent placeholder scores.
+- Terminal drill outcomes freeze authoritative mechanics behind a centered,
+  dismissible result card. The card states the wipe/completion reason, exposes
+  expandable corrective detail, and offers Try again and Change setup. Dismissal
+  restores an unobstructed arena while the same failure remains available in
+  the clickable bottom-left log.
+- Central mechanic coaching is a short one-line reaction instruction. Detailed
+  spell and mechanic specifications belong in encounter setup or the closed
+  development lab drawer. The HUD may show multiple compact named countdowns
+  when concurrent upcoming events aid reaction, but must not replace them with
+  paragraph-style prose.
+- Train 3D snapshots may carry class-colored ambient NPC projectiles toward a
+  boss. These are continuous cosmetic life signals only: rendering never feeds
+  them into collision, damage, scoring, timing validation, or outcomes.
+- The development contract room may carry dummy raid world markers to validate
+  marker silhouette, height, color, footprint, and apparent yard scale. They
+  use shared snapshot/renderer vocabulary, are explicitly non-mechanical, and
+  do not appear in the real Sentinels lesson unless an encounter later declares
+  actual marker semantics.
 - Setup presents automatically discovered packages as encounter teaser cards.
   Each card owns its Learn 2D and Train 3D scenario actions and labels planned
   scenarios Coming soon. Setup must not duplicate the selected encounter in a

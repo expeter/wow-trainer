@@ -133,6 +133,16 @@ encounter development into an independently deployed Season 2 repository.
 - `SPEC-020` — completed under `FR-072`: document the verified yard-space model,
   current camera projection, and the boundary between calibrated platform
   movement and encounter geometry that still needs sourced evidence.
+- `BUG-169` — completed under `FR-076`: restore the centered dismissible outcome
+  card with details, retry, and setup-exit behavior while retaining the live
+  clickable failure log.
+- `CR-255` — completed under `FR-072`: add lab-only dummy raid world markers to
+  the shared 3D snapshot/renderer vocabulary for visual scale review.
+- `CR-256` — completed under `FR-072`: restore continuous class-colored NPC
+  cosmetic casts toward bosses without feeding rendering back into mechanics.
+- `CR-257` — completed under `FR-072`: keep central coaching to one-line prompts,
+  move lab specifications into its drawer, and support multiple compact named
+  countdown helpers.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
@@ -150,6 +160,8 @@ encounter development into an independently deployed Season 2 repository.
   pass without changing encounter mechanics.
 - `FR-075` — deferred until Sentinels and the optimization pass are stable:
   open individually ticketed, isolated encounter packages one boss at a time.
+  The captured Nek'zali raid-plan image is indexed as future evidence only and
+  does not begin that encounter package.
 
 The near-term execution order is `FR-072` → `CR-235` → `CR-236` → `FR-074` →
 `CR-234` → `FR-075`.

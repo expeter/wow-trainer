@@ -17,11 +17,11 @@ import of L’ura encounter code.
 | WoW-like left orbit, right face, both-buttons-forward | Extracted in current batch | `BUG-161` |
 | Deterministic fixed-step Train 3D simulation and renderer boundary | Extracted | `BUG-157`, `BUG-162` |
 | Reviewed in-arena HUD frames, cast bar and action position | Extracted; mandatory mechanic/timer and display-rate cast progress retained | `CR-245`, `BUG-164`, `BUG-167`, `CR-254` |
-| Pull countdown, pause/resume, restart, failure lifecycle | Partial: lab countdown only | `FR-076` |
+| Pull countdown, pause/resume, restart, failure lifecycle | Partial: lab countdown, pause, and centered dismissible drill outcomes extracted; renderer recovery remains | `FR-076`, `BUG-169` |
 | Dynamic encounter action declarations and bindings | Prototype only; contract gap | `FR-077` |
 | Independent music, encounter SFX and raid-lead/TTS channels | Active gap | `FR-078` |
 | Draggable/group tactical planning with validation and sharing | Active gap | `FR-079` |
-| Stable failure review, recap and offline share/result identity | Partial: in-arena failure/points corners extracted; recap/share pending | `CR-249`, `FR-080` |
+| Stable failure review, recap and offline share/result identity | Partial: live corners and detailed terminal drill card extracted; recap/share pending | `CR-249`, `BUG-169`, `FR-080` |
 | Namespaced, schema-versioned local persistence | Partial: training settings only | `FR-076`, `FR-078`, `FR-079` |
 | Unit/component/focused browser/build delivery gates | Extracted and evolving | `CR-231`, `FR-072` |
 | Dedicated Pages workflow and production monitoring | Deliberately deferred | `FR-074` |

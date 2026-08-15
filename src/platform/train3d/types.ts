@@ -36,7 +36,7 @@ export interface ActorSnapshot {
 
 export interface EffectSnapshot {
   id: string
-  kind: 'pulse' | 'projectile'
+  kind: 'pulse' | 'projectile' | 'cosmetic-projectile'
   position: WorldPoint
   target?: WorldPoint
   radius: number
@@ -44,11 +44,21 @@ export interface EffectSnapshot {
   progress: number
 }
 
+export type WorldMarkerKind = 'star' | 'cross' | 'diamond' | 'circle'
+export interface WorldMarkerSnapshot {
+  id: string
+  kind: WorldMarkerKind
+  label: string
+  position: WorldPoint
+  color: string
+}
+
 export interface Train3DSnapshot {
   time: number
   arena: WorldArena3D
   actors: readonly ActorSnapshot[]
   effects: readonly EffectSnapshot[]
+  markers?: readonly WorldMarkerSnapshot[]
 }
 
 export const IDLE_PLAYER_COMMANDS: PlayerCommandState = {

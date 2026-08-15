@@ -1,4 +1,5 @@
 import { distance, stepPlayerMovement } from '../../../platform/train3d/simulation'
+import { cosmeticClassProjectiles } from '../../../platform/train3d/cosmeticCombat'
 import type { ActorSnapshot, PlayerCommandState, Train3DSnapshot } from '../../../platform/train3d/types'
 import { train3dArenas } from './arenas'
 
@@ -51,14 +52,17 @@ export function helicalSnapshot(state: HelicalSimulationState): Train3DSnapshot 
     { id: 'player', kind: 'player', position: state.player, facing: state.player.facing, color: '#f2d36b', auras: toxins(1, 3), health: 100 },
     { id: 'acid-boss', kind: 'boss', position: { x: -30, z: 0 }, facing: Math.PI / 2, color: '#65c98b', auras: [], health: 100 },
     { id: 'blood-boss', kind: 'boss', position: { x: 30, z: 0 }, facing: -Math.PI / 2, color: '#c75e70', auras: [], health: 100 },
-    { id: 'compatible-partner', kind: 'ally', position: correctPartner, facing: Math.PI, color: '#8191ae', auras: toxins(3, 1) },
-    { id: 'wrong-partner', kind: 'ally', position: wrongPartner, facing: 0, color: '#8191ae', auras: toxins(2, 2) },
-    { id: 'third-player', kind: 'ally', position: thirdPlayer, facing: -.8, color: '#8191ae', auras: toxins(1, 3) },
+    { id: 'compatible-partner', kind: 'ally', playerClass: 'mage', position: correctPartner, facing: Math.PI, color: '#8191ae', auras: toxins(3, 1) },
+    { id: 'wrong-partner', kind: 'ally', playerClass: 'shaman', position: wrongPartner, facing: 0, color: '#8191ae', auras: toxins(2, 2) },
+    { id: 'third-player', kind: 'ally', playerClass: 'hunter', position: thirdPlayer, facing: -.8, color: '#8191ae', auras: toxins(1, 3) },
   ]
   return {
     time: state.time,
     arena,
     actors,
-    effects: [{ id: 'north-meeting-sector', kind: 'pulse', position: correctPartner, radius: 3.5, color: '#75e2b2', progress: (state.time % 1.5) / 1.5 }],
+    effects: [
+      { id: 'north-meeting-sector', kind: 'pulse', position: correctPartner, radius: 3.5, color: '#75e2b2', progress: (state.time % 1.5) / 1.5 },
+      ...cosmeticClassProjectiles(actors, { x: -30, z: 0 }, state.time),
+    ],
   }
 }

@@ -2,6 +2,7 @@ import type { WorldArena3D } from '../encounters'
 import { auraToneColors, CONTRACT_DEFAULT_PLAYER_SLOT, contractDirections, contractRaidRoster, contractRosterForSlot, contractSelectedMember, contractTones, trainingClassColors, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, seededContractEvents, type ContractDirection, type ContractEvent, type ContractRaidMember } from '../contractRoom'
 import { distance, stepPlayerMovement } from './simulation'
 import type { PlayerCommandState, Train3DSnapshot, WorldPoint } from './types'
+import { cosmeticClassProjectiles } from './cosmeticCombat'
 import type { RuntimeFailure } from '../RuntimeFeedback'
 
 export { CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS } from '../contractRoom'
@@ -16,6 +17,13 @@ export const contractRoomArena = {
   anchors: contractDirections.map(direction => ({ id: direction, label: `${direction} reaction position`, ...contractGroundSlots[direction] })),
   theme: { floor: 'contract-grid', accent: '#73e0c1' },
 } as const satisfies WorldArena3D
+
+export const contractRoomMarkers = [
+  { id: 'dummy-star', kind: 'star', label: 'Dummy star marker', position: { x: -28, z: -22 }, color: '#f0d65c' },
+  { id: 'dummy-cross', kind: 'cross', label: 'Dummy cross marker', position: { x: 28, z: -22 }, color: '#ef6478' },
+  { id: 'dummy-diamond', kind: 'diamond', label: 'Dummy diamond marker', position: { x: -28, z: 22 }, color: '#58b7ff' },
+  { id: 'dummy-circle', kind: 'circle', label: 'Dummy circle marker', position: { x: 28, z: 22 }, color: '#e79b42' },
+] as const
 
 export interface ContractRoomState {
   time: number
@@ -109,9 +117,14 @@ export function contractRoomSnapshot(state: ContractRoomState, playerSlotId = CO
       position: { x: origin.x + sway, z: origin.z + Math.cos(state.time * .5 + index) * .3 },
       facing: Math.atan2(-origin.x, -origin.z),
       color: member.role === 'tank' ? '#6f9cff' : member.role === 'healer' ? '#71dd99' : member.role === 'melee' ? '#e18a58' : '#b690e8',
+      playerClass: member.playerClass,
       auras: index % 4 === 0 ? [{ id: `npc-${tone}`, tone, stacks: 1 }] : [], health: 100,
     }
   })
+  const encounterEffects = event.groundObjects.flatMap(object => [
+    { id: `ground-${object.id}`, kind: 'pulse' as const, position: contractGroundSlots[object.direction], radius: 3.8, color: auraToneColors[object.tone], progress: pulseProgress },
+    ...(age <= CONTRACT_LANDING_SECONDS ? [{ id: `spell-${object.id}`, kind: 'projectile' as const, position: { x: 0, z: 0 }, target: contractGroundSlots[object.direction], radius: .4, color: auraToneColors[object.tone], progress: Math.min(1, age / CONTRACT_LANDING_SECONDS) }] : []),
+  ])
   return {
     time: state.time,
     arena: contractRoomArena,
@@ -120,9 +133,7 @@ export function contractRoomSnapshot(state: ContractRoomState, playerSlotId = CO
       { id: 'spell-dummy', kind: 'boss', position: { x: 0, z: 0 }, facing: 0, color: '#607481', auras: [], health: 100 },
       ...npcActors,
     ],
-    effects: event.groundObjects.flatMap(object => [
-      { id: `ground-${object.id}`, kind: 'pulse' as const, position: contractGroundSlots[object.direction], radius: 3.8, color: auraToneColors[object.tone], progress: pulseProgress },
-      ...(age <= CONTRACT_LANDING_SECONDS ? [{ id: `spell-${object.id}`, kind: 'projectile' as const, position: { x: 0, z: 0 }, target: contractGroundSlots[object.direction], radius: .4, color: auraToneColors[object.tone], progress: Math.min(1, age / CONTRACT_LANDING_SECONDS) }] : []),
-    ]),
+    effects: [...encounterEffects, ...cosmeticClassProjectiles(npcActors, { x: 0, z: 0 }, state.time)],
+    markers: contractRoomMarkers,
   }
 }

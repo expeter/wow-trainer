@@ -21,6 +21,7 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
 test('moves independently in all four Learn 2D directions and clears input on blur', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
+  await expect(page.getByLabel('Controlled character with 1 green and 3 red toxins')).toBeVisible()
   const player = page.getByLabel('Controlled character with 1 green and 3 red toxins')
   const position = async () => ({ x: Number(await player.getAttribute('data-position-x')), y: Number(await player.getAttribute('data-position-y')) })
   let before = await position()
@@ -75,6 +76,26 @@ test('moves the player through the Helical Toxins Learn 2D icon drill', async ({
   await page.waitForTimeout(950)
   await page.keyboard.up('d')
   await expect(page.getByText('Resolved: your pair combines to exactly four green.')).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Drill completion summary' })).toContainText('Helical Toxins resolved')
+})
+
+test('shows a dismissible detailed wipe card while retaining recent failure help', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Launch Learn 2D' }).click()
+  await expect(page.getByLabel('Controlled character with 1 green and 3 red toxins')).toBeVisible()
+  await page.keyboard.down('d'); await page.waitForTimeout(1050); await page.keyboard.up('d')
+  await page.keyboard.down('s'); await page.waitForTimeout(900); await page.keyboard.up('s')
+  const wipe = page.getByRole('dialog', { name: 'Drill wipe summary' })
+  await expect(wipe).toBeVisible()
+  await expect(wipe).toContainText('Joined an incompatible toxin partner')
+  await wipe.getByText('Details').click()
+  await expect(wipe).toContainText('totals exactly four')
+  await wipe.getByRole('button', { name: 'Dismiss outcome summary' }).click()
+  await expect(wipe).toHaveCount(0)
+  const failures = page.getByRole('complementary', { name: 'Recent failures' })
+  await expect(failures).toContainText('Joined an incompatible toxin partner')
+  await failures.getByRole('button', { name: /Help for Joined/ }).click()
+  await expect(failures).toContainText('totals exactly four')
 })
 
 test('opens paired contract rooms with full-raid ground reactions and paced 3D rendering', async ({ page }) => {
@@ -118,6 +139,8 @@ test('opens paired contract rooms with full-raid ground reactions and paced 3D r
   await expect(page.getByRole('heading', { name: 'Reaction and movement lab' })).toBeVisible()
   const contractArena = page.getByLabel('Third-person 3D training arena')
   await expect(contractArena).toBeVisible()
+  await expect(contractArena).toHaveAttribute('data-world-marker-count', '4')
+  await expect(contractArena).toHaveAttribute('data-cosmetic-cast-count', '19')
   const trainEntrance = page.getByRole('dialog', { name: 'Contract room entrance' })
   await expect(trainEntrance).toBeVisible()
   const selectedXs: number[] = []
@@ -132,6 +155,7 @@ test('opens paired contract rooms with full-raid ground reactions and paced 3D r
   await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
   await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('event 1')
   await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('20-player raid')
+  await expect(page.getByRole('complementary', { name: 'Training HUD' })).toContainText('React')
   await expect(page.locator('.arena-hud-health.player')).toBeVisible()
   await expect(page.locator('.arena-hud-health.boss')).toBeVisible()
   await expect(page.getByRole('button', { name: /Main ability/ })).toBeVisible()

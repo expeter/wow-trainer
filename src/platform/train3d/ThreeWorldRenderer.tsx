@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { TrainingCameraSettings } from '../trainingSettings'
-import type { ActorSnapshot, EffectSnapshot, Train3DSnapshot } from './types'
+import type { ActorSnapshot, EffectSnapshot, Train3DSnapshot, WorldMarkerSnapshot } from './types'
 
 interface ThreeWorldRendererProps {
   snapshot: Train3DSnapshot
@@ -101,8 +101,13 @@ function refreshAuras(group: THREE.Group, actor: ActorSnapshot) {
 }
 
 function effectObject(effect: EffectSnapshot) {
-  if (effect.kind === 'projectile') {
-    return new THREE.Mesh(new THREE.SphereGeometry(.42, 12, 8), new THREE.MeshBasicMaterial({ color: effect.color }))
+  if (effect.kind === 'projectile' || effect.kind === 'cosmetic-projectile') {
+    return new THREE.Mesh(
+      new THREE.SphereGeometry(effect.radius, 10, 7),
+      effect.kind === 'cosmetic-projectile'
+        ? new THREE.MeshStandardMaterial({ color: effect.color, emissive: effect.color, emissiveIntensity: 1.8, roughness: .2 })
+        : new THREE.MeshBasicMaterial({ color: effect.color }),
+    )
   }
   const ring = new THREE.Mesh(
     new THREE.RingGeometry(Math.max(.1, effect.radius - .35), effect.radius, 40),
@@ -110,6 +115,32 @@ function effectObject(effect: EffectSnapshot) {
   )
   ring.rotation.x = -Math.PI / 2
   return ring
+}
+
+function markerObject(marker: WorldMarkerSnapshot) {
+  const group = new THREE.Group()
+  group.name = marker.id
+  const material = new THREE.MeshStandardMaterial({ color: marker.color, emissive: marker.color, emissiveIntensity: .35, roughness: .42, transparent: true, opacity: .88 })
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(.07, .1, 4.4, 8), material)
+  pole.position.y = 2.2
+  const base = new THREE.Mesh(new THREE.RingGeometry(.85, 1.1, 28), new THREE.MeshBasicMaterial({ color: marker.color, side: THREE.DoubleSide, transparent: true, opacity: .45 }))
+  base.rotation.x = -Math.PI / 2
+  base.position.y = .06
+  const symbol = new THREE.Group()
+  symbol.position.y = 4.65
+  if (marker.kind === 'circle') {
+    symbol.add(new THREE.Mesh(new THREE.TorusGeometry(.48, .12, 8, 24), material))
+  } else if (marker.kind === 'cross') {
+    const horizontal = new THREE.Mesh(new THREE.BoxGeometry(1.05, .22, .18), material)
+    const vertical = new THREE.Mesh(new THREE.BoxGeometry(.22, 1.05, .18), material)
+    symbol.add(horizontal, vertical)
+  } else {
+    const shape = new THREE.Mesh(new THREE.OctahedronGeometry(marker.kind === 'star' ? .58 : .5, marker.kind === 'star' ? 1 : 0), material)
+    if (marker.kind === 'diamond') shape.scale.y = 1.3
+    symbol.add(shape)
+  }
+  group.add(pole, base, symbol)
+  return group
 }
 
 export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSettings, onCameraSettingsChange, onPlayerLook, onBothButtonsForward, onPerformanceSample }: ThreeWorldRendererProps) {
@@ -169,6 +200,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
 
     const actors = new Map<string, THREE.Group>()
     const effects = new Map<string, THREE.Object3D>()
+    const markers = new Map<string, THREE.Group>()
     let cameraYawOffset = 0
     let cameraPitch = .28
     const mouseButtons = new Set<number>()
@@ -320,7 +352,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         const target = effect.target ?? effect.position
         const x = THREE.MathUtils.lerp(effect.position.x, target.x, effect.progress)
         const z = THREE.MathUtils.lerp(effect.position.z, target.z, effect.progress)
-        const y = effect.kind === 'projectile' ? 1.1 + Math.sin(effect.progress * Math.PI) * 2 : .08
+        const y = effect.kind === 'pulse' ? .08 : 1.1 + Math.sin(effect.progress * Math.PI) * (effect.kind === 'cosmetic-projectile' ? 1.2 : 2)
         if (object.userData.positionReady) {
           object.position.x = THREE.MathUtils.lerp(object.position.x, x, actorAlpha)
           object.position.y = THREE.MathUtils.lerp(object.position.y, y, actorAlpha)
@@ -334,6 +366,28 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
           object.scale.setScalar(THREE.MathUtils.lerp(object.scale.x, scale, actorAlpha))
         }
       })
+      const currentMarkers = current.markers ?? []
+      const liveMarkerIds = new Set(currentMarkers.map(marker => marker.id))
+      for (const [id, object] of markers) {
+        if (!liveMarkerIds.has(id)) {
+          scene.remove(object)
+          disposeObject(object)
+          markers.delete(id)
+        }
+      }
+      currentMarkers.forEach(marker => {
+        let object = markers.get(marker.id)
+        if (!object) {
+          object = markerObject(marker)
+          markers.set(marker.id, object)
+          scene.add(object)
+        }
+        object.position.set(marker.position.x, 0, marker.position.z)
+      })
+      if (import.meta.env.DEV) {
+        renderCanvas.dataset.worldMarkerCount = String(currentMarkers.length)
+        renderCanvas.dataset.cosmeticCastCount = String(current.effects.filter(effect => effect.kind === 'cosmetic-projectile').length)
+      }
       const player = current.actors.find(actor => actor.kind === 'player')
       if (player) {
         const renderedPlayer = actors.get(player.id)

@@ -26,6 +26,8 @@ describe('development contract room simulation', () => {
     expect(snapshot.effects.filter(effect => effect.kind === 'projectile')).toHaveLength(4)
     expect(snapshot.actors[0].auras[0].stacks).toBe(1)
     expect(snapshot.actors).toHaveLength(21)
+    expect(snapshot.markers?.map(marker => marker.kind)).toEqual(['star', 'cross', 'diamond', 'circle'])
+    expect(snapshot.effects.filter(effect => effect.kind === 'cosmetic-projectile')).toHaveLength(19)
   })
 
   it('keeps the controlled render identity unique after every slot transfer', () => {

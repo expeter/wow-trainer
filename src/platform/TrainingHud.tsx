@@ -6,6 +6,7 @@ interface TrainingHudProps {
   mode: 'Learn 2D' | 'Train 3D'
   objective: string
   secondsRemaining?: number
+  timers?: readonly { label: string; seconds: number }[]
   status?: string
   playerHealth?: number
   bossHealth?: number
@@ -51,12 +52,13 @@ function SmoothCastBar({ seconds, secondsSource, style }: { seconds: number; sec
 }
 
 /** Season 2 extraction of the reviewed v0.9.1 in-arena HUD contract. */
-export function ArenaTrainingHud({ settings, objective, secondsRemaining, status, playerHealth = 100, bossHealth = 100, auraLabel = 'No active aura', actionStatus = 'Ready', castSeconds = 0, castSecondsSource, actionButton }: ArenaTrainingHudProps) {
+export function ArenaTrainingHud({ settings, objective, secondsRemaining, timers, status, playerHealth = 100, bossHealth = 100, auraLabel = 'No active aura', actionStatus = 'Ready', castSeconds = 0, castSecondsSource, actionButton }: ArenaTrainingHudProps) {
   const at = (box: keyof TrainingHudSettings['layout']) => ({ left: `${settings.layout[box].x}%`, top: `${settings.layout[box].y}%` })
+  const countdowns = timers ?? (secondsRemaining === undefined ? [] : [{ label: 'Time', seconds: secondsRemaining }])
   return <aside className="arena-training-hud" aria-label="Training HUD" style={{ fontSize: `${settings.scale}%` }}>
     <div className="arena-hud-mechanic" style={at('objective')}>
       <><small>Mechanic</small><strong>{objective}</strong></>
-      <span>{secondsRemaining !== undefined ? `${Math.max(0, Math.ceil(secondsRemaining))}s` : ''}</span>
+      <span className="arena-hud-countdowns">{countdowns.filter((timer, index) => index === 0 || timer.seconds > .05).map(timer => <i key={timer.label}>{timer.label} {Math.max(0, timer.seconds).toFixed(timer.seconds < 5 ? 1 : 0)}s</i>)}</span>
       {settings.showActions && <b aria-label="Action state">{actionStatus}</b>}
       {status && <em role="status">{status}</em>}
     </div>

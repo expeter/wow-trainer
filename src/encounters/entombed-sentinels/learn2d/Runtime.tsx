@@ -3,6 +3,7 @@ import type { EncounterRuntimeProps } from '../../../platform/encounters'
 import { stepDiagramMovement, type DiagramDirection } from '../../../platform/learn2d/movement'
 import RuntimeStatusBar from '../../../platform/RuntimeStatusBar'
 import RuntimeFeedback, { type RuntimeFailure } from '../../../platform/RuntimeFeedback'
+import RuntimeOutcomeOverlay from '../../../platform/RuntimeOutcomeOverlay'
 import { keyLabel } from '../../../platform/trainingSettings'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
 import ToxinIcons from '../ToxinIcons'
@@ -118,6 +119,11 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: En
       : outcome === 'wrong-partner'
         ? 'Wrong partner. Compare the attached icons and try a composition that totals four green.'
         : 'The matching window expired before you reached a partner.'
+  const outcomeDetail = outcome === 'success'
+    ? ['Helical Toxins resolved', 'Your pair combines to exactly four green toxins.']
+    : outcome === 'wrong-partner'
+      ? ['Joined an incompatible toxin partner', 'Add the green icons on both characters and choose the pair that totals exactly four.']
+      : ['Toxin matching window expired', 'Read the attached icons first, then move toward the compatible northern character before the timer expires.']
 
   useEffect(() => {
     if (outcome !== 'wrong-partner' && outcome !== 'expired') return
@@ -125,8 +131,8 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: En
       id: `helical-2d-${attempt}-${outcome}`,
       code: outcome,
       time: elapsedRef.current,
-      label: outcome === 'wrong-partner' ? 'Joined an incompatible toxin partner' : 'Toxin matching window expired',
-      advice: outcome === 'wrong-partner' ? 'Add the green icons on both characters and choose the pair that totals exactly four.' : 'Read the attached icons first, then move toward the compatible northern character before the timer expires.',
+      label: outcomeDetail[0],
+      advice: outcomeDetail[1],
     }, ...current].slice(0, 5))
   }, [attempt, outcome])
 
@@ -149,6 +155,7 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: En
             <span className="character-body" aria-hidden="true" />
           </div>
           <RuntimeFeedback failures={failures} elapsed={elapsedRef.current} />
+          {outcome !== 'active' && <RuntimeOutcomeOverlay resultKey={`${attempt}-${outcome}`} kind={outcome === 'success' ? 'success' : 'wipe'} reason={outcomeDetail[0]} advice={outcomeDetail[1]} onRetry={restart} onExit={onExit} />}
         </div></div>
         <div className="learn2d-controls">
           <span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)}</span>
@@ -164,7 +171,6 @@ export default function SentinelsLearn2D({ scenarioId, keyBindings, onExit }: En
             >{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}
           </div>
         </div>
-        {outcome !== 'active' && <button type="button" className="training-restart" onClick={restart}>Practice again</button>}
       </div>
     </section>
   </main>
