@@ -35,6 +35,7 @@ describe('EncounterPackageV1 conformance', () => {
       learn2d: [],
       train3d: [],
       train3dArenas: [],
+      runtimeLoaders: { learn2d: sentinels.runtimeLoaders.learn2d, train3d: sentinels.runtimeLoaders.train3d },
     }
 
     expect(validateEncounterPackage(malformed)).toEqual({

@@ -483,6 +483,11 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
 - Each boss lives in one isolated `src/encounters/<encounter-id>/` directory
   and is exposed through `EncounterPackageV1`. Discovery is automatic from
   encounter entry modules; a central hand-maintained boss switch is forbidden.
+- Ready scenarios are launched through package-owned lazy runtime loaders. The
+  product shell may pass shared preferences and select a scenario, but it must
+  not import a boss runtime directly or resolve boss mechanics itself.
+- Movement bindings and HUD visibility/scale are shell-owned, use Season 2
+  storage keys, and flow into both runtimes without sharing simulation state.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.

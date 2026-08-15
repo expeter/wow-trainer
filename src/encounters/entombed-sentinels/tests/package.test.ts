@@ -3,10 +3,13 @@ import { validateEncounterPackage } from '../../../platform/encounters'
 import sentinels from '..'
 
 describe('Entombed Sentinels package boundary', () => {
-  it('is a conforming research package with both runtimes still planned', () => {
+  it('is a conforming PTR preview with only the first focused drill ready', () => {
     expect(validateEncounterPackage(sentinels).ok).toBe(true)
-    expect(sentinels.manifest.availability).toBe('research')
-    expect([...sentinels.learn2d, ...sentinels.train3d].every(scenario => scenario.status === 'planned')).toBe(true)
+    expect(sentinels.manifest.availability).toBe('ptr-preview')
+    expect(sentinels.learn2d.filter(scenario => scenario.status === 'ready').map(scenario => scenario.id)).toEqual(['sentinels_helical_toxins'])
+    expect(sentinels.train3d.filter(scenario => scenario.status === 'ready').map(scenario => scenario.id)).toEqual(['sentinels_helical_toxins'])
+    expect(typeof sentinels.runtimeLoaders.learn2d).toBe('function')
+    expect(typeof sentinels.runtimeLoaders.train3d).toBe('function')
   })
 
   it('shares vocabulary while keeping 2D and 3D arena models distinct', () => {

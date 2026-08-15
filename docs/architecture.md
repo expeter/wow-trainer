@@ -1,8 +1,9 @@
 # Midnight Season 2 architecture boundary
 
-This document operationalizes `SPEC-018`. Stage 4A implements the versioned
-package, validation, and discovery boundary while leaving both encounter
-runtimes explicitly non-playable.
+This document operationalizes `SPEC-018`. Stage 4A implemented the versioned
+package, validation, and discovery boundary. Stage 4B adds package-owned lazy
+runtime loaders and the first playable Helical Toxins slice while retaining
+separate Learn 2D and Train 3D arena authority.
 
 ## Product entry points
 
@@ -19,8 +20,8 @@ keys from `App.tsx`, `GameScene.tsx`, or the L'ura `/v1` client.
 
 | Owner | Responsibilities | Must not own |
 | --- | --- | --- |
-| Product shell | Navigation, product identity, preferences, accessibility, encounter selection, shared terms | Boss mechanics or runtime geometry |
-| `EncounterPackageV1` | Encounter identity, shared vocabulary, mechanic timeline/content, assignments, runtime capability declarations | DOM state, Three.js objects, API clients, global registry switches |
+| Product shell | Navigation, product identity, preferences, accessibility, encounter/scenario selection, shared terms | Boss mechanics or runtime geometry |
+| `EncounterPackageV1` | Encounter identity, shared vocabulary, mechanic timeline/content, assignments, runtime capability declarations and lazy runtime loaders | DOM state, Three.js objects, API clients, global registry switches |
 | Learn 2D runtime | Diagrams, explanations, timeline study, 2D planner projection | Train 3D world coordinates or physics |
 | Train 3D runtime | Movement simulation, camera, collision, 3D arena projection | Learn 2D canvas state or diagram layout |
 | Encounter directory | One boss package, its assets, fixtures, runtime adapters, and focused tests | Other bosses or central registration edits |
@@ -44,8 +45,11 @@ development diagnostics instead of crashing the catalogue.
 
 Entombed Sentinels is the only current encounter directory. Its package owns
 the `ptr_2026-08-13` profile, tactic declarations, abstract 2D diagram arena,
-independent 3D world arena, and planned scenario metadata. No renderer or
-mechanic resolution has been introduced in Stage 4A.
+independent 3D world arena, scenario metadata, and lazy runtime adapters. Only
+Helical Toxins is `ready`: Learn 2D resolves composition and an abstract meeting
+sector, while Train 3D resolves keyboard movement, world collision, and the
+28-second matching window. The shell passes persisted bindings and HUD
+preferences into both without becoming an encounter-state owner.
 
 ## Delivery order
 

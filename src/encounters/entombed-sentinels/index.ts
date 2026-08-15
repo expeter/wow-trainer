@@ -22,6 +22,10 @@ const encounterPackage = {
   learn2d: learn2dScenarios,
   train3d: train3dScenarios,
   train3dArenas,
+  runtimeLoaders: {
+    learn2d: () => import('./learn2d/Runtime'),
+    train3d: () => import('./train3d/Runtime'),
+  },
 } as const satisfies EncounterPackageV1
 
 export default encounterPackage

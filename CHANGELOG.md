@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- FR-072 (Stage 4B): Make the focused Helical Toxins scenario playable in both
+  a package-owned Learn 2D decision lesson and an independently modelled Train
+  3D movement drill. Add lazy runtime loaders, shared persisted movement
+  bindings, configurable HUD objective/timer/position visibility and scale,
+  and focused component/browser coverage without enabling another encounter.
 - CR-233: Add a README-only project-lineage acknowledgement linking the
   original L’ura Trainer and source repository while keeping the deployed
   Midnight shell disconnected from the legacy site and `/v1` API.

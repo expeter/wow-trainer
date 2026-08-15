@@ -7,7 +7,7 @@ export const manifest = {
   order: 2,
   contentSeason: 'Midnight Season 2',
   sourceConfidence: 'medium',
-  availability: 'research',
+  availability: 'ptr-preview',
   supportedModes: ['learn2d', 'train3d'],
   supportedDifficulties: ['heroic', 'mythic'],
   defaults: [

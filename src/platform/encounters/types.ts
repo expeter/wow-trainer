@@ -164,6 +164,15 @@ export interface Train3DScenario extends ScenarioBase {
   metricIds: readonly string[]
 }
 
+export interface EncounterRuntimeProps {
+  scenarioId: string
+  keyBindings: MovementKeyBindings
+  hudSettings: TrainingHudSettings
+  onExit: () => void
+}
+
+export type EncounterRuntimeLoader = () => Promise<{ default: ComponentType<EncounterRuntimeProps> }>
+
 export interface EncounterPackageV1 {
   apiVersion: 1
   manifest: EncounterManifest
@@ -176,4 +185,7 @@ export interface EncounterPackageV1 {
   learn2d: readonly Learn2DScenario[]
   train3d: readonly Train3DScenario[]
   train3dArenas: readonly WorldArena3D[]
+  runtimeLoaders: Readonly<Record<EncounterMode, EncounterRuntimeLoader>>
 }
+import type { ComponentType } from 'react'
+import type { MovementKeyBindings, TrainingHudSettings } from '../trainingSettings'

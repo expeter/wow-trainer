@@ -86,8 +86,117 @@
 }
 .season2-footer a { color: var(--s2-color-accent); }
 .season2-footer span { margin-left: auto; }
+.season2-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.season2-keybind {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--s2-color-border);
+  border-radius: var(--s2-radius-control);
+  color: var(--s2-color-muted);
+  text-transform: capitalize;
+}
+.season2-keybind button { min-width: 112px; padding: 9px 12px; color: var(--s2-color-text); }
+.season2-keybind button.listening { border-color: var(--s2-color-warning); color: var(--s2-color-warning); }
+.season2-reset { grid-column: 1 / -1; padding: 10px 12px; }
+.season2-hud-settings { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(320px, 1.2fr); gap: 20px; }
+.season2-toggle-grid { display: grid; gap: 9px; align-content: start; }
+.season2-toggle-grid > label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border: 1px solid var(--s2-color-border);
+  border-radius: var(--s2-radius-control);
+  color: var(--s2-color-text);
+}
+.season2-toggle-grid input[type='checkbox'] { width: auto; }
+.season2-toggle-grid .season2-hud-scale { display: block; color: var(--s2-color-muted); }
+.season2-hud-scale strong { float: right; color: var(--s2-color-accent); }
+.season2-hud-scale input { margin-top: 12px; }
+.season2-hud-preview {
+  min-height: 260px;
+  padding: 18px;
+  display: grid;
+  place-items: start end;
+  border: 1px dashed var(--s2-color-border);
+  border-radius: var(--s2-radius-panel);
+  background: radial-gradient(circle at 20% 20%, var(--s2-color-accent-soft), transparent 34%), #090e18;
+}
+.season2-region-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.season2-region-list span { padding: 7px 9px; border: 1px solid var(--s2-color-border); border-radius: 999px; color: var(--s2-color-muted); font: 11px var(--s2-font-mono); }
+
+.training-shell { max-width: 1280px; min-height: 100vh; margin: auto; padding: 24px; }
+.training-header { display: flex; align-items: start; justify-content: space-between; gap: 24px; max-width: none; margin-bottom: 18px; }
+.training-header h1 { margin-bottom: 8px; font-size: clamp(32px, 5vw, 54px); }
+.training-header .lede { margin: 0; }
+.training-header button { flex: 0 0 auto; padding: 10px 14px; }
+.training-runtime-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
+.training-sidecar { display: grid; gap: 12px; }
+.training-hud {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--s2-color-accent) 38%, var(--s2-color-border));
+  border-radius: var(--s2-radius-panel);
+  color: var(--s2-color-text);
+  background: rgba(8, 15, 20, .94);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .28);
+}
+.training-hud-mode { display: block; margin-bottom: 10px; color: var(--s2-color-accent); font: .72em var(--s2-font-mono); letter-spacing: .1em; text-transform: uppercase; }
+.training-hud > div { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-top: 1px solid var(--s2-color-border); }
+.training-hud small { color: var(--s2-color-muted); font: .68em var(--s2-font-mono); text-transform: uppercase; }
+.training-hud strong { font-size: .82em; text-align: right; }
+.training-hud-status { margin: 11px 0 0; color: var(--s2-color-muted); font-size: .76em; line-height: 1.5; }
+.training-choice { padding: 16px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: var(--s2-color-surface); }
+.training-choice small { color: var(--s2-color-accent); font: 10px var(--s2-font-mono); }
+.training-choice h2 { margin: 5px 0 12px; font-size: 20px; }
+.training-choice p { color: var(--s2-color-muted); font-size: 13px; line-height: 1.5; }
+.training-choice button { width: 100%; margin-top: 7px; padding: 11px 12px; text-align: left; }
+.training-choice button strong, .training-choice button span { display: block; }
+.training-choice button span { margin-top: 4px; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
+.training-complete { border-color: color-mix(in srgb, var(--s2-color-accent) 48%, var(--s2-color-border)); }
+
+.learn2d-board {
+  position: relative;
+  min-height: 570px;
+  border: 1px solid var(--s2-color-border);
+  border-radius: var(--s2-radius-panel);
+  background: linear-gradient(90deg, rgba(40, 132, 79, .26) 0 45%, rgba(8, 13, 21, .94) 45% 55%, rgba(130, 45, 62, .23) 55% 100%);
+  overflow: hidden;
+}
+.learn2d-board::before { content: ''; position: absolute; inset: 12px; border: 1px solid rgba(255, 255, 255, .08); border-radius: 9px; pointer-events: none; }
+.learn2d-side { position: absolute; top: 46%; display: grid; gap: 5px; text-align: center; }
+.learn2d-side span { color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
+.learn2d-side b { font-size: 20px; }
+.learn2d-side.acid-side { left: 13%; color: #8ce7ad; }
+.learn2d-side.blood-side { right: 11%; color: #ed91a0; }
+.learn2d-corridor { position: absolute; left: 45%; top: 0; width: 10%; height: 100%; display: grid; place-items: center; border-inline: 1px dashed rgba(216, 198, 128, .42); }
+.learn2d-corridor span { color: rgba(216, 198, 128, .62); font: 9px var(--s2-font-mono); writing-mode: vertical-rl; letter-spacing: .2em; }
+.learn2d-region { position: absolute; left: 50%; z-index: 2; transform: translateX(-50%); width: 210px; padding: 12px; border-color: rgba(115, 224, 193, .5); background: rgba(14, 35, 33, .92); }
+.learn2d-region.north { top: 8%; }
+.learn2d-region.south { bottom: 8%; }
+.learn2d-region:disabled { cursor: default; opacity: .55; }
+.learn2d-player-token { position: absolute; left: 27%; top: 62%; width: 66px; height: 66px; display: grid; place-items: center; border: 2px solid #f4d568; border-radius: 50%; color: #fff4bd; background: rgba(79, 64, 15, .92); box-shadow: 0 0 22px rgba(244, 213, 104, .36); font: 11px var(--s2-font-mono); }
+.learn2d-player-token strong { display: block; font-size: 10px; }
+
+.train3d-stage { border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: #070b12; overflow: hidden; }
+.train3d-stage canvas { width: 100%; height: min(68vh, 650px); min-height: 520px; outline: none; }
+.train3d-stage canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--s2-color-accent); }
+.train3d-controls { margin: 0; padding: 10px 13px; color: var(--s2-color-muted); background: var(--s2-color-surface); font: 10px var(--s2-font-mono); }
+.training-restart { width: 100%; padding: 11px 12px; }
 @media (max-width: 760px) {
   .season2-encounter { align-items: flex-start; flex-direction: column; }
   .season2-mode-grid { grid-template-columns: 1fr; }
+  .season2-settings-grid, .season2-hud-settings, .training-runtime-layout { grid-template-columns: 1fr; }
+  .training-header { flex-direction: column; }
+  .training-shell { padding: 16px; }
+  .learn2d-board { min-height: 470px; }
+  .train3d-stage canvas { min-height: 430px; }
   .season2-footer span { width: 100%; margin-left: 0; }
 }

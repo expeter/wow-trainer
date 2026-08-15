@@ -13,7 +13,6 @@ const splitDiagram = {
 } as const satisfies DiagramArena2D
 
 const shared = {
-  status: 'planned',
   phaseIds: ['sentinels_active_cycle', 'sentinels_stasis'],
   roleIds: ['sentinels_acid_tank', 'sentinels_blood_tank', 'sentinels_acid_group', 'sentinels_blood_group'],
   timingProfileIds: ['ptr_2026-08-13'],
@@ -24,6 +23,7 @@ const shared = {
 export const learn2dScenarios = [
   {
     ...shared,
+    status: 'ready',
     id: 'sentinels_helical_toxins',
     name: 'Helical Toxins tutorial',
     kind: 'focused',
@@ -34,6 +34,7 @@ export const learn2dScenarios = [
   },
   {
     ...shared,
+    status: 'planned',
     id: 'sentinels_mythic_protovenom',
     name: 'Shifting Protovenom tutorial',
     kind: 'focused',
@@ -44,6 +45,7 @@ export const learn2dScenarios = [
   },
   {
     ...shared,
+    status: 'planned',
     id: 'sentinels_full_fight',
     name: 'Guided full-fight walkthrough',
     kind: 'full-fight',

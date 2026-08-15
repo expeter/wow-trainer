@@ -1,6 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
+import TrainingHud from './platform/TrainingHud'
 import type { EncounterCatalogue } from './platform/encounters/discovery'
-import { loadEncounterCatalogue } from './platform/encounters'
+import { loadEncounterCatalogue, type EncounterMode, type EncounterRuntimeProps } from './platform/encounters'
+import {
+  DEFAULT_TRAINING_SETTINGS,
+  keyLabel,
+  loadTrainingSettings,
+  saveTrainingSettings,
+  type MovementAction,
+  type TrainingSettings,
+} from './platform/trainingSettings'
 import { LEGACY_REFERENCE_QUERY, PRODUCT } from './product'
 import './styles.css'
 import './styles/tokens.css'
@@ -45,6 +54,10 @@ const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string
 export default function Season2App() {
   const [activeTab, setActiveTab] = useState<SetupTab>('Game settings')
   const [catalogue, setCatalogue] = useState<EncounterCatalogue>()
+  const [settings, setSettings] = useState<TrainingSettings>(loadTrainingSettings)
+  const [rebinding, setRebinding] = useState<MovementAction>()
+  const [runtimeLoading, setRuntimeLoading] = useState<EncounterMode>()
+  const [runtime, setRuntime] = useState<{ mode: EncounterMode; scenarioId: string; Component: ComponentType<EncounterRuntimeProps> }>()
   const panel = panelCopy[activeTab]
   const encounter = catalogue?.packages[0]
   const catalogueFailed = catalogue && !encounter
@@ -59,6 +72,50 @@ export default function Season2App() {
     return () => { active = false }
   }, [])
 
+  useEffect(() => saveTrainingSettings(settings), [settings])
+
+  useEffect(() => {
+    if (!rebinding) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      event.preventDefault()
+      const previousCode = settings.keyBindings[rebinding]
+      const occupiedAction = (Object.keys(settings.keyBindings) as MovementAction[])
+        .find(action => action !== rebinding && settings.keyBindings[action] === event.code)
+      setSettings(current => ({
+        ...current,
+        keyBindings: {
+          ...current.keyBindings,
+          [rebinding]: event.code,
+          ...(occupiedAction ? { [occupiedAction]: previousCode } : {}),
+        },
+      }))
+      setRebinding(undefined)
+    }
+    window.addEventListener('keydown', onKeyDown, { once: true })
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [rebinding, settings.keyBindings])
+
+  async function launch(mode: EncounterMode) {
+    if (!encounter) return
+    const scenario = (mode === 'learn2d' ? encounter.learn2d : encounter.train3d)
+      .find(item => item.status === 'ready')
+    if (!scenario) return
+    setRuntimeLoading(mode)
+    const module = await encounter.runtimeLoaders[mode]()
+    setRuntime({ mode, scenarioId: scenario.id, Component: module.default })
+    setRuntimeLoading(undefined)
+  }
+
+  if (runtime) {
+    const Runtime = runtime.Component
+    return <Runtime
+      scenarioId={runtime.scenarioId}
+      keyBindings={settings.keyBindings}
+      hudSettings={settings.hud}
+      onExit={() => setRuntime(undefined)}
+    />
+  }
+
   return <main className="shell setup-shell season2-shell" id="setup-top">
     <aside className="season2-safety-note">Standalone workspace · public deployment disabled during extraction</aside>
     <header className="season2-hero">
@@ -68,7 +125,7 @@ export default function Season2App() {
       <div className="season2-status" aria-label="Migration status">
         <span>Platform extraction</span>
         <strong>Entombed Sentinels first</strong>
-        <small>No encounter runtime is launchable in this bootstrap slice.</small>
+        <small>Helical Toxins is the first playable Learn 2D and Train 3D slice.</small>
       </div>
     </header>
 
@@ -83,7 +140,7 @@ export default function Season2App() {
           : 'Loading validated package metadata from isolated encounter directories.')}</p>
       </div>
       {encounter && <span className="season2-badge">
-        {encounter.manifest.availability} · {encounter.timingProfiles[0]?.status ?? 'timing pending'} · runtimes pending
+        {encounter.manifest.availability} · {encounter.timingProfiles[0]?.status ?? 'timing pending'} · first drill ready
       </span>}
     </section>
 
@@ -115,16 +172,56 @@ export default function Season2App() {
           <span>01</span>
           <h3>Learn 2D</h3>
           <p>Study mechanic order, assignments, timing, and tactical diagrams in a dedicated two-dimensional runtime.</p>
-          <button type="button" disabled={!learn2dReady}>{learn2dReady ? 'Launch Learn 2D' : 'Runtime pending'}</button>
+          <button type="button" disabled={!learn2dReady || Boolean(runtimeLoading)} onClick={() => void launch('learn2d')}>
+            {runtimeLoading === 'learn2d' ? 'Loading…' : learn2dReady ? 'Launch Learn 2D' : 'Runtime pending'}
+          </button>
         </article>
         <article>
           <span>02</span>
           <h3>Train 3D</h3>
           <p>Rehearse positioning and movement in an independent three-dimensional arena model using the same encounter terms.</p>
-          <button type="button" disabled={!train3dReady}>{train3dReady ? 'Launch Train 3D' : 'Runtime pending'}</button>
+          <button type="button" disabled={!train3dReady || Boolean(runtimeLoading)} onClick={() => void launch('train3d')}>
+            {runtimeLoading === 'train3d' ? 'Loading…' : train3dReady ? 'Launch Train 3D' : 'Runtime pending'}
+          </button>
         </article>
       </div>}
-      {activeTab !== 'Game settings' && <p className="season2-boundary-note">This shell boundary is reserved; implementation follows EncounterPackageV1 and the Entombed Sentinels package.</p>}
+      {activeTab === 'Keys & Mouse' && <div className="season2-settings-grid">
+        {(Object.keys(settings.keyBindings) as MovementAction[]).map(action => <div className="season2-keybind" key={action}>
+          <span>{action}</span>
+          <button type="button" aria-label={`Rebind ${action}, current ${keyLabel(settings.keyBindings[action])}`} className={rebinding === action ? 'listening' : ''} onClick={() => setRebinding(action)}>
+            {rebinding === action ? 'Press a key…' : keyLabel(settings.keyBindings[action])}
+          </button>
+        </div>)}
+        <button type="button" className="secondary season2-reset" onClick={() => setSettings(current => ({ ...current, keyBindings: { ...DEFAULT_TRAINING_SETTINGS.keyBindings } }))}>
+          Reset movement keys
+        </button>
+      </div>}
+      {activeTab === 'HUD' && <div className="season2-hud-settings">
+        <div className="season2-toggle-grid">
+          {([
+            ['showObjective', 'Show objective'],
+            ['showTimer', 'Show timer'],
+            ['showPosition', 'Show position'],
+          ] as const).map(([key, label]) => <label key={key}>
+            <input type="checkbox" checked={settings.hud[key]} onChange={event => setSettings(current => ({ ...current, hud: { ...current.hud, [key]: event.target.checked } }))} />
+            {label}
+          </label>)}
+          <label className="season2-hud-scale">
+            HUD scale <strong>{settings.hud.scale}%</strong>
+            <input type="range" min="80" max="130" step="5" value={settings.hud.scale} onChange={event => setSettings(current => ({ ...current, hud: { ...current.hud, scale: Number(event.target.value) } }))} />
+          </label>
+        </div>
+        <div className="season2-hud-preview">
+          <TrainingHud settings={settings.hud} mode="Train 3D" objective="Reach the matching toxin partner" secondsRemaining={18.4} position={{ x: -12.5, z: -7.2 }} status="HUD preview" />
+        </div>
+      </div>}
+      {activeTab === 'Tactical plan' && encounter && <div className="season2-plan-preview">
+        <p className="season2-boundary-note">The package-owned abstract regions are available for the first drill. Raid-plan imagery and editable roster assignments will follow the evidence you provide through the inbox.</p>
+        <div className="season2-region-list">
+          {encounter.learn2d[0]?.arena.regions.map(region => <span key={region.id}>{region.label}</span>)}
+        </div>
+      </div>}
+      {(activeTab === 'Statistics' || activeTab === 'Profile') && <p className="season2-boundary-note">This shell boundary remains intentionally offline until the API /v2 milestone.</p>}
     </section>
 
     <footer className="season2-footer">

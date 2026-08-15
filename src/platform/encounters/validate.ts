@@ -53,7 +53,7 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
   if (!isRecord(value)) return { ok: false, errors: ['Package export must be an object.'] }
   if (value.apiVersion !== 1) return { ok: false, errors: ['Package apiVersion must be 1.'] }
 
-  const requiredObjects = ['manifest', 'tacticSchema']
+  const requiredObjects = ['manifest', 'tacticSchema', 'runtimeLoaders']
   const requiredArrays = [
     'abilities', 'phases', 'roles', 'timingProfiles', 'tactics', 'learn2d', 'train3d', 'train3dArenas',
   ]
@@ -70,6 +70,9 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
   if (!Number.isInteger(pkg.manifest.order) || pkg.manifest.order < 1) errors.push('Encounter order must be a positive integer.')
   if (!pkg.manifest.supportedModes.includes('learn2d') || !pkg.manifest.supportedModes.includes('train3d')) {
     errors.push('The reference package must support Learn 2D and Train 3D.')
+  }
+  for (const mode of pkg.manifest.supportedModes) {
+    if (typeof pkg.runtimeLoaders[mode] !== 'function') errors.push(`Encounter runtime loader "${mode}" is required.`)
   }
 
   checkIds('Ability', pkg.abilities, errors)

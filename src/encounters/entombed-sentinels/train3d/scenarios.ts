@@ -1,7 +1,6 @@
 import type { Train3DScenario } from '../../../platform/encounters'
 
 const shared = {
-  status: 'planned',
   phaseIds: ['sentinels_active_cycle', 'sentinels_stasis'],
   roleIds: ['sentinels_acid_tank', 'sentinels_blood_tank', 'sentinels_acid_group', 'sentinels_blood_group'],
   timingProfileIds: ['ptr_2026-08-13'],
@@ -12,6 +11,7 @@ const shared = {
 export const train3dScenarios = [
   {
     ...shared,
+    status: 'ready',
     id: 'sentinels_helical_toxins',
     name: 'Helical Toxins movement drill',
     kind: 'focused',
@@ -22,6 +22,7 @@ export const train3dScenarios = [
   },
   {
     ...shared,
+    status: 'planned',
     id: 'sentinels_mythic_protovenom',
     name: 'Shifting Protovenom movement drill',
     kind: 'focused',
@@ -32,6 +33,7 @@ export const train3dScenarios = [
   },
   {
     ...shared,
+    status: 'planned',
     id: 'sentinels_full_fight',
     name: 'Provisional Heroic full fight',
     kind: 'full-fight',

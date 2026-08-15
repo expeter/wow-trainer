@@ -35,9 +35,11 @@ encounter development into an independently deployed Season 2 repository.
 - `SPEC-018` — completed: make the shared-shell/separate-runtime and isolated
   auto-discovered encounter-package boundaries binding.
 - `FR-072` — in progress now that `CR-230` and `SPEC-018` are stable: Stage 4A
-  has introduced `EncounterPackageV1`, conformance validation, lazy automatic
-  discovery, and Entombed Sentinels as the sole non-playable first encounter
-  package. The Helical Toxins Learn 2D vertical slice is next.
+  introduced `EncounterPackageV1`, conformance validation, lazy automatic
+  discovery, and the isolated Entombed Sentinels package. Stage 4B makes the
+  focused Helical Toxins lesson playable through separate package-owned Learn
+  2D and Train 3D runtimes, with shell-owned persisted movement bindings and
+  HUD preferences. Full-fight, Mythic, plan-image, and scoring work remains.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

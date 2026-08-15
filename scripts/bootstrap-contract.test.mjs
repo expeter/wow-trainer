@@ -21,16 +21,19 @@ test('keeps the legacy application behind the development gate', () => {
   assert.doesNotMatch(read('src/Season2App.tsx'), /from '\.\/online'/)
 })
 
-test('preserves the six-section shell around automatically discovered pending runtimes', () => {
+test('preserves the six-section shell around automatically discovered package runtimes', () => {
   const shell = read('src/Season2App.tsx')
   const discovery = read('src/platform/encounters/discovery.ts')
+  const sentinels = read('src/encounters/entombed-sentinels/index.ts')
   for (const label of ['Game settings', 'Keys & Mouse', 'HUD', 'Tactical plan', 'Statistics', 'Profile']) {
     assert.match(shell, new RegExp(`'${label.replace('&', '\\&')}'`))
   }
   assert.match(shell, />Learn 2D</)
   assert.match(shell, />Train 3D</)
   assert.match(shell, /loadEncounterCatalogue/)
-  assert.match(shell, /disabled={!learn2dReady}/)
+  assert.match(shell, /encounter\.runtimeLoaders\[mode\]/)
+  assert.match(sentinels, /learn2d: \(\) => import\('\.\/learn2d\/Runtime'\)/)
+  assert.match(sentinels, /train3d: \(\) => import\('\.\/train3d\/Runtime'\)/)
   assert.match(discovery, /import\.meta\.glob<.*>\('\.\.\/\.\.\/encounters\/\*\/index\.ts'\)/)
   assert.doesNotMatch(discovery, /entombed-sentinels/)
 })
