@@ -24,6 +24,9 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.getByRole('heading', { name: 'Train 3D' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Launch Learn 2D' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Launch Train 3D' })).toBeEnabled()
+    const catalogue = screen.getByLabelText('Encounter catalogue')
+    expect(within(catalogue).getByRole('heading', { name: 'Entombed Sentinels' })).toBeVisible()
+    expect(within(catalogue).getAllByText('Coming soon').length).toBeGreaterThan(0)
   })
 
   it('loads the movement-driven Learn 2D runtime with icon-only character toxins', async () => {
@@ -66,10 +69,11 @@ describe('Midnight Season 2 bootstrap shell', () => {
   it('updates the shared HUD preview from persisted visibility settings', () => {
     render(<Season2App />)
     fireEvent.click(screen.getByRole('button', { name: 'HUD' }))
-    expect(within(screen.getByRole('complementary', { name: 'Training HUD' })).getByText('Time')).toBeVisible()
+    expect(screen.queryByRole('complementary', { name: 'Training HUD' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Draggable HUD preview')).toBeVisible()
 
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show timer' }))
-    expect(within(screen.getByRole('complementary', { name: 'Training HUD' })).queryByText('Time')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mechanic / action display' })).toBeVisible()
   })
 
   it('keeps online features deferred and disconnected from the legacy service', () => {

@@ -14,6 +14,11 @@ interface ThreeWorldRendererProps {
 }
 
 const auraColors = { beneficial: 0x72e5c0, poison: 0x70dc87, danger: 0xe96f80, spectral: 0x9d83f2 } as const
+export const VISUAL_FLOOR_SCALE = 4
+
+export function renderedFloorDimensions(arena: Train3DSnapshot['arena']) {
+  return { width: arena.width * VISUAL_FLOOR_SCALE, depth: arena.depth * VISUAL_FLOOR_SCALE }
+}
 
 function auraSignature(actor: ActorSnapshot) {
   return actor.auras.map(aura => `${aura.id}:${aura.tone}:${aura.stacks}`).join('|')
@@ -130,15 +135,26 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     scene.add(light)
 
     const arena = snapshotRef.current.arena
+    const visualFloor = renderedFloorDimensions(arena)
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(arena.width, arena.depth),
+      new THREE.PlaneGeometry(visualFloor.width, visualFloor.depth),
       new THREE.MeshStandardMaterial({ color: 0x18221b, roughness: .9 }),
     )
     floor.rotation.x = -Math.PI / 2
     scene.add(floor)
-    const grid = new THREE.GridHelper(arena.width, 24, 0x609068, 0x293a2d)
+    const grid = new THREE.GridHelper(Math.max(visualFloor.width, visualFloor.depth), 64, 0x405d48, 0x243329)
     grid.position.y = .03
     scene.add(grid)
+    const boundary = new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-arena.width / 2, .055, -arena.depth / 2),
+        new THREE.Vector3(arena.width / 2, .055, -arena.depth / 2),
+        new THREE.Vector3(arena.width / 2, .055, arena.depth / 2),
+        new THREE.Vector3(-arena.width / 2, .055, arena.depth / 2),
+      ]),
+      new THREE.LineBasicMaterial({ color: 0x7fa98d, transparent: true, opacity: .52 }),
+    )
+    scene.add(boundary)
 
     const actors = new Map<string, THREE.Group>()
     const effects = new Map<string, THREE.Object3D>()

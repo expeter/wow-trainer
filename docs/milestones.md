@@ -110,6 +110,14 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-249` — completed under `FR-080`: restore clickable recent failures at the
   bottom left and a scoring-ready, currently unscored points frame at the
   bottom right of both runtimes.
+- `BUG-166` — completed under `FR-072`: make every consecutive contract-room
+  reaction reachable at 7 yd/s while rendering a continuous floor outside the
+  unchanged playable bounds.
+- `CR-250` — completed under `FR-072`: remove the redundant HUD summary preview
+  and make arena-layout dragging follow the pointer directly.
+- `CR-251` — completed under `FR-072`: replace duplicate setup banners with one
+  auto-discovered encounter card per package containing its playable and
+  Coming soon scenarios.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

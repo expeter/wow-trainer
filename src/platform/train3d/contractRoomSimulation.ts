@@ -7,7 +7,7 @@ import type { RuntimeFailure } from '../RuntimeFeedback'
 export { CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS } from '../contractRoom'
 
 const contractGroundSlots: Record<ContractDirection, WorldPoint> = {
-  north: { x: 0, z: -24 }, east: { x: 32, z: 0 }, south: { x: 0, z: 24 }, west: { x: -32, z: 0 },
+  north: { x: 0, z: -14 }, east: { x: 18, z: 0 }, south: { x: 0, z: 14 }, west: { x: -18, z: 0 },
 }
 export const contractGroundPosition3D = (direction: ContractDirection) => contractGroundSlots[direction]
 

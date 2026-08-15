@@ -28,10 +28,10 @@ test('preserves the six-section shell around automatically discovered package ru
   for (const label of ['Game settings', 'Keys & Mouse', 'HUD', 'Tactical plan', 'Statistics', 'Profile']) {
     assert.match(shell, new RegExp(`'${label.replace('&', '\\&')}'`))
   }
-  assert.match(shell, />Learn 2D</)
-  assert.match(shell, />Train 3D</)
+  assert.match(shell, /'Learn 2D'/)
+  assert.match(shell, /'Train 3D'/)
   assert.match(shell, /loadEncounterCatalogue/)
-  assert.match(shell, /encounter\.runtimeLoaders\[mode\]/)
+  assert.match(shell, /selectedEncounter\.runtimeLoaders\[mode\]/)
   assert.match(shell, /import\.meta\.env\.DEV && <article className="season2-contract-room-card">/)
   assert.match(shell, /await import\('\.\/platform\/train3d\/ContractRoom'\)/)
   assert.match(sentinels, /learn2d: \(\) => import\('\.\/learn2d\/Runtime'\)/)

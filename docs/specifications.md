@@ -522,7 +522,10 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   mixed melee/ranged damage players including the controlled player. Reaction
   rounds present multiple simultaneous ground objects with one aura-matching
   answer and explicit wrong answers. These rooms are not encounter packages
-  and must be excluded from production builds.
+  and must be excluded from production builds. Every consecutive Train 3D lab
+  target remains reachable at the calibrated run speed inside the six-second
+  event window. The rendered room floor may extend into fog beyond the 90×70-
+  yard lab, but collision stays clamped to those explicit playable bounds.
 - Role and starting-position choice inside the contract room belongs only to
   that development movement lab. Real encounter packages receive the selected
   role and assignment from setup and the versioned tactic/raid plan.
@@ -548,6 +551,15 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   stable reason code and clickable corrective explanation. The points frame
   reads as unscored until a package supplies an approved scoring contract; it
   must not invent placeholder scores.
+- Setup presents automatically discovered packages as encounter teaser cards.
+  Each card owns its Learn 2D and Train 3D scenario actions and labels planned
+  scenarios Coming soon. Setup must not duplicate the selected encounter in a
+  separate oversized banner or invent placeholder packages for bosses whose
+  isolated implementation has not begun.
+- HUD settings show the same draggable arena-layout frame used by Train 3D,
+  without a second report-style HUD summary above it. Dragging tracks the
+  pointer without animated positional lag, persists once on release, and keeps
+  grid snapping plus keyboard nudging.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.

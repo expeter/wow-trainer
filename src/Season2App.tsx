@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState, type ComponentType, type SetStateAction } from 'react'
-import TrainingHud from './platform/TrainingHud'
 import BuildStatus from './platform/BuildStatus'
 import CreatorCard from './platform/CreatorCard'
 import HudLayoutPreview from './platform/HudLayoutPreview'
 import type { EncounterCatalogue } from './platform/encounters/discovery'
-import { loadEncounterCatalogue, type EncounterMode, type EncounterRuntimeProps } from './platform/encounters'
+import { loadEncounterCatalogue, type EncounterMode, type EncounterPackageV1, type EncounterRuntimeProps } from './platform/encounters'
 import {
   DEFAULT_TRAINING_SETTINGS,
   keyLabel,
@@ -81,8 +80,6 @@ export default function Season2App() {
   const panel = panelCopy[activeTab]
   const encounter = catalogue?.packages[0]
   const catalogueFailed = catalogue && !encounter
-  const learn2dReady = encounter?.learn2d.some(scenario => scenario.status === 'ready') ?? false
-  const train3dReady = encounter?.train3d.some(scenario => scenario.status === 'ready') ?? false
 
   useEffect(() => {
     let active = true
@@ -121,13 +118,12 @@ export default function Season2App() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [rebinding, settings.keyBindings, updateSettings])
 
-  async function launch(mode: EncounterMode) {
-    if (!encounter) return
-    const scenario = (mode === 'learn2d' ? encounter.learn2d : encounter.train3d)
-      .find(item => item.status === 'ready')
+  async function launch(selectedEncounter: EncounterPackageV1, mode: EncounterMode, scenarioId: string) {
+    const scenario = (mode === 'learn2d' ? selectedEncounter.learn2d : selectedEncounter.train3d)
+      .find(item => item.id === scenarioId && item.status === 'ready')
     if (!scenario) return
     setRuntimeLoading(mode)
-    const module = await encounter.runtimeLoaders[mode]()
+    const module = await selectedEncounter.runtimeLoaders[mode]()
     setRuntime({ mode, scenarioId: scenario.id, Component: module.default })
     setRuntimeLoading(undefined)
   }
@@ -160,29 +156,14 @@ export default function Season2App() {
         <p className="eyebrow">MIDNIGHT · SEASON 2 · RAID PRACTICE</p>
         <h1>{PRODUCT.name}</h1>
         <p className="lede">A reuse-first training platform for learning encounter plans in 2D and rehearsing movement in 3D.</p>
-        <div className="season2-status" aria-label="Migration status">
-          <span>Platform extraction</span>
-          <strong>Entombed Sentinels first</strong>
-          <small>Helical Toxins is the first playable Learn 2D and Train 3D slice.</small>
-        </div>
       </header>
       <CreatorCard />
     </div>
-
-    <section className="season2-encounter" aria-labelledby="encounter-catalog-title">
-      <div>
-        <p className="eyebrow">ENCOUNTER CATALOG</p>
-        <h2 id="encounter-catalog-title">
-          {encounter?.manifest.name ?? (catalogueFailed ? 'No conforming encounter package' : 'Discovering encounter packages…')}
-        </h2>
-        <p>{encounter?.manifest.summary ?? (catalogueFailed
-          ? 'The catalogue excluded every package. Check development diagnostics before continuing.'
-          : 'Loading validated package metadata from isolated encounter directories.')}</p>
-      </div>
-      {encounter && <span className="season2-badge">
-        {encounter.manifest.availability} · {encounter.timingProfiles[0]?.status ?? 'timing pending'} · first drill ready
-      </span>}
-    </section>
+    <div className="season2-status" aria-label="Migration status">
+      <span>Platform extraction</span>
+      <strong>Entombed Sentinels first</strong>
+      <small>Helical Toxins is the first playable Learn 2D and Train 3D slice. Further encounter packages appear in the catalogue only when their isolated implementation begins.</small>
+    </div>
 
     {import.meta.env.DEV && Boolean(catalogue?.diagnostics.length) && <aside className="season2-catalogue-diagnostics">
       <strong>Encounter package diagnostics</strong>
@@ -207,23 +188,32 @@ export default function Season2App() {
         <h2>{panel.title}</h2>
         <p className="hint">{panel.body}</p>
       </div>
-      {activeTab === 'Game settings' && <div className="season2-mode-grid">
-        <article>
-          <span>01</span>
-          <h3>Learn 2D</h3>
-          <p>Study mechanic order, assignments, timing, and tactical diagrams in a dedicated two-dimensional runtime.</p>
-          <button type="button" disabled={!learn2dReady || Boolean(runtimeLoading)} onClick={() => void launch('learn2d')}>
-            {runtimeLoading === 'learn2d' ? 'Loading…' : learn2dReady ? 'Launch Learn 2D' : 'Runtime pending'}
-          </button>
-        </article>
-        <article>
-          <span>02</span>
-          <h3>Train 3D</h3>
-          <p>Rehearse positioning and movement in an independent three-dimensional arena model using the same encounter terms.</p>
-          <button type="button" disabled={!train3dReady || Boolean(runtimeLoading)} onClick={() => void launch('train3d')}>
-            {runtimeLoading === 'train3d' ? 'Loading…' : train3dReady ? 'Launch Train 3D' : 'Runtime pending'}
-          </button>
-        </article>
+      {activeTab === 'Game settings' && <div className="season2-catalogue-grid" aria-label="Encounter catalogue">
+        {!catalogue && <article className="season2-encounter-card loading"><p>Discovering encounter packages…</p></article>}
+        {catalogueFailed && <article className="season2-encounter-card unavailable"><h3>No conforming encounter package</h3><p>Check development diagnostics before continuing.</p></article>}
+        {catalogue?.packages.map(selectedEncounter => <article className="season2-encounter-card" key={selectedEncounter.manifest.id}>
+          <header>
+            <div><p className="eyebrow">{selectedEncounter.manifest.raid}</p><h3>{selectedEncounter.manifest.name}</h3><p>{selectedEncounter.manifest.summary}</p></div>
+            <span className="season2-badge">{selectedEncounter.manifest.availability} · {selectedEncounter.timingProfiles[0]?.status ?? 'timing pending'}</span>
+          </header>
+          <div className="season2-encounter-modes">
+            {(['learn2d', 'train3d'] as EncounterMode[]).map(mode => {
+              const modeLabel = mode === 'learn2d' ? 'Learn 2D' : 'Train 3D'
+              const scenarios = mode === 'learn2d' ? selectedEncounter.learn2d : selectedEncounter.train3d
+              return <section key={mode} aria-labelledby={`${selectedEncounter.manifest.id}-${mode}`}>
+                <h4 id={`${selectedEncounter.manifest.id}-${mode}`}>{modeLabel}</h4>
+                <p>{mode === 'learn2d' ? 'Study timing and assignments in the tactical model.' : 'Rehearse movement in the independent 3D arena.'}</p>
+                <div className="season2-scenario-list">{scenarios.map(scenario => <button
+                  type="button"
+                  key={`${scenario.id}-${scenario.difficulty}`}
+                  disabled={scenario.status !== 'ready' || Boolean(runtimeLoading)}
+                  aria-label={scenario.status === 'ready' ? `Launch ${modeLabel}` : `${scenario.name} coming soon in ${modeLabel}`}
+                  onClick={() => void launch(selectedEncounter, mode, scenario.id)}
+                ><span>{scenario.name}</span><strong>{scenario.status === 'ready' ? runtimeLoading === mode ? 'Loading…' : 'Play' : 'Coming soon'}</strong></button>)}</div>
+              </section>
+            })}
+          </div>
+        </article>)}
         {import.meta.env.DEV && <article className="season2-contract-room-card">
           <span>DEV</span>
           <h3>Contract room</h3>
@@ -270,7 +260,7 @@ export default function Season2App() {
             <input type="range" min="80" max="130" step="5" value={settings.hud.scale} onChange={event => updateSettings(current => ({ ...current, hud: { ...current.hud, scale: Number(event.target.value) } }))} />
           </label>
         </div>
-        <div className="season2-hud-preview"><TrainingHud settings={settings.hud} mode="Train 3D" objective="Reach the matching toxin partner" secondsRemaining={18.4} position={{ x: -12.5, z: -7.2 }} status="HUD preview" playerHealth={72} bossHealth={86} auraLabel="Poison · 3 stacks" actionStatus="Main ready · Shield 8.4s" /><HudLayoutPreview settings={settings.hud} onChange={hud => updateSettings(current => ({ ...current, hud }))} /></div>
+        <div className="season2-hud-preview"><HudLayoutPreview settings={settings.hud} onChange={hud => updateSettings(current => ({ ...current, hud }))} /></div>
       </div>}
       {activeTab === 'Tactical plan' && encounter && <div className="season2-plan-preview">
         <p className="season2-boundary-note">The package-owned abstract regions are available for the first drill. Raid-plan imagery and editable roster assignments will follow the evidence you provide through the inbox.</p>

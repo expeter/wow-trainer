@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Pulled the four Train 3D contract-room reaction targets into a range where
+  every consecutive target is reachable at 7 yd/s within six seconds, while
+  extending the rendered floor into fog beyond the unchanged 90×70-yard
+  playable boundary.
+- Reworked setup into an automatically discovered encounter catalogue: each
+  boss card now contains its Learn 2D/Train 3D scenarios and visibly marks
+  planned drills Coming soon, replacing the oversized duplicate banner.
+- Removed the redundant report-style Train 3D box from HUD settings and made
+  draggable HUD anchors follow the pointer immediately by isolating them from
+  inherited button position transitions; positions still autosave on release.
+
 - Corrected the Season 2 runtime shell on wide screens: the status controls now
   occupy one horizontal header, build provenance remains on setup, and the 2D
   split arena preserves its 5:3 geometry instead of stretching with the window.

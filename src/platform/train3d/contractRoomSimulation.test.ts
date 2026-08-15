@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { IDLE_PLAYER_COMMANDS } from './types'
 import { activeContractEvent, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, contractGroundPosition3D, contractRoomSnapshot, createContractRoomState, stepContractRoom } from './contractRoomSimulation'
+import { WOW_MOVEMENT_PROFILE, distance } from './simulation'
 
 describe('development contract room simulation', () => {
   it('produces a deterministic seeded aura sequence', () => {
@@ -37,5 +38,11 @@ describe('development contract room simulation', () => {
     expect(success.successes).toBe(1)
     expect(failure.wrongGrounds).toBe(1)
     expect(failure.failures[0]).toMatchObject({ code: 'wrong-ground' })
+  })
+
+  it('keeps every consecutive reaction point reachable inside one event window', () => {
+    const directions = ['north', 'east', 'south', 'west'] as const
+    const longestRoute = Math.max(...directions.flatMap(from => directions.map(to => distance(contractGroundPosition3D(from), contractGroundPosition3D(to)))))
+    expect(longestRoute / WOW_MOVEMENT_PROFILE.runSpeed).toBeLessThan(CONTRACT_EVENT_SECONDS - .5)
   })
 })
