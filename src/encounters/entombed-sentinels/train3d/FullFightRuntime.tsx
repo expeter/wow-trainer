@@ -53,7 +53,8 @@ export default function SentinelsFullFight3D({ trainingDifficulty, keyBindings, 
   }, [gate.phaseRef, keyBindings, pause.pausedRef])
 
   const timer = nextSentinelsTimer(view)
-  const marks = view.phase === 'stasis' ? 'Helical: 1 green · 3 red' : `Acid ${view.acidMarks} · Blood ${view.bloodMarks}${view.protovenomActive ? ' · Protovenom marked' : ''}`
+  const stasisAge = view.time - view.phaseStartedAt
+  const marks = view.phase === 'stasis' ? stasisAge < 3 ? 'Spread before Helical Toxins' : view.helicalResolved ? 'Your Helical toxins cleared' : 'Helical: 1 green · 3 red' : `Acid ${view.acidMarks} · Blood ${view.bloodMarks}${view.protovenomActive ? ' · Protovenom marked' : ''}${view.puddleDropAt !== undefined ? ` · Pool ${Math.max(0, view.puddleDropAt - view.time).toFixed(1)}s` : ''}`
   return <main className="training-shell sentinels-runtime">
     <RuntimeStatusBar meta={`ENTOMBED SENTINELS · FULL FIGHT · ${trainingDifficulty.toUpperCase()} TRAINER · ${sentinelsPlayerRole(view).toUpperCase()}`} title="Entombed Sentinels full fight" status={`CYCLE ${view.cycle} · ${view.phase.toUpperCase()} · ${activeSentinelsPrompt(view)}`} paused={pause.paused} pauseKey={keyBindings.pause} onTogglePause={pause.toggle} onExit={onExit} />
     <section className="training-runtime-layout arena-only"><div className="train3d-stage"><div className="train3d-viewport sentinels-viewport">

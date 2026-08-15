@@ -8,12 +8,13 @@ timing and both teaching modes without first requiring a complete damage model.
 
 - Two bosses must remain separated.
 - Acid and Blood marks stack during active phases.
-- At 100 energy the bosses enter a 30-second Vitriolic Stasis.
+- At 100 energy the bosses enter the trainer's 15-second Vitriolic Stasis.
 - Helical Toxins gives players red/green compositions; a valid pair combines
-  to exactly four green.
+  to exactly four green and four red.
 - The researched matching window is approximately 28 seconds.
-- Heroic adds side-specific droplets, returning lines, Miasma soaks and pools.
-- Mythic adds Protovenom partner matching during active mechanics.
+- The sole full-fight contract includes side-specific droplets, returning
+  lines, Miasma soaks/pools, and Protovenom partner matching. Test, Easy,
+  Normal, and Hard change failure tolerance, not mechanics.
 
 Initial timings are labelled `ptr_2026-08-13`. They may not be renamed to
 “live”. A later `live_eu_week1_2026-08-19` profile is created from validated
@@ -26,7 +27,7 @@ The reference tactic supports:
 - Acid tank and Blood tank.
 - Acid-side and Blood-side raid groups.
 - Helical Toxin pairs and meeting sectors.
-- Mythic Protovenom pairs and meeting lanes.
+- Protovenom pairs and meeting lanes.
 - Toxic Droplet ownership.
 - Miasma soak groups.
 - Pool/drop zones.
@@ -63,7 +64,7 @@ exact collision radii or tactical coordinates.
 ### Full-fight walkthrough
 
 Compose active side responsibilities, Stasis/Helical matching, side swap, and
-the next active cycle as a guided sequence. Mythic adds the Protovenom lesson.
+the next active cycle as a guided sequence. Protovenom is always included.
 The 2D full fight remains explanatory and decision-focused.
 
 ## Train 3D arena
@@ -112,8 +113,18 @@ theme colors and arena geometry; it does not construct Three.js meshes.
 ## Train 3D full fight
 
 Compose the focused mechanic modules under energy/state triggers. Do not copy
-their rules into a separate full-fight implementation. Heroic and Mythic select
-different module sets and timing profiles.
+their rules into a separate full-fight implementation or vary them by trainer
+difficulty.
+
+The current realization uses one shared boss-health value on both frames and
+ends after at most two Stasis phases. Droplets appear at four deterministic
+randomized positions within roughly 20 yards of the Acid boss and every soak
+launches a fast return projectile. Miasma gives the controlled Blood-side
+player and three NPCs a three-second pool-drop warning; each carrier moves
+outward before dropping. During Stasis, bosses move inward while the raid
+spreads, toxins appear only after that arrival window, the player may choose
+any compatible visible partner without an answer marker, and NPC pairs begin
+resolving only after the player succeeds.
 
 The initial full fight is explicitly provisional. It trains the planned
 sequence but does not claim authoritative live DPS timings. Boss health may be

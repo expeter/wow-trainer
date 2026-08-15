@@ -56,11 +56,23 @@ describe('Entombed Sentinels full-fight contract', () => {
     let state = killCoagulation({ ...createSentinelsState('player', 'easy'), time: 8 })
     expect(state.coagulationHealth).toBe(0)
     expect(state.droplets).toHaveLength(4)
+    expect(state.droplets.every(droplet => Math.hypot(droplet.position.x - state.acidBoss.x, droplet.position.z - state.acidBoss.z) <= 20)).toBe(true)
     const assigned = state.droplets.find(droplet => droplet.assignedToPlayer)!
     state = { ...state, player: { ...state.player, ...assigned.position } }
     state = stepSentinelsState(state, idle, .1)
     expect(state.droplets.find(droplet => droplet.assignedToPlayer)?.soaked).toBe(true)
     expect(sentinelsSnapshot(state).effects.some(effect => effect.id.endsWith('-return'))).toBe(true)
+  })
+
+  it('telegraphs three NPC Blood pools and drops them where their carriers moved', () => {
+    let state: SentinelsState = { ...createSentinelsState('healer-2', 'test'), time: 24.95, player: { x: -37, z: 16, facing: 0 }, coagulationHealth: 0, dropletsSpawned: true, droplets: [] }
+    state = stepSentinelsState(state, idle, .1)
+    expect(state.puddleDropAt).toBeCloseTo(28.05)
+    expect(sentinelsSnapshot(state).actors.filter(actor => actor.auras.some(aura => aura.id === 'blood-pool-drop'))).toHaveLength(4)
+    state = { ...state, player: { x: -45, z: 22, facing: 0 } }
+    state = stepSentinelsState(state, idle, 3.01)
+    expect(state.pools).toHaveLength(4)
+    expect(state.pools.filter(pool => pool.id.startsWith('npc-blood-pool')).every(pool => Math.abs(pool.position.x) >= 45)).toBe(true)
   })
 
   it('keeps both NPC side groups on the board and gathers them into NPC-owned soaks', () => {
@@ -98,7 +110,9 @@ describe('Entombed Sentinels full-fight contract', () => {
     state = stepSentinelsState(state, idle, .1)
     expect(state.phase).toBe('stasis')
     expect(state.energy).toBe(100)
-    state = { ...state, player: { x: 2, z: -14, facing: 0 } }
+    state = stepSentinelsState(state, idle, 3.1)
+    const partner = sentinelsSnapshot(state).actors.find(actor => actor.kind === 'ally' && actor.auras.some(aura => aura.tone === 'poison' && aura.stacks === 3))!
+    state = { ...state, player: { ...partner.position, facing: 0 } }
     state = stepSentinelsState(state, idle, .1)
     expect(state.helicalResolved).toBe(true)
   })
@@ -139,7 +153,7 @@ describe('Entombed Sentinels full-fight contract', () => {
     expect(moving.bloodBoss.x).toBeGreaterThan(result.bloodBoss.x)
   })
 
-  it('exposes the assigned droplet deadline and both visible matching partners', () => {
+  it('exposes the assigned droplet deadline and unguided compatible partners', () => {
     const dropletState = killCoagulation({ ...createSentinelsState('player', 'test'), time: 8 })
     const timer = nextSentinelsTimer(dropletState)
     expect(timer.label).toBe('Droplet')
@@ -149,15 +163,27 @@ describe('Entombed Sentinels full-fight contract', () => {
     expect(protovenom.actors.some(actor => actor.id === 'protovenom-partner' && actor.auras.some(aura => aura.id === 'protovenom'))).toBe(true)
     expect(protovenom.effects.some(effect => effect.id === 'partner-protovenom-ring')).toBe(true)
 
-    const stasis = sentinelsSnapshot({ ...dropletState, phase: 'stasis', phaseStartedAt: 40, time: 41 })
-    expect(stasis.actors.some(actor => actor.id === 'helical-partner' && actor.auras.some(aura => aura.tone === 'poison' && aura.stacks === 3))).toBe(true)
+    const stasis = sentinelsSnapshot({ ...dropletState, phase: 'stasis', phaseStartedAt: 40, time: 43.1 })
+    expect(stasis.actors.filter(actor => actor.kind === 'ally').some(actor => actor.auras.some(aura => aura.tone === 'poison' && aura.stacks === 3))).toBe(true)
+    expect(stasis.effects.some(effect => effect.id === 'helical-meeting')).toBe(false)
   })
 
-  it('clears every visible Helical mark and meeting ring after the player resolves', () => {
-    const state = { ...createSentinelsState('player', 'test'), phase: 'stasis' as const, helicalResolved: true }
-    const snapshot = sentinelsSnapshot(state)
-    expect(snapshot.actors.every(actor => actor.auras.every(aura => aura.id !== 'green-toxin' && aura.id !== 'red-toxin'))).toBe(true)
-    expect(snapshot.effects.some(effect => effect.id === 'helical-meeting')).toBe(false)
+  it('clears the player immediately and lets NPC pairs resolve afterwards', () => {
+    const state = { ...createSentinelsState('player', 'test'), phase: 'stasis' as const, phaseStartedAt: 0, time: 5, helicalResolved: true, helicalResolvedAt: 5 }
+    expect(sentinelsSnapshot(state).actors.find(actor => actor.kind === 'player')?.auras).toHaveLength(0)
+    expect(sentinelsSnapshot(state).actors.some(actor => actor.kind === 'ally' && actor.auras.some(aura => aura.id === 'green-toxin'))).toBe(true)
+    const cleared = sentinelsSnapshot({ ...state, time: 8.1 })
+    expect(cleared.actors.every(actor => actor.auras.every(aura => aura.id !== 'green-toxin' && aura.id !== 'red-toxin'))).toBe(true)
+  })
+
+  it('keeps Main advancing and restartable during Stasis', () => {
+    let state: SentinelsState = { ...createSentinelsState('player', 'test'), phase: 'stasis', phaseStartedAt: 0, time: 4 }
+    state = startSentinelsMainCast(state)
+    expect(state.mainCastRemaining).toBeGreaterThan(0)
+    state = stepSentinelsState(state, idle, .7)
+    expect(state.mainCastRemaining).toBe(0)
+    expect(sentinelsSnapshot(state).effects.some(effect => effect.id.startsWith('player-main'))).toBe(true)
+    expect(startSentinelsMainCast(state).mainCastRemaining).toBeGreaterThan(0)
   })
 
   it('shares player and NPC class-projectile effects with both renderers', () => {
@@ -165,6 +191,16 @@ describe('Entombed Sentinels full-fight contract', () => {
     expect(sentinelsSnapshot(state).effects.some(effect => effect.kind === 'cosmetic-projectile')).toBe(true)
     state = stepSentinelsState(startSentinelsMainCast(state), idle, .7)
     expect(sentinelsSnapshot(state).effects.some(effect => effect.id.startsWith('player-main'))).toBe(true)
+  })
+
+  it('keeps ambient NPC attacks on their side and shares one boss-health value', () => {
+    const state = { ...createSentinelsState('player', 'test'), time: 4 }
+    const projectiles = sentinelsSnapshot(state).effects.filter(effect => effect.kind === 'cosmetic-projectile' && effect.target)
+    expect(projectiles.length).toBeGreaterThan(0)
+    expect(projectiles.every(effect => Math.sign(effect.position.x) === Math.sign(effect.target!.x))).toBe(true)
+    const damaged = stepSentinelsState(state, idle, 10)
+    expect(damaged.acidHealth).toBe(damaged.bloodHealth)
+    expect(damaged.acidHealth).toBeLessThan(100)
   })
 
   it('records encounter failures without ending Test attempts', () => {

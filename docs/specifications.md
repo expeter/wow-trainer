@@ -678,7 +678,9 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - Encounter packages consume the platform Main lifecycle: begin, display-rate
   cast progress, pause/resume, completion, projectile publication, and impact.
   A package selects the valid target and authoritative damage/outcome only; it
-  must not privately remove the action or reproduce the lifecycle.
+  must not privately remove the action or reproduce the lifecycle. A mechanic
+  may cancel an active cast, but the action becomes immediately restartable;
+  ordinary phase/state transitions cannot strand or freeze it.
 - Learn 2D and Train 3D retain separate movement, camera, arena, and projection
   models. Both consume the same actor/effect snapshots and meanings for harmful
   zones, soaks, spreads, arrows, domes, travelling projectiles, and impacts.
@@ -688,7 +690,9 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - Every supported full-fight runtime exposes the package's shared action legend,
   player cast/projectile feedback, cosmetic NPC class casts, actor health, and
   encounter-owned cast/interrupt feedback. Renderers may change presentation,
-  but may not filter a declared capability out of one mode.
+  but may not filter a declared capability out of one mode. Learn 2D always
+  attaches Main cast progress below the controlled actor's health presentation;
+  the configurable central cast-bar anchor belongs only to Train 3D.
 - Runtime pause blocks new movement and combat actions and freezes active cast
   progress. Camera look may remain available while paused, but an encounter
   snapshot may not mask the resulting player-facing update.

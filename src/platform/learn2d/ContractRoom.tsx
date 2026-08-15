@@ -5,7 +5,7 @@ import { auraToneColors, contractRaidRoster, contractRosterForSlot, contractSele
 import type { EncounterRuntimeProps } from '../encounters'
 import RuntimeStatusBar from '../RuntimeStatusBar'
 import RuntimeFeedback from '../RuntimeFeedback'
-import { EncounterCastBars } from '../TrainingHud'
+import { ActorMainCastBar } from '../TrainingHud'
 import { keyLabel } from '../trainingSettings'
 import { classProjectileEffects, cosmeticClassProjectiles } from '../train3d/cosmeticCombat'
 import type { ActorSnapshot } from '../train3d/types'
@@ -93,8 +93,7 @@ export default function ContractRoom2D({ keyBindings, hudSettings, onExit }: Enc
             return <div key={object.id} className={`contract-ground ${object.tone}${age < CONTRACT_LANDING_SECONDS ? ' incoming' : ''}`} style={{ left: `${slot.x}%`, top: `${slot.y}%`, '--ground-color': auraToneColors[object.tone] } as CSSProperties} aria-label={`${object.tone} ground rune`} />
           })}
           {roster.filter(member => !member.controlled).map((member, index) => { const origin = contractRaidPosition2D(member); return <div key={member.id} className={`contract-raid-member ${member.role}`} style={{ left: `${origin.x + Math.sin(view.time * .7 + index) * .6}%`, top: `${origin.y + Math.cos(view.time * .5 + index) * .35}%` }} aria-label={`${member.role} NPC`}><span /></div> })}
-          <div ref={playerElementRef} className={`learn2d-character player ${gate.role}`} data-player-class={controlled.playerClass} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.y.toFixed(2)} style={{ left: `${view.player.x}%`, top: `${view.player.y}%`, '--player-class-color': trainingClassColors[controlled.playerClass] } as CSSProperties} aria-label={`Controlled ${controlled.playerClass.replace('-', ' ')} ${gate.role} player with ${event.tone} aura`}><AuraIcons tones={[event.tone]} label={`${event.tone} aura`} /><i className="actor-health"><b style={{ width: `${actions.health}%` }} /></i><span className="character-body" aria-hidden="true" /></div>
-          <EncounterCastBars settings={hudSettings} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} />
+          <div ref={playerElementRef} className={`learn2d-character player ${gate.role}`} data-player-class={controlled.playerClass} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.y.toFixed(2)} style={{ left: `${view.player.x}%`, top: `${view.player.y}%`, '--player-class-color': trainingClassColors[controlled.playerClass] } as CSSProperties} aria-label={`Controlled ${controlled.playerClass.replace('-', ' ')} ${gate.role} player with ${event.tone} aura`}><AuraIcons tones={[event.tone]} label={`${event.tone} aura`} /><i className="actor-health"><b style={{ width: `${actions.health}%` }} /></i><span className="character-body" aria-hidden="true" /><ActorMainCastBar enabled={hudSettings.showActions} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} /></div>
           <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" />
           <RuntimeFeedback failures={view.failures} elapsed={view.time} />
         </div></div>

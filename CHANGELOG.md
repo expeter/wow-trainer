@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Corrected the latest two-dimensional encounter review. Essence Rend now ends
+  exactly on its third drop, NPC drops match their visible path, and Invoke
+  moves both Rend and additional Cultists with circular-wall reflection.
+  Every Learn 2D runtime now attaches Main casting to the controlled actor;
+  Main remains independently restartable and advances through Sentinels
+  Stasis. Sentinels now uses shared two-cycle boss health, side-aware priority
+  NPC attacks, boss-local randomized droplets with faster return shots,
+  three-second player/NPC Blood-pool warnings, spaced Protovenom traffic, and
+  delayed unguided all-raid Helical matching after the bosses reach the middle.
 - Corrected Nek'zali's complete reaction flow from the latest visual review:
   assigned players now enter the Well by reaching its centre during a
   seven-second gate and return on the explicit five-second cast while the outer
@@ -36,9 +45,9 @@
 - Normalized Learn 2D movement so equal-duration up, down, left, and right
   input travels equal visible distance on square and wide encounter boards;
   3D retains its calibrated WoW-like forward, backward, and strafe speeds.
-- Extended the provisional Essence Rend trainer aura to eight seconds: two
-  seconds to move outward, three one-second puddle drops, and a recovery margin
-  before removal.
+- Replaced the former provisional eight-second Essence Rend tail: after its
+  two-second movement lead, the aura now ends on the third one-second puddle
+  drop.
 - Corrected Nek'zali Essence Rend to select one raid member at application,
   attach its timer to that character, drop exactly three pools,
   retain all three Latent Cultists under the later `CR-272` clarification, and

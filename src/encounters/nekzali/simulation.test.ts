@@ -47,7 +47,7 @@ describe("Nek'zali headless full-fight simulation", () => {
     expect(activeNekzaliPrompt({ ...state, time: 14 })).toBe('Essence Rend soon')
     state = stepNekzaliState(state, idle, .02)
     expect(state.rendTargetId).toBe('player')
-    expect(NEKZALI_TIMING).toMatchObject({ rendSeconds: 8, rendDropLeadSeconds: 2 })
+    expect(NEKZALI_TIMING).toMatchObject({ rendSeconds: 4, rendDropLeadSeconds: 2 })
     expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras).toContainEqual({ id: 'essence-rend', tone: 'danger', stacks: 1 })
     expect(activeNekzaliPrompt(state)).toBe('Essence Rend — move out')
 
@@ -58,8 +58,7 @@ describe("Nek'zali headless full-fight simulation", () => {
       state = stepNekzaliState({ ...state, player: { x: Math.cos(angle) * 40, z: Math.sin(angle) * 40, facing: 0 } }, idle, 1.01)
     }
     expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(3)
-    expect(nekzaliRendRemaining(state)).toBeGreaterThan(2)
-    state = stepNekzaliState({ ...state, player: { x: 0, z: 40, facing: 0 } }, idle, 3.2)
+    expect(nekzaliRendRemaining(state)).toBe(0)
     expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(3)
     expect(state.rendTargetId).toBeUndefined()
     expect(nekzaliRendRemaining(state)).toBe(0)
@@ -157,6 +156,14 @@ describe("Nek'zali headless full-fight simulation", () => {
     const before = state.hazards[0].position
     state = stepNekzaliState(state, idle, 1)
     expect(state.hazards[0].position).not.toEqual(before)
+  })
+
+  it('reflects moving Invoke hazards at the circular room edge', () => {
+    const hazard = { id: 'cultist', position: { x: 41.7, z: 0 }, radius: 3.2, direction: { x: 1, z: 0 }, kind: 'cultist' as const }
+    const state: NekzaliState = { ...createNekzaliState(), time: 116, phase: 'phase-2', phaseStartedAt: 100, invokes: 1, hazards: [hazard], bossHealth: 50 }
+    const moved = stepNekzaliState(state, idle, .2).hazards[0]
+    expect(Math.hypot(moved.position.x, moved.position.z)).toBeLessThanOrEqual(41.8)
+    expect(moved.direction.x).toBeLessThan(0)
   })
 })
 

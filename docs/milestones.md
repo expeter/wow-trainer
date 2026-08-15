@@ -243,6 +243,24 @@ encounter development into an independently deployed Season 2 repository.
   feed the complete persistent field into Invoke.
 - `CR-273` — completed under `FR-072`: attach the compact Learn 2D Main cast bar to
   the controlled player's actor-local health presentation.
+- `BUG-190` — completed under `FR-082`: end Rend on its third drop and align NPC
+  pathing with the coordinates of all three drops.
+- `BUG-191` — completed under `SPEC-023`: keep Main independently restartable and
+  available through ordinary encounter transitions.
+- `CR-274` — completed under `FR-082`: complete bounded, reflected Invoke hazard
+  movement and add the missing ambient moving Cultists.
+- `CR-275` — completed under `FR-084`: correct droplet placement, soaking, and
+  faster Living Venom return projectiles with raid avoidance.
+- `CR-276` — completed under `SPEC-023`: make Sentinels NPC combat side-aware and
+  nearest-priority-targeted.
+- `BUG-192` — completed under `SPEC-023`: use actor-local Main cast feedback in
+  every Learn 2D encounter.
+- `CR-277` — completed under `FR-084`: rebuild Stasis arrival, spread, toxin
+  composition, free matching, and delayed NPC resolution choreography.
+- `CR-278` — completed under `FR-084`: telegraph and simulate player/NPC delayed
+  Blood pools and preserve spacing for Protovenom.
+- `CR-279` — completed under `FR-084`: use one shared boss-health progression and
+  finish after no more than two Stasis phases.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

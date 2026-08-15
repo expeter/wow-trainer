@@ -68,7 +68,7 @@ const REALM_RADIUS = 22
 const ROOM_RADIUS = 45
 const P1_SECONDS = 90
 const ECHO_SECONDS = 10
-const REND_SECONDS = 8
+const REND_SECONDS = 4
 const REND_DROPS = 3
 const REND_DROP_LEAD_SECONDS = 2
 const REALM_ENTRY_SECONDS = 7
@@ -112,9 +112,15 @@ function rendTargetForEvent(state: NekzaliState, eventIndex: number) {
   return contractRaidRoster[(selectedIndex + 5 + eventIndex * 3) % contractRaidRoster.length].id
 }
 
-function rendNpcDropPosition(state: NekzaliState, drop: number): WorldPoint {
-  const targetIndex = Math.max(0, contractRaidRoster.findIndex(member => member.id === state.rendTargetId))
-  const angle = targetIndex / contractRaidRoster.length * Math.PI * 2 + drop * .38
+function rendNpcPositionAt(targetId: string, age: number): WorldPoint {
+  const member = contractRaidRoster.find(candidate => candidate.id === targetId) ?? contractRaidRoster[0]
+  const targetIndex = Math.max(0, contractRaidRoster.findIndex(candidate => candidate.id === targetId))
+  const baseAngle = targetIndex / contractRaidRoster.length * Math.PI * 2
+  const angle = baseAngle + Math.max(0, age - 2.5) * .7
+  const start = nekzaliMemberPosition(member)
+  const progress = Math.min(1, age / 2.5)
+  const entry = { x: Math.cos(baseAngle) * 40, z: Math.sin(baseAngle) * 40 }
+  if (progress < 1) return { x: start.x + (entry.x - start.x) * progress, z: start.z + (entry.z - start.z) * progress }
   return { x: Math.cos(angle) * 40, z: Math.sin(angle) * 40 }
 }
 
@@ -129,14 +135,17 @@ function stepEssenceRend(state: NekzaliState, eventIndex: number): NekzaliState 
   if (dueDrops > next.rendDrops) {
     const hazards = [...next.hazards]
     for (let drop = next.rendDrops + 1; drop <= dueDrops; drop += 1) {
-      const position = next.rendTargetId === next.selectedSlotId ? { x: next.player.x, z: next.player.z } : rendNpcDropPosition(next, drop)
-      hazards.push({ id: `rend-${eventIndex + 1}-${drop}`, position, radius: 3.2, direction: { x: 0, z: 0 }, kind: 'cultist', createdAt: next.time })
+      const dropAge = REND_DROP_LEAD_SECONDS + drop - 1
+      const position = next.rendTargetId === next.selectedSlotId ? { x: next.player.x, z: next.player.z } : rendNpcPositionAt(next.rendTargetId!, dropAge)
+      const angle = (eventIndex * 2.17 + drop * 1.31) % (Math.PI * 2)
+      const direction = next.phase === 'phase-2' && next.invokes > 0 ? { x: Math.cos(angle), z: Math.sin(angle) } : { x: 0, z: 0 }
+      hazards.push({ id: `rend-${eventIndex + 1}-${drop}`, position, radius: 3.2, direction, kind: 'cultist', createdAt: next.time })
     }
     next = { ...next, hazards, rendDrops: dueDrops }
   }
-  if (age < REND_SECONDS) return next
+  if (next.rendDrops < REND_DROPS) return next
   if (next.rendTargetId === next.selectedSlotId && Math.hypot(next.player.x, next.player.z) < 34) {
-    next = addFailure(next, 'rend-inside', 'Essence Rend ended inside the raid', 'Move to the outer edge before the aura expires.', true)
+    next = addFailure(next, 'rend-inside', 'Essence Rend dropped its final Cultist inside the raid', 'Reach the outer edge before the third puddle drops.', true)
   }
   return { ...next, rendTargetId: undefined, rendStartedAt: undefined }
 }
@@ -397,9 +406,24 @@ function stepPhaseTwo(state: NekzaliState, seconds: number, playerPresent = true
   const ageAfter = state.time - state.phaseStartedAt
   const ageBefore = ageAfter - seconds
   let invokes = state.invokes
-  let hazards: NekzaliHazard[] = state.hazards.filter(hazard => hazard.kind === 'cultist').map(hazard => ({ ...hazard, position: { x: hazard.position.x + hazard.direction.x * seconds * (invokes ? 2 : 0), z: hazard.position.z + hazard.direction.z * seconds * (invokes ? 2 : 0) } }))
+  let hazards: NekzaliHazard[] = state.hazards.filter(hazard => hazard.kind === 'cultist').map(hazard => {
+    if (!invokes) return hazard
+    const proposed = { x: hazard.position.x + hazard.direction.x * seconds * 2.8, z: hazard.position.z + hazard.direction.z * seconds * 2.8 }
+    const limit = ROOM_RADIUS - hazard.radius
+    const radius = Math.hypot(proposed.x, proposed.z)
+    if (radius <= limit) return { ...hazard, position: proposed }
+    const normal = { x: proposed.x / radius, z: proposed.z / radius }
+    const dot = hazard.direction.x * normal.x + hazard.direction.z * normal.z
+    const direction = { x: hazard.direction.x - 2 * dot * normal.x, z: hazard.direction.z - 2 * dot * normal.z }
+    return { ...hazard, position: { x: normal.x * limit, z: normal.z * limit }, direction }
+  })
   for (const boundary of [15, 35, 55]) if (ageBefore < boundary && ageAfter >= boundary) {
     invokes += 1
+    if (invokes === 1) hazards.push(...Array.from({ length: 6 }, (_, index) => {
+      const angle = index * Math.PI / 3 + .27
+      const radius = 13 + index % 3 * 6
+      return { id: `invoke-cultist-${index + 1}`, position: { x: Math.cos(angle) * radius, z: Math.sin(angle) * radius }, radius: 3.2, direction: { x: 0, z: 0 }, kind: 'cultist' as const, createdAt: state.time }
+    }))
     hazards = hazards.map((hazard, index) => { const angle = (index * 2.17 + invokes * 1.31) % (Math.PI * 2); return { ...hazard, direction: { x: Math.cos(angle), z: Math.sin(angle) } } })
   }
   const selected = contractSelectedMember(state.selectedSlotId)
@@ -499,15 +523,8 @@ function npcPosition(member: ContractRaidMember, state: NekzaliState, index: num
     return { x: Math.cos(angle) * 32, z: Math.sin(angle) * 32 }
   }
   if (state.rendStartedAt !== undefined && state.rendTargetId === member.id) {
-    const targetIndex = Math.max(0, contractRaidRoster.findIndex(candidate => candidate.id === member.id))
-    const baseAngle = targetIndex / contractRaidRoster.length * Math.PI * 2
     const age = state.time - state.rendStartedAt
-    const progress = Math.min(1, (state.time - state.rendStartedAt) / 2.5)
-    const start = nekzaliMemberPosition(member)
-    const entry = { x: Math.cos(baseAngle) * 40, z: Math.sin(baseAngle) * 40 }
-    if (progress < 1) return { x: start.x + (entry.x - start.x) * progress, z: start.z + (entry.z - start.z) * progress }
-    const angle = baseAngle + Math.max(0, age - 2.5) * .38
-    return { x: Math.cos(angle) * 40, z: Math.sin(angle) * 40 }
+    return rendNpcPositionAt(member.id, age)
   }
   if (member.role === 'tank' && member.id === state.barrageTargetId && state.barrageStartedAt !== undefined) {
     const age = state.time - state.barrageStartedAt

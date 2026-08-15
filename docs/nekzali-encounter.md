@@ -1,7 +1,7 @@
 # Nek'zali the Soulcoiler encounter contract
 
 Tickets: `SPEC-022`, `FR-081`, `FR-082`, `FR-083`, `CR-261`, `BUG-187`,
-`BUG-188`, `BUG-189`, `CR-271`, `CR-272`, `CR-273`
+`BUG-188`, `BUG-189`, `CR-271`, `CR-272`, `CR-273`, `BUG-190`, `CR-274`
 
 This is one complete supplied mechanics contract shared by Learn 2D and Train
 3D. Test, Easy, Normal, and Hard control guidance and failure tolerance only;
@@ -48,15 +48,16 @@ versioned, and visibly replaceable until authoritative live data is available.
 
 - Boss health drains from 100% to 50% over approximately 90 simulated seconds.
   This is a trainer pacing profile, not an asserted live DPS check.
-- **Essence Rend:** one selected player carries an eight-second provisional
-  trainer aura. The first two seconds are a readable outward-movement lead;
-  three puddles then drop at one-second intervals, leaving a recovery margin
-  before removal. Target selection remains unknown until applied. When the
+- **Essence Rend:** one selected player carries a provisional trainer aura.
+  The first two seconds are a readable outward-movement lead; three puddles
+  then drop at one-second intervals and the aura ends on the third drop with
+  no hidden post-drop hold. Target selection remains unknown until applied. When the
   controlled player is selected, a compact attached timer appears; the player
   moves toward a free outer lane and drops exactly three provisional training
   puddles before the aura ends and ordinary play resumes. All three Latent
   Cultist zones remain after removal. NPC targets repeat the same readable
-  movement/drop vocabulary often enough to seed the later Invoke field; this
+  movement/drop vocabulary, with each puddle landing at the target's visible
+  position, often enough to seed the later Invoke field; this
   remains a provisional trainer realization until authoritative timing exists.
 - **Possession Barrage:** the active tank moves away in a clear lane. Spirits
   travel from boss to tank and burst in a small area; raid damage decreases with
@@ -97,7 +98,10 @@ versioned, and visibly replaceable until authoritative live data is available.
 - Begins after both Echoes die. Phase 1 mechanics continue.
 - **Invoke** is shown as a five-second training cast. On completion it triggers
   Soulcoil Rite and sends every Latent Cultist hazard in a deterministic seeded
-  random direction around the Well. Players avoid the moving six-yard zones.
+  random direction around the Well. The first Rite also seeds six additional
+  ambient Cultists. Every moving zone reflects from the circular wall and every
+  later Rend patch joins the active movement field. Players avoid the moving
+  six-yard zones.
 - Boss energy rises from Rites and leaked adds. Reaching 100 energy is a
   terminal failure; defeating Nek'zali is the completion condition.
 
@@ -148,7 +152,9 @@ versioned, and visibly replaceable until authoritative live data is available.
   switching, aggro color, boss pursuit, spirit travel, corpse state, and Invoke
   motion must come from simulation snapshots rather than renderer-owned logic.
 - Automated coverage must prove phase triggers, three controlled add kills,
-  add leaks, distance-scaled Barrage, tank swap/boss pursuit, alternating soak
+  add leaks, distance-scaled Barrage, tank swap/boss pursuit, exact third-drop
+  Rend expiry and NPC drop/path agreement, alternating soak
   groups, corpse cremation, residual-corpse failure, moving Phase 2 hazards,
   alternating Well-realm entry, isolated snapshots, 20 completed Main hits,
-  assigned interrupt failure, non-terminal disruption, and five-second return.
+  assigned interrupt failure, non-terminal disruption, reflected bounded Invoke
+  movement, and five-second return.
