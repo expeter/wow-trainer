@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- CR-232: Wire `npm run inbox` and `npm run inbox:list` directly to the global,
+  localhost-only Project Inbox skill, with captures stored in `inbox/` and
+  explicitly routed into the Season 2 ticket workflow.
 - CR-231: Pin the reviewed Vite 8.2.1, Vitest 4.1.10, and Playwright 1.62.1
   bootstrap toolchain through `sec-helper`, and make local Vite plugin imports
   compatible with the native configuration loader.

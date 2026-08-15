@@ -81,4 +81,17 @@ describe('maintained project documentation', () => {
     expect(read('.github/workflows/api.yml')).not.toContain('deploy-api:')
     expect(read('.github/workflows/api.yml')).not.toContain('api.asgard.website')
   })
+
+  it('wires the global project inbox into the Season 2 ticket workflow', () => {
+    const packageJson = JSON.parse(read('package.json'))
+    const inboxConfig = JSON.parse(read('.project-inbox.json'))
+
+    expect(packageJson.scripts.inbox).toContain('.codex/skills/project-inbox/scripts/project-inbox.mjs')
+    expect(packageJson.scripts.inbox).toContain('serve --root .')
+    expect(inboxConfig.projectName).toBe('Midnight Season 2 Trainer')
+    expect(inboxConfig.inboxDir).toBe('inbox')
+    expect(inboxConfig.workflow.label).toContain('FR/CR/BUG')
+    expect(inboxConfig.workflow.instructions).toContain('docs/README.md')
+    expect(inboxConfig.workflow.instructions).toContain('Processing remains explicit')
+  })
 })

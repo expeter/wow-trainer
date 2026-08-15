@@ -28,6 +28,8 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-231` — completed: pin and verify the reviewed Vite 8.2.1, Vitest
   4.1.10, and Playwright 1.62.1 bootstrap toolchain through `sec-helper`, with
   a native-loader-compatible Vite configuration.
+- `CR-232` — completed: add and start the localhost-only global Project Inbox
+  skill, with captures routed into the maintained Season 2 ticket workflow.
 - `SPEC-018` — completed: make the shared-shell/separate-runtime and isolated
   auto-discovered encounter-package boundaries binding.
 - `FR-072` — deferred until `CR-230` and `SPEC-018` are stable: introduce

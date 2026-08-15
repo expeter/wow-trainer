@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "inbox": "node $HOME/.codex/skills/project-inbox/scripts/project-inbox.mjs serve --root .",
+    "inbox:list": "node $HOME/.codex/skills/project-inbox/scripts/project-inbox.mjs list --root .",
     "test": "vitest run",
     "test:bootstrap": "node --test scripts/bootstrap-contract.test.mjs",
     "test:watch": "vitest",
