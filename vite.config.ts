@@ -27,7 +27,7 @@ export default defineConfig({
     feedbackInboxPlugin(),
     onlineSubmitLabPlugin(),
     {
-      name: 'lura-version-manifest',
+      name: 'midnight-season-2-version-manifest',
       configureServer(server) {
         server.middlewares.use('/version.json', (_request, response) => {
           response.setHeader('Content-Type', 'application/json')

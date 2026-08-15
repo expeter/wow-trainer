@@ -22,7 +22,7 @@ test('result preview fits a compact card with a branded offline Run-ID', async (
         : originalFillText.call(this, text, x, y)
     }
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'test', exact: true }).click()
   await page.getByRole('button', { name: /preview final screen/i }).click()
 

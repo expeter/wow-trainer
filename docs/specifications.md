@@ -464,3 +464,28 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   supplies the protection bubble and cannot be recollected or expire while
   committed. A missing, early, or incorrectly positioned P3 drop remains an
   ordinary collectible crystal.
+
+## SPEC-018 · Midnight Season 2 platform and encounter boundary
+
+- The product identity is `midnight-season-2` with the short identifier
+  `midnight-s2`. Its planned public hostname is `midnight.asgard.website`, but
+  no public deployment is enabled during bootstrap.
+- The reviewed L'ura v0.9.1 application is a development-only reference. It
+  must not be the production entry point, contact the inherited `/v1` service
+  from the Season 2 shell, or deploy over `lura.asgard.website`.
+- The existing shell, navigation vocabulary, controls, HUD concepts, tactical
+  planning patterns, audio boundaries, and persistence lessons are extracted
+  incrementally. The repository must not be replaced with an unrelated blank
+  interface and unfinished L'ura encounter work must not be imported wholesale.
+- Learn 2D and Train 3D share shell-owned vocabulary and encounter content, but
+  they remain separate runtimes with separate arena models. Neither runtime may
+  treat the other's geometry or simulation state as authoritative.
+- Each boss lives in one isolated `src/encounters/<encounter-id>/` directory
+  and is exposed through `EncounterPackageV1`. Discovery is automatic from
+  encounter entry modules; a central hand-maintained boss switch is forbidden.
+- Entombed Sentinels is the first encounter package. No second boss begins
+  until the package contract, automatic discovery, both runtime boundaries,
+  and focused Sentinels regressions are stable.
+- API `/v2`, public statistics, achievements, rankings, and production hosting
+  are later milestones. The inherited L'ura `/v1` service remains frozen and
+  has no deployment path from this repository.

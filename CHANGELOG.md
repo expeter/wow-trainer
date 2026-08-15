@@ -1,6 +1,18 @@
-# L'ura Trainer changelog
+# Midnight Season 2 Trainer changelog
 
 ## Unreleased
+
+- CR-230: Bootstrap the standalone Midnight Season 2 product identity and
+  familiar six-section shell, with separate pending Learn 2D and Train 3D
+  modes, Entombed Sentinels as the sole first encounter, and the complete L'ura
+  v0.9.1 application retained behind a development-only reference route.
+- CR-230: Disable inherited GitHub Pages and L'ura API production deployments,
+  and remediate the dependency lock through `sec-helper` without bypassing a
+  blocked artifact policy.
+- SPEC-018: Define shared-shell, separate-runtime, isolated encounter-package,
+  automatic discovery, and deferred API `/v2` boundaries.
+
+## Frozen L'ura v0.9.1 history
 
 ## 0.9.1 · 2026-07-31
 

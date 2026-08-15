@@ -14,7 +14,7 @@ test('exposes the released Phase 1 encounter and begins its assigned interrupts'
     localStorage.setItem('lura-game-speed', '2.5')
     localStorage.setItem('lura-difficulty', 'test')
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
 
   await page.getByRole('button', { name: 'P1', exact: true }).click()
   await page.getByRole('button', { name: 'Raid plan' }).click()
@@ -47,7 +47,7 @@ test('repairs legacy smaller-arena positions before a Hard Phase 1 countdown', a
     localStorage.setItem('lura-selected-position', '12')
     localStorage.setItem('lura-p1-player-positions', JSON.stringify(Array.from({ length: 20 }, () => ({ x: 480, y: 270 }))))
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'hard', exact: true }).click()
   await page.getByRole('button', { name: 'P1', exact: true }).click()
   await page.getByRole('button', { name: /Enter P1/ }).click()
@@ -63,7 +63,7 @@ test('keeps the first Phase 1 Heaven Glaive set while the second sequence launch
     localStorage.setItem('lura-game-speed', '2.5')
     localStorage.setItem('lura-selected-position', '0')
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'test', exact: true }).click()
   await page.getByRole('button', { name: 'P1', exact: true }).click()
   await page.getByRole('button', { name: /Enter P1/ }).click()
@@ -98,7 +98,7 @@ test('unlocks and schedules the complete prerecorded P4 raidlead in the browser'
       return Promise.resolve()
     }
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'P4', exact: true }).click()
   await page.getByRole('button', { name: /Enter P4/ }).click()
 
@@ -132,7 +132,7 @@ test('a shared hash plan drives every live phase and survives a clean reload', a
     sessionStorage.setItem('stale-plan-seeded', 'true')
   }, stale)
   const code = Buffer.from(encodeURIComponent(JSON.stringify(plan))).toString('base64')
-  await page.goto(`/#raidplan=${code}`)
+  await page.goto(`/?reference=lura-v0.9.1#raidplan=${code}`)
 
   await expect(page.getByText('Shared raid plan loaded')).toBeVisible()
   const stored = await page.evaluate(() => ({
@@ -170,14 +170,14 @@ test('a shared hash plan drives every live phase and survives a clean reload', a
   await enterAndInspect('P3')
   await enterAndInspect('P4')
 
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'Raid plan' }).click()
   expect(await page.getByRole('button', { name: 'Move P3 player 15' }).evaluate(element => parseFloat((element as HTMLElement).style.left))).toBeGreaterThan(50)
 })
 
 test('selects Arena 2 and enters the Phase 2 countdown', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('lura-game-speed', '2.5'))
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
 
   await expect(page.getByRole('button', { name: 'Intermission', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'P2', exact: true }).click()
@@ -211,7 +211,7 @@ test('plays the five-hit Heaven’s Lance swap as the configured off-tank', asyn
     localStorage.setItem('lura-selected-position', '1')
     localStorage.setItem('lura-tank-assignments', JSON.stringify([0, 1]))
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'test', exact: true }).click()
   await page.getByRole('button', { name: 'P2', exact: true }).click()
   await page.getByRole('button', { name: /Enter P2/ }).click()
@@ -230,7 +230,7 @@ test('plays the five-hit Heaven’s Lance swap as the configured off-tank', asyn
 
 test('shows the early crystal drop warning on Easy only', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('lura-game-speed', '2.5'))
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'easy' }).click()
   await page.getByRole('button', { name: 'P2', exact: true }).click()
   await page.getByRole('button', { name: /Enter P2/ }).click()
@@ -246,7 +246,7 @@ test('wipes when the controlled Phase 2 beam misses its assigned moving orb', as
     localStorage.setItem('lura-player-positions', '[]')
     localStorage.setItem('lura-p2-crystal-assignments', JSON.stringify([1, 4, 7, 10, 13, 16]))
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'hard' }).click()
   await page.getByRole('button', { name: 'P2', exact: true }).click()
   await page.getByRole('button', { name: /Enter P2/ }).click()
@@ -258,7 +258,7 @@ test('wipes when the controlled Phase 2 beam misses its assigned moving orb', as
 
 test('continues the current Phase 2 sequence after the first Normal wipe', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('lura-game-speed', '2.5'))
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByLabel('Character to play').selectOption('8')
   await page.getByRole('button', { name: 'P2', exact: true }).click()
   await page.getByRole('button', { name: /Enter P2/ }).click()
@@ -277,7 +277,7 @@ test('wipes when a non-carrier personal circle hits an NPC crystal in Phase 2', 
     localStorage.setItem('lura-game-speed', '2.5')
     localStorage.setItem('lura-selected-position', '2')
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'hard' }).click()
   await page.getByRole('button', { name: 'P2', exact: true }).click()
   await page.getByRole('button', { name: /Enter P2/ }).click()
@@ -288,7 +288,7 @@ test('wipes when a non-carrier personal circle hits an NPC crystal in Phase 2', 
 
 test('Space jumps while actions are locked and P pauses', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('lura-game-speed', '2.5'))
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'easy' }).click()
   await page.getByLabel('Character to play').selectOption('8')
   await page.getByRole('button', { name: 'Intermission', exact: true }).click()
@@ -347,7 +347,7 @@ test('live activity refresh does not stall direct Intermission after its countdo
       occurredAt,
     }] } })
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'Intermission', exact: true }).click()
   await page.getByRole('button', { name: 'test', exact: true }).click()
   await page.getByRole('button', { name: /Enter Intermission/ }).click()
@@ -381,7 +381,7 @@ test('Main ability visibly animates and completes only once when its bound key i
       mainAbility: 'Digit4',
     }))
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'Intermission', exact: true }).click()
   await page.getByRole('button', { name: /Enter Intermission/ }).click()
   await expect(page.locator('.arena-wrap')).toBeVisible()
@@ -416,7 +416,7 @@ test('Main ability visibly animates and completes only once when its bound key i
 
 test('enters Phase 3 directly in non-blocking Test mode', { tag: '@late-arena' }, async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('lura-game-speed', '2.5'))
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'test' }).click()
   await page.getByLabel('Character to play').selectOption('8')
   await page.getByRole('button', { name: 'P3', exact: true }).click()
@@ -445,7 +445,7 @@ test('launches the raid into Phase 3 from its visible final Phase 2 positions', 
     localStorage.setItem('lura-game-speed', '2.5')
     localStorage.setItem('lura-selected-position', '8')
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'test', exact: true }).click()
   await page.getByRole('button', { name: 'P2', exact: true }).click()
   await page.getByRole('button', { name: /Enter P2/ }).click()
@@ -471,7 +471,7 @@ test('recollects a transition-started Phase 2 crystal after one second when the 
     localStorage.setItem('lura-game-speed', '2.5')
     localStorage.setItem('lura-selected-position', '0')
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'Raid plan' }).click()
   await page.getByLabel('Phase 2 crystal 1').selectOption('0')
   await page.getByRole('button', { name: 'Game settings' }).click()
@@ -495,7 +495,7 @@ test('enters Phase 4 directly and plays Splinters again before the second Heaven
     localStorage.setItem('lura-game-speed', '2.5')
     localStorage.setItem('lura-selected-position', '2')
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'test', exact: true }).click()
   await page.getByRole('button', { name: 'P4', exact: true }).click()
   await page.getByRole('button', { name: /Enter Arena 4/ }).click()
@@ -528,7 +528,7 @@ test('resolves a Phase 4 stack hit reliably at 2.5x speed', { tag: '@late-arena'
     localStorage.setItem('lura-game-speed', '2.5')
     localStorage.setItem('lura-selected-position', '2')
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'test', exact: true }).click()
   await page.getByRole('button', { name: 'P4', exact: true }).click()
   await page.getByRole('button', { name: /Enter Arena 4/ }).click()
@@ -546,7 +546,7 @@ test('gives the controlled Phase 4 tank a repeatable cone and no Starsplinter', 
     localStorage.setItem('lura-tank-assignments', JSON.stringify([0, 1]))
     localStorage.setItem('lura-hud-action-buttons-enabled', 'true')
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'test', exact: true }).click()
   await page.getByRole('button', { name: 'P4', exact: true }).click()
   await page.getByRole('button', { name: /Enter Arena 4/ }).click()
@@ -569,7 +569,7 @@ test('makes the second Phase 4 tank move the protection zone and receive no Star
     localStorage.setItem('lura-tank-assignments', JSON.stringify([0, 1]))
     localStorage.setItem('lura-hud-action-buttons-enabled', 'true')
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'test', exact: true }).click()
   await page.getByRole('button', { name: 'P4', exact: true }).click()
   await page.getByRole('button', { name: /Enter Arena 4/ }).click()
@@ -591,7 +591,7 @@ test('makes the second Phase 4 tank move the protection zone and receive no Star
 test('keeps a terminal wipe over the frozen arena and allows minimizing its details', { tag: '@late-arena' }, async ({ page }) => {
   test.setTimeout(90_000)
   await page.addInitScript(() => localStorage.setItem('lura-game-speed', '2.5'))
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'hard', exact: true }).click()
   await page.getByRole('button', { name: 'P3', exact: true }).click()
   await page.getByRole('button', { name: /Enter Arena 3/ }).click()

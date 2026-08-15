@@ -1,0 +1,15 @@
+:root {
+  --s2-color-canvas: #070812;
+  --s2-color-surface: #0e1425;
+  --s2-color-surface-raised: #18223b;
+  --s2-color-border: #354361;
+  --s2-color-text: #f6f4ee;
+  --s2-color-muted: #9ba8c2;
+  --s2-color-accent: #73e0c1;
+  --s2-color-accent-soft: rgba(115, 224, 193, .18);
+  --s2-color-warning: #f2b169;
+  --s2-radius-control: 8px;
+  --s2-radius-panel: 13px;
+  --s2-font-body: Manrope, sans-serif;
+  --s2-font-mono: 'DM Mono', monospace;
+}

@@ -1,130 +1,73 @@
-# L'ura Trainer
+# Midnight Season 2 Trainer
 
-A browser-based movement trainer for practicing the L'ura encounter from a
-top-down, player-focused 3D view.
+A standalone browser trainer for learning Midnight Season 2 raid encounters in
+two complementary modes: tactical study in Learn 2D and movement rehearsal in
+Train 3D.
 
-The trainer covers Phase 1, the Intermission, a three-cycle Phase 2 sequence,
-two sectors of Phase 3, and the four-quarter Phase 4 finale. You can practice
-the complete transition chain or enter any phase directly.
+This repository begins with the reviewed L'ura Trainer v0.9.1 platform so its
+shell, controls, HUD, tactical planner, audio, persistence, tests, and delivery
+lessons can be extracted incrementally. It is a new product, not a continuation
+of the L'ura encounter or its online service.
 
-The detailed [feature inventory, request convention, historical bug register,
-and screenshot index](docs/README.md) document how the simulator evolved.
-Contributors and coding agents should begin with the repository instructions
-in [`AGENTS.md`](AGENTS.md), then review the stable
-[specifications](docs/specifications.md) and current
-[delivery milestones](docs/milestones.md).
+## Current status
 
-## What you can practice
+The bootstrap shell is active. Entombed Sentinels is the only selected first
+encounter, but neither training runtime is playable yet. `EncounterPackageV1`,
+automatic encounter discovery, and the isolated Sentinels package are the next
+milestone after the bootstrap contract is stable.
 
-- Six Intermission Starsplinter and boss-beam sets
-- Crystal carrier drop, avoidance, and recovery timing
-- Phase 2 cross-beam positioning, timed orb charges and returns, and center explosions
-- Center pulls, personal-circle spreads, and crystal recovery
-- Phase 3 outward flight, trio landing soaks, split-room positioning, light
-  zones, dark-pool draining, runic lattices, ordered rune matching, and Dark
-  Archangel crystal protection
-- Phase 4 knock-up, protected raid-stack movement, sequential Starsplinters,
-  Heaven & Hell sectors, and incoming fragments
-- Test, Easy, Normal, and Hard difficulty settings; Test mode records mistakes
-  without stopping the run
-- Configurable 20-player raid plans, including names, classes, crystal
-  assignments, start slots, separate Phase 2 soak/spread positions, and a
-  Phase 3 initial-sector plan that rotates into the next sector
-- Shareable raid-plan codes and locally saved settings
-- Optional health reactions, main-ability casts, and adjustable HUD; bundled
-  ambience is currently hidden behind a disabled feature flag
-- Per-phase results and a shareable, mode- and duty-aware achievement card;
-  Test mode also
-  offers a clearly marked final-screen preview
+- Product ID: `midnight-season-2`
+- Short ID: `midnight-s2`
+- Planned hostname: `midnight.asgard.website` (not configured yet)
+- Public deployment: disabled during extraction
+- Online services: API `/v2`, statistics, achievements, and rankings deferred
 
-## Controls
+The [request ledger](docs/README.md), [stable specifications](docs/specifications.md),
+[delivery milestones](docs/milestones.md), and [architecture boundary](docs/architecture.md)
+are authoritative. Contributors and coding agents must begin with
+[`AGENTS.md`](AGENTS.md) and the numbered
+[Season 2 handover](handover/midnight-season-2/00-README.md).
 
-The defaults are:
+## Runtime boundary
 
-| Action | Control |
-| --- | --- |
-| Move | `W` / `A` / `S` / `D` |
-| Rotate player | `Q` / `E` |
-| Jump | `Space` |
-| Drop crystal | `C` |
-| Pause or resume | `P` |
-| Health potion | `Numpad Delete` |
-| Shield | `Numpad 7` |
-| Main ability | `F` |
-| Look without changing facing | Left mouse drag |
-| Change view and player facing | Right mouse drag |
-| Zoom | Mouse wheel |
+The shell owns product navigation, encounter vocabulary, preferences, and
+shared presentation. Learn 2D and Train 3D consume the same encounter package
+but own different simulations and arena geometry. Bosses will live in isolated,
+automatically discovered encounter directories.
 
-Keyboard controls can be rebound from the setup screen. Camera position,
-keybindings, raid plans, and HUD placement are saved in the browser.
+The complete L'ura v0.9.1 application remains available only in a development
+server at `?reference=lura-v0.9.1`. Production builds use the Season 2 entry
+point and do not expose the reference link. The inherited `/v1` API and its
+deployment workflow are frozen.
 
-## Run locally
+## Local development
 
-Requires a current Node.js installation (the deployment workflow uses Node 22).
+Use the repository dependency guard before running project code:
 
 ```bash
-npm install
+sec-helper audit
+sec-helper install
 npm run dev
 ```
 
-Vite will print the local URL to open in a browser.
+If `sec-helper` blocks a package or artifact, stop and resolve it through the
+guard; do not bypass the proxy or installation policy.
 
-## Test and build
+Run unit and component coverage with `npm test`. Run focused browser coverage
+through `./scripts/test-e2e-focused.sh season2-shell`; use
+`npm run test:e2e:local` only for the complete browser suite. Build with
+`npm run build`.
 
-Run the unit and component tests:
-
-```bash
-npm test
-```
-
-Run the browser tests:
-
-```bash
-npx playwright install chromium
-npm run test:e2e
-```
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-The generated site is written to `dist/`.
-
-## Deploy with GitHub Pages
-
-The repository includes a GitHub Actions workflow that tests, builds, and
-deploys the site whenever `main` is pushed.
-
-For a public GitHub repository:
-
-1. Open **Settings → Pages** in the repository.
-2. Set **Source** to **GitHub Actions**.
-3. Push the `main` branch.
-4. Follow the **Test and deploy to GitHub Pages** workflow in the Actions tab.
-
-## Support and contact
-
-Created by **Pestivator**, proud gnome.
-
-- BattleTag: [`pestivator#2515`](https://raider.io/characters/eu/antonidas/Pestivator)
-- Discord: `pestivator` (legacy `pestivator#0757`)
-- Twitch: [twitch.tv/pestivator](https://www.twitch.tv/pestivator)
-- Solana: `E684K1q1gzodtZK3xgdBXfTeRQbWWhSu8kVbzZNiw9Cz`
-
-If the trainer helps your raid, the Solana address is available as a
-“buy me a coffee” option. Please verify the complete address before sending
-anything.
+There is intentionally no deployment procedure in this bootstrap milestone.
+The inherited workflows verify the standalone shell without publishing Pages
+or the legacy API.
 
 ## License and attribution
 
-The source code is released under the [MIT License](LICENSE).
-
-Bundled but currently feature-disabled background music is subject to the
-Pixabay Content License rather than the MIT License. Track credits, provenance,
-and license details are documented in
-[sounds/pixabay/README.md](sounds/pixabay/README.md).
+The source code is released under the [MIT License](LICENSE). Bundled legacy
+audio remains subject to its documented license under
+[`sounds/pixabay/README.md`](sounds/pixabay/README.md) while the extraction
+audit determines which assets are retained.
 
 This is an unofficial fan-made practice tool and is not affiliated with or
 endorsed by Blizzard Entertainment. World of Warcraft and related names are

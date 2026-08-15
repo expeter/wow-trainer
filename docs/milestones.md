@@ -6,14 +6,11 @@ in [`specifications.md`](specifications.md).
 
 ## Current release boundary
 
-- Current release line: `v0.9.1`; frontend deployment remains pending until the
-  frontend/API production checks complete.
-- `v0.9.1` completes the interrupted Run-ID release with a compact shared
-  result card while keeping controlled-player Phase 2 beam duty and the
-  two-tank encounter roles in localhost preview. The v0.9.0 API deployed, but
-  its Pages deployment was blocked by documentation drift.
-- Current leaderboard season: `season-1`. No milestone or SemVer bump changes
-  it automatically.
+- No standalone Midnight Season 2 release has been cut and no public deployment
+  is configured. The repository starts from the tagged L'ura v0.9.1 source
+  baseline solely for incremental extraction.
+- The inherited L'ura leaderboard remains `season-1` and is owned by the legacy
+  repository. This repository does not change, migrate, or deploy it.
 
 ## Midnight Season 2 transition
 
@@ -25,9 +22,22 @@ encounter development into an independently deployed Season 2 repository.
   including the reuse audit, separate Learn 2D and Train 3D contracts,
   isolated encounter packages, Sentinels reference, API `/v2` statistics
   boundary, verification strategy, source material, and new-session prompt.
+- `CR-230` — completed: establish the standalone product identity, default
+  Season 2 shell, development-only L'ura reference, documentation set,
+  dependency baseline, and hard deployment safeguards.
+- `SPEC-018` — completed: make the shared-shell/separate-runtime and isolated
+  auto-discovered encounter-package boundaries binding.
+- `FR-072` — deferred until `CR-230` and `SPEC-018` are stable: introduce
+  `EncounterPackageV1`, automatic discovery, and Entombed Sentinels as the sole
+  first encounter package.
+- `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 
-This documentation changes no encounter, scoring, API, deployment, or
-leaderboard behavior. The L’ura API and leaderboard remain `season-1`.
+No other boss work may start alongside Entombed Sentinels. The L'ura API and
+leaderboard remain frozen legacy reference behavior and cannot deploy from this
+repository.
+
+The remaining milestones below are the frozen L'ura v0.9.1 delivery record.
+They are retained for source archaeology, not as the Season 2 execution order.
 
 ## M0 · Online identity hotfix
 

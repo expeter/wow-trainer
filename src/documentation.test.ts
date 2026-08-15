@@ -20,9 +20,10 @@ describe('maintained project documentation', () => {
     expect(activeDocumentation).not.toContain('leaderboard-api-handoff.md')
   })
 
-  it('keeps the milestone release boundary aligned with the package version', () => {
+  it('records the inherited source baseline without claiming a Season 2 release', () => {
     const packageVersion = JSON.parse(read('package.json')).version
-    expect(read('docs/milestones.md')).toContain(`release line: \`v${packageVersion}\``)
+    expect(read('docs/milestones.md')).toContain(`L'ura v${packageVersion} source`)
+    expect(read('docs/milestones.md')).toContain('No standalone Midnight Season 2 release has been cut')
   })
 
   it('groups every open request into a delivery milestone', () => {
@@ -73,5 +74,11 @@ describe('maintained project documentation', () => {
     ]) {
       expect(operatorReadme).toContain(parameterized)
     }
+  })
+
+  it('keeps inherited deployment targets disabled during extraction', () => {
+    expect(read('.github/workflows/pages.yml')).not.toContain('actions/deploy-pages')
+    expect(read('.github/workflows/api.yml')).not.toContain('deploy-api:')
+    expect(read('.github/workflows/api.yml')).not.toContain('api.asgard.website')
   })
 })

@@ -1,5 +1,5 @@
 {
-  "name": "lura-trainer",
+  "name": "midnight-season-2-trainer",
   "private": true,
   "version": "0.9.1",
   "type": "module",
@@ -7,28 +7,29 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "test": "vitest run",
+    "test:bootstrap": "node --test scripts/bootstrap-contract.test.mjs",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:local": "./scripts/playwright-local.sh"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "three": "latest"
+    "three": "latest",
+    "typescript": "latest",
+    "vite": "latest"
   },
   "devDependencies": {
+    "@playwright/test": "latest",
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@testing-library/user-event": "latest",
     "@types/node": "^26.1.1",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@types/three": "latest",
-    "@testing-library/jest-dom": "latest",
-    "@testing-library/react": "latest",
-    "@testing-library/user-event": "latest",
     "jsdom": "latest",
-    "vitest": "latest",
-    "@playwright/test": "latest"
+    "vitest": "latest"
   }
 }

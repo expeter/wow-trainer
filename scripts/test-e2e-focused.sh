@@ -17,8 +17,11 @@ case "${preset}" in
   main-ability)
     grep_pattern='Main ability visibly fills'
     ;;
+  season2-shell)
+    grep_pattern='standalone Season 2 shell|development-only reference route'
+    ;;
   '')
-    printf 'Usage: %s <crystal|p4-tank|phase2|main-ability|free text>\n' "$0" >&2
+    printf 'Usage: %s <season2-shell|crystal|p4-tank|phase2|main-ability|free text>\n' "$0" >&2
     exit 2
     ;;
   *)
@@ -28,6 +31,10 @@ case "${preset}" in
 esac
 
 cd -- "${repository_root}"
-export LURA_E2E_PORT="${LURA_E2E_PORT:-4179}"
+export MIDNIGHT_E2E_PORT="${MIDNIGHT_E2E_PORT:-${LURA_E2E_PORT:-4179}}"
+export MIDNIGHT_E2E_ISOLATED=1
+# Frozen v0.9.1 browser fixtures still read the legacy names while they run
+# behind the development-only reference route.
+export LURA_E2E_PORT="${MIDNIGHT_E2E_PORT}"
 export LURA_E2E_ISOLATED=1
 exec ./scripts/playwright-local.sh --grep "${grep_pattern}" --retries=0

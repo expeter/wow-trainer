@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 
 test('publishes the trainer favicon', async ({ page, request }) => {
-  await page.goto('/')
-  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.png')
+  await page.goto('/?reference=lura-v0.9.1')
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', './favicon.png')
   const favicon = await request.get('/favicon.png')
   expect(favicon.ok()).toBe(true)
   expect(favicon.headers()['content-type']).toBe('image/png')
@@ -24,7 +24,7 @@ test('keeps unreleased encounter previews off public hosts', async ({ page }) =>
     })
     await route.fulfill({ response })
   })
-  await page.goto(publicOrigin)
+  await page.goto(`${publicOrigin}/?reference=lura-v0.9.1`)
 
   await expect(page.getByRole('heading', { name: 'Two Heaven’s Lance tanks' })).toHaveCount(0)
   await expect(page.getByLabel('Taunt / tank action keybind')).toHaveCount(0)
@@ -39,7 +39,7 @@ test('keeps unreleased encounter previews off public hosts', async ({ page }) =>
 })
 
 test('keeps optional login and public leaderboards usable without the API', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'Leaderboard', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Global leaderboard' })).toBeVisible()
   await expect(page.getByLabel('Global leaderboard standings').locator(':scope > .global-leaderboard-rows > li')).toHaveCount(10)
@@ -73,7 +73,7 @@ test('keeps optional login and public leaderboards usable without the API', asyn
 
 test('keeps all overview ranking cards inside the desktop page boundary', async ({ page }) => {
   await page.setViewportSize({ width: 2048, height: 816 })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   const overview = page.locator('.setup-overview')
   const online = page.getByLabel('Current online standings')
   const [overviewBox, onlineBox] = await Promise.all([overview.boundingBox(), online.boundingBox()])
@@ -88,7 +88,7 @@ test('keeps all overview ranking cards inside the desktop page boundary', async 
 })
 
 test('orders game start, global Top 3, and player summaries before setup sections', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   const practice = page.getByRole('heading', { name: 'Practice configuration' })
   const assignment = page.getByRole('group', { name: 'Character to play' })
   const difficulty = page.getByRole('group', { name: 'Difficulty & movement' })
@@ -135,7 +135,7 @@ test('orders game start, global Top 3, and player summaries before setup section
 })
 
 test('opens the in-page Profile achievements from the shell summary', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: /Open personal achievements/ }).click()
   await expect(page.getByRole('button', { name: 'Profile' })).toHaveAttribute('aria-current', 'page')
   await expect(page.locator('#personal-achievements')).toBeVisible()
@@ -171,7 +171,7 @@ test('restores verified achievements and progress for the authenticated account'
     } })
     return route.fulfill({ status: 200, json: { rows: [] } })
   })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
 
   await expect(page.getByRole('button', { name: 'Open personal achievements, 1 of 32 earned' })).toBeVisible()
   await page.getByRole('button', { name: 'Open personal achievements, 1 of 32 earned' }).click()
@@ -184,7 +184,7 @@ test('restores verified achievements and progress for the authenticated account'
 })
 
 test('raidlead menu exposes system voice selection and preview', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   const tts = page.getByRole('group', { name: 'TTS settings' })
   await expect(tts.getByLabel('Raidlead voice')).toBeVisible()
   await expect(tts.getByRole('option', { name: 'Automatic · English system default' })).toBeAttached()
@@ -195,7 +195,7 @@ test('raidlead menu exposes system voice selection and preview', async ({ page }
 test('creator card stays inside the setup layout with readable text', async ({ page }) => {
   for (const viewport of [{ width: 1280, height: 900 }, { width: 375, height: 812 }]) {
     await page.setViewportSize(viewport)
-    await page.goto('/')
+    await page.goto('/?reference=lura-v0.9.1')
     const card = page.getByLabel('About Pestivator')
     await expect(card).toBeVisible()
     const bounds = await card.boundingBox()
@@ -212,7 +212,7 @@ test('creator card stays inside the setup layout with readable text', async ({ p
 
 test('raid sharing spans the setup width between HUD settings and raid planning', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('button', { name: 'HUD' }).click()
   const hud = page.getByLabel('Phase 2 HUD layout preview')
   const hudBounds = await hud.boundingBox()
@@ -230,7 +230,7 @@ test('raid sharing spans the setup width between HUD settings and raid planning'
 
 test('game settings use one compact three-card row on desktop', async ({ page }) => {
   await page.setViewportSize({ width: 1000, height: 900 })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   const cards = [
     page.getByRole('group', { name: 'Difficulty & movement' }),
     page.getByRole('group', { name: 'Character to play' }),
@@ -258,7 +258,7 @@ test('game settings use one compact three-card row on desktop', async ({ page })
 
 test('setup tabs preserve the raid-plan hash and expose one section at a time', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await expect(page.getByRole('heading', { name: 'Practice configuration' })).toBeVisible()
   await expect(page.getByText('GAME SETTINGS', { exact: true })).toBeVisible()
   await expect(page.getByText('KEYBOARD SETTINGS', { exact: true })).toBeHidden()
@@ -276,7 +276,7 @@ test('setup tabs preserve the raid-plan hash and expose one section at a time', 
 })
 
 test('raid-plan save confirms visibly and P2 crystal changes preserve positions', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/?reference=lura-v0.9.1')
   await page.getByRole('navigation', { name: 'Setup sections' }).getByRole('button', { name: 'Raid plan' }).click()
 
   const positionsBefore = await page.evaluate(() => ({

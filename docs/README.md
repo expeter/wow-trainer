@@ -1,9 +1,9 @@
-# L'ura Trainer project record
+# Midnight Season 2 Trainer project record
 
-This document is the durable feature and issue record for the trainer. It
-summarizes what has been implemented, provides a home for the reference
-screenshots, and defines the lightweight request convention used for future
-work.
+This document is the durable feature and issue record for the standalone
+Midnight Season 2 Trainer. The repository was seeded from the reviewed L'ura
+Trainer v0.9.1 platform; its historical request log remains below as a frozen
+development reference while the shared shell is extracted incrementally.
 
 Repository operating rules live in [`AGENTS.md`](../AGENTS.md). Current open
 work is grouped in [delivery milestones](milestones.md), while stable behavior
@@ -47,6 +47,21 @@ Expected: only the active T/X/O pair resolves; other contacts are ignored.
 ```
 
 ## Request log
+
+### Midnight Season 2 migration
+
+| ID | Status | Request |
+| --- | --- | --- |
+| `CR-230` | Implemented | Bootstrap the standalone Season 2 repository: establish its product identity and documentation, make the new shell the default runtime, retain L'ura v0.9.1 as a development-only reference, remediate the dependency lock through `sec-helper`, and disable inherited production deployments. Focused contract: `node --test scripts/bootstrap-contract.test.mjs`. |
+| `SPEC-018` | Implemented | Define the Season 2 platform boundary: shared product shell and vocabulary, separate Learn 2D and Train 3D runtimes/arena models, isolated auto-discovered encounter packages, and deferred online services. |
+| `FR-072` | Deferred | Implement `EncounterPackageV1`, automatic encounter discovery, and the first isolated Entombed Sentinels package after the bootstrap and architecture contract are stable. No other boss may begin in parallel. |
+| `FR-073` | Deferred | Introduce API `/v2`, public statistics, achievements, and rankings in a later milestone after the offline trainer and encounter-package contract are stable. |
+
+The legacy entries below describe L'ura v0.9.1 and are not the Season 2
+implementation backlog. They remain available to support reuse decisions and
+development-only regression comparisons.
+
+### Frozen L'ura v0.9.1 history
 
 | ID | Status | Request |
 | --- | --- | --- |
