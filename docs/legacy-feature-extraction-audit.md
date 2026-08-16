@@ -42,7 +42,7 @@ represented precisely enough in the Season 2 backlog:
 | Train 3D jump/vertical traversal | Discuss; implement only when an accepted encounter needs vertical collision or traversal | `FR-089` |
 | Simulation time-scale control | Discuss as a development/Test-only diagnostic; never alter encounter timing or comparable results | `FR-090` |
 | Shared player vitality, damage, potion, defensive, and cooldown state | Discuss as an opt-in package service; do not restore L’ura’s permanent global actions | `FR-091` |
-| Player selection of explicitly approved focused practice scenarios | Discuss after encounter authors supply the situations; reuse package scenario declarations | `FR-092` |
+| Player selection of focused practice scenarios | Cancelled by product direction; retain one complete full-fight scenario and derive responsibilities from roster assignments | `FR-092` (cancelled) |
 
 The review also confirmed these mappings and exclusions:
 

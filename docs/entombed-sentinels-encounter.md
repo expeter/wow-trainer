@@ -1,6 +1,6 @@
 # Entombed Sentinels encounter specification
 
-Tickets: `SPEC-022`, `SPEC-024`, `FR-084`, `CR-287`
+Tickets: `SPEC-022`, `SPEC-024`, `SPEC-025`, `FR-084`, `CR-287`, `BUG-195`–`BUG-197`
 
 This is the canonical, iterative trainer definition for Entombed Sentinels.
 The 2026-08-16 synthesis remains source evidence. Learn 2D and Train 3D share
@@ -64,8 +64,10 @@ mechanics and failure rules but declare separate pacing profiles.
 - Toxic Droplets appear independently of the add's death on both encounter
   sides. The player receives one only when assigned to handle a Droplet.
 - A soaked Droplet launches Living Venom toward the current position of the
-  Breath boss after the profile delay. The lane is harmful and remains visually
-  readable from launch through impact.
+  Breath boss. Soaking is immediate; a three-second return lane first shows the
+  path, then a faster projectile travels along it and disappears on impact.
+  Collision follows the projectile rather than treating the entire historical
+  lane as permanently harmful. NPCs use the same soak and avoidance rules.
 - Empowering Slam is a 1.5-second tank cast. Repeated hits on the same tank add
   an independently displayed 10% physical-damage stack; NPC tanks swap under
   their assignment.
@@ -74,7 +76,9 @@ mechanics and failure rules but declare separate pacing profiles.
 
 - Miasma targets a player for an eight-second 7.5-yard group soak. Failure to
   gather enough assigned players is terminal. Each participant then receives a
-  six-second Clinging Murk/Blood Venom pool drop and moves to an outer lane.
+  six-second entity-attached Clinging Murk/Blood Venom pool drop and moves to an
+  outer lane. Expiry detaches one permanent pool at that carrier's actual final
+  position.
 - Blighted Blood is an 18-second Magic debuff. A controlled healer can Dispel
   the affected NPC after it reaches an edge drop location. If the controlled
   player is affected, an NPC healer dispels after the player reaches a clear
@@ -90,9 +94,10 @@ mechanics and failure rules but declare separate pacing profiles.
   other carrier.
 - A carrier touching a non-carrier causes a 10-yard eruption, records failure,
   and applies reusable radial knockback. A valid pair clears both carriers.
-- NPC pairs wait long enough not to reveal the answer, then resolve before
-  Stasis. An unresolved player assignment at Stasis fails according to trainer
-  tolerance.
+- Every NPC carrier moves toward a legal partner and resolves through the same
+  collision rule. They wait long enough not to reveal the player's answer, then
+  resolve before Stasis. An unresolved player assignment at Stasis fails
+  according to trainer tolerance.
 
 ## Vitriolic Stasis and Helical Toxins
 
@@ -103,7 +108,8 @@ mechanics and failure rules but declare separate pacing profiles.
   compositions for 28 seconds. The controlled player must meet exactly one
   complementary carrier so the combined pair has four green and four red.
 - Any complementary player is valid. Touching an incompatible carrier fails;
-  NPC pairs resolve only after the player to avoid answer-marking.
+  every NPC pair resolves through the same composition rule after the player
+  has had time to identify a partner, avoiding answer-marking.
 - When Stasis ends, sides swap and tanks cross-taunt through NPC assignment.
   Old marks are allowed to expire independently rather than being erased. After
   the second accepted cycle, the linked trainer health reaches zero.

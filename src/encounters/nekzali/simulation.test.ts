@@ -27,7 +27,7 @@ describe("Nek'zali reconciled encounter contract", () => {
     state = stepNekzaliState(state, idle, .02)
     expect(state.rendTargetId).toBe('player')
     expect(nekzaliRendRemaining(state)).toBeGreaterThan(19)
-    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras).toContainEqual({ id: 'essence-rend', tone: 'danger', stacks: 1 })
+    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras[0]).toMatchObject({ id: 'essence-rend', tone: 'danger', stacks: 1, label: 'Rend' })
     state = stepNekzaliState({ ...state, player: { x: 35, z: 0, facing: 0 } }, idle, 5.01)
     expect(state.rendTargetId).toBeUndefined()
     expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(1)
@@ -97,12 +97,32 @@ describe("Nek'zali reconciled encounter contract", () => {
     expect(duties.filter(Boolean).length).toBeLessThan(duties.length / 2)
   })
 
+  it('uses roster-derived Realm Groups once in P1 and P2, never during the Echo intermission', () => {
+    const groupOneSlot = contractRaidRoster.find(member => createNekzaliState(member.id).wellGroup === 1)!.id
+    const groupTwoSlot = contractRaidRoster.find(member => createNekzaliState(member.id).wellGroup === 2)!.id
+    const groupOne = stepNekzaliState({ ...createNekzaliState(groupOneSlot, 'test'), time: 54.99, addsSpawned: true, adds: [] }, idle, .02)
+    expect(groupOne).toMatchObject({ realmStage: 'pull', wellEventIndex: 1 })
+    const outside = stepNekzaliState({ ...createNekzaliState(groupTwoSlot, 'test'), time: 54.99, addsSpawned: true, adds: [] }, idle, .02)
+    expect(outside).toMatchObject({ realmStage: 'none', npcRealmGroup: 1, wellEventIndex: 1 })
+    const groupTwo = stepNekzaliState({ ...createNekzaliState(groupTwoSlot, 'test'), time: 107.99, phase: 'phase-2', phaseStartedAt: 100, wellEventIndex: 1 }, idle, .02)
+    expect(groupTwo).toMatchObject({ realmStage: 'pull', wellEventIndex: 2 })
+    const intermission = stepNekzaliState({ ...createNekzaliState(groupOneSlot, 'test'), time: 100, phase: 'echo-1', phaseStartedAt: 100, wellEventIndex: 1 }, idle, .02)
+    expect(intermission.realmStage).toBe('none')
+    expect(intermission.npcRealmGroup).toBeUndefined()
+  })
+
+  it('spawns the Amani wave before the first Grasping Depths call', () => {
+    const state = stepNekzaliState({ ...createNekzaliState('player', 'test'), time: 41.99, wellEventIndex: 0 }, idle, .02)
+    expect(state.addsSpawned).toBe(true)
+    expect(state.realmStage).toBe('none')
+  })
+
   it('shows Soul Transfer before resolving the player intermission duty', () => {
     const state: NekzaliState = { ...createNekzaliState('tank-1', 'test'), time: 90, phase: 'echo-1', phaseStartedAt: 90, player: { x: 20, z: 10, facing: 0 } }
     expect(nekzaliSnapshot(state).effects.some(effect => effect.id === 'soul-transfer-1')).toBe(true)
     const dutyState = { ...state, time: 105.1 }
     expect(nekzaliSnapshot(dutyState).effects.some(effect => effect.id === 'pyre-1' || effect.id === 'spread-1')).toBe(true)
-    expect(startNekzaliMainCast(state).mainCastRemaining).toBe(0)
+    expect(startNekzaliMainCast(state)).toMatchObject({ mainCastRemaining: 1, mainTargetId: 'echo-1' })
   })
 })
 

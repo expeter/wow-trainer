@@ -1,6 +1,6 @@
 # Nek'zali the Soulcoiler encounter specification
 
-Tickets: `SPEC-022`, `SPEC-024`, `FR-082`, `FR-083`, `CR-286`
+Tickets: `SPEC-022`, `SPEC-024`, `SPEC-025`, `FR-082`, `FR-083`, `CR-286`, `BUG-195`–`BUG-197`
 
 This is the canonical, iterative trainer definition for Nek'zali. The supplied
 2026-08-16 research is source evidence, not a second implementation contract.
@@ -42,7 +42,9 @@ projections, never with Test/Easy/Normal/Hard.
 - Twenty players: two tanks, five healers, five melee, and eight ranged.
 - Pre-pull assignment states the player's Well team and either `Pyre soak` or
   `Cremation cleanup`. Cleanup is a smaller deterministic group; the main raid
-  soaks. The role remains visible in the mechanic prompt.
+  soaks. Selecting a roster player deterministically selects Realm Group 1 or
+  Realm Group 2; that assignment is prominent pre-pull and remains visible in
+  the runtime HUD.
 - The active tank owns aggro. Possession Barrage swaps aggro immediately; NPC
   tanks carry it to a far clear edge lane. Player tanks use Taunt when assigned.
 - Main damages priority adds before Nek'zali. NPCs use the same target/action
@@ -105,12 +107,23 @@ projections, never with Test/Easy/Normal/Hard.
   marked targets; NPCs handle the rest, including while the player is in the
   Well realm. A leak remains a trainer wipe condition.
 - Every death leaves a Vessel of Awakening at that exact location.
+- In the deterministic trainer cadence the first wave begins before the Phase 1
+  Realm Group call, so the adds remain a visible independent responsibility
+  rather than being replaced by the realm transition.
 
 ## Well realm
 
-- Grasping Depths assigns alternating teams. The assigned player enters the
-  centre during a projection-specific entry window; the outer encounter keeps
-  advancing under NPC responsibility.
+- Grasping Depths is separate from Essence Rend and from the 50% Echo
+  intermission. The deterministic trainer schedules one Group 1 occurrence in
+  Phase 1 and one Group 2 occurrence in Phase 2; exact live recurrence and
+  phase availability remain unverified and are not invented as twice per phase.
+- The assigned player enters the centre during a projection-specific entry
+  window. An unassigned player remains outside while the assigned NPC group
+  handles the Well, and the outer encounter keeps advancing under NPC
+  responsibility.
+- NPC realm participants move to the Well, transfer realms explicitly, and
+  later return; the transition is not an ordinary position jump. Outer-realm
+  actors continue bounded locomotion around the lethal Well.
 - Inside, Main kills the Drowned Echo in 20 hits. The player must interrupt its
   ten-second assigned cast while avoiding orbiting and outward spirits.
 - Nek'zali's three-second disruption cancels a Main cast if it completes during
@@ -121,6 +134,7 @@ projections, never with Test/Easy/Normal/Hard.
 
 - At the time-driven 50% proxy, surviving adds remain authoritative and must be
   killed before the transition. Nek'zali becomes untargetable in the Well.
+- Grasping Depths does not occur during this trainer intermission.
 - Two Echoes activate sequentially. Soul Transfer is a 15-second line hazard
   from Nek'zali to the active Echo.
 - The main raid receives Hungering Pyre and soaks the 7.5-yard split. Assigned

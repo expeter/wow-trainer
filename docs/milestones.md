@@ -58,6 +58,17 @@ from individually accepted encounter evidence and tickets.
   Sentinels contract and both projections with the supplied 2026-08-16
   research while documenting the approved shared-health and both-side-droplet
   trainer abstractions.
+- `SPEC-025` — completed: make effects, casts, debuffs, movement intent, and
+  removal outcomes owned by stable entities rather than encounter-local
+  renderer coordinates.
+- `CR-288` — completed under `SPEC-025`: migrate both contract rooms and both
+  active encounters to shared actor/effect projection.
+- `BUG-195` — completed under `SPEC-025`: replace NPC warps with bounded,
+  arena-aware locomotion.
+- `BUG-196` — completed under `SPEC-025`: enforce player/NPC mechanic parity and
+  entity-attached effect lifecycles.
+- `BUG-197` — completed under `SPEC-025`: correct the accepted Nek'zali and
+  Sentinels sequencing/feedback issues from the 2026-08-16 playtest batch.
 
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),
@@ -152,15 +163,17 @@ from individually accepted encounter evidence and tickets.
   serves both labs and both full fights.
 - `FR-087` — completed under `SPEC-019`: the frozen source, ticket register,
   feature inventory, changelog, and deferred ideas were reconciled into explicit
-  extraction mappings and four keep/drop discussion tickets.
+  extraction mappings and four keep/drop decisions; `FR-092` was subsequently
+  cancelled while `FR-089`–`FR-091` remain deferred.
 - `FR-089` — deferred by product decision: no shared Train 3D jump/vertical
   traversal unless an accepted encounter later requires it.
 - `FR-090` — deferred by product decision: no authoring time-scale control in
   the current delivery sequence.
 - `FR-091` — deferred by product decision: no shared vitality/potion/defensive
   service in the current delivery sequence.
-- `FR-092` — deferred until the user identifies and approves a specific
-  trainable subsection of a fight.
+- `FR-092` — cancelled by product direction: do not add focused-practice
+  scenario selection; full fights expose responsibilities through roster and
+  assignment selection.
 - `FR-078` — backlog after core acceptance: independent persisted audio services.
 - `FR-079` — backlog after core acceptance: versioned encounter tactic editor; the
   supplied Sentinels raid-plan image is preserved as package evidence.

@@ -55,14 +55,14 @@ describe('Entombed Sentinels reconciled encounter contract', () => {
     const assigned = state.droplets.find(droplet => droplet.side === 'blood' && droplet.assignedToPlayer)!
     state = stepSentinelsState({ ...state, player: { ...state.player, ...assigned.position } }, idle, .1)
     expect(state.droplets.find(droplet => droplet.id === assigned.id)?.soaked).toBe(true)
-    expect(sentinelsSnapshot(state).effects.some(effect => effect.id === `${assigned.id}-return`)).toBe(true)
+    expect(sentinelsSnapshot(state).effects.some(effect => effect.id === `${assigned.id}-return-lane` && effect.kind === 'lane')).toBe(true)
   })
 
   it('keeps Living Venom visible for the projection-specific return time', () => {
     const droplet = { id: 'return', side: 'acid' as const, position: { x: 30, z: 10 }, assignedToPlayer: true, soaked: true, soakedAt: 10 }
-    const state = { ...createSentinelsState('player', 'test'), time: 13.9, dropletsSpawned: true, droplets: [droplet] }
+    const state = { ...createSentinelsState('player', 'test'), time: 13.1, dropletsSpawned: true, droplets: [droplet] }
     expect(sentinelsSnapshot(state).effects.some(effect => effect.id === 'return-return')).toBe(true)
-    expect(sentinelsSnapshot({ ...state, time: 14.01 }).effects.some(effect => effect.id === 'return-return')).toBe(false)
+    expect(sentinelsSnapshot({ ...state, time: 14.21 }).effects.some(effect => effect.id === 'return-return')).toBe(false)
   })
 
   it('creates a persistent edge pool when a Blood healer dispels Blighted Blood', () => {
@@ -79,6 +79,17 @@ describe('Entombed Sentinels reconciled encounter contract', () => {
     const soaked = stepSentinelsState(initial, idle, .02)
     expect(soaked.puddleDropAt! - soaked.time).toBeCloseTo(6)
     expect(stepSentinelsState(soaked, idle, 5.9).pools).toHaveLength(0)
+  })
+
+  it('attaches every delayed Blood pool to its carrier and drops NPC pools at their final positions', () => {
+    let state = stepSentinelsState({ ...createSentinelsState('healer-2', 'test'), time: 24.99, phaseStartedAt: 0, miasmaResolved: false }, idle, 1.02)
+    const snapshot = sentinelsSnapshot(state)
+    const npcCarrier = snapshot.actors.find(actor => actor.kind === 'ally' && actor.auras.some(aura => aura.id === 'blood-pool-drop'))!
+    expect(snapshot.effects).toContainEqual(expect.objectContaining({ id: `${npcCarrier.id}-blood-pool-ring`, ownerId: npcCarrier.id }))
+    state = stepSentinelsState({ ...state, time: state.puddleDropAt! - .01, player: { ...state.player, x: -70 } }, idle, .02)
+    const npcPool = state.pools.find(pool => pool.id.startsWith('npc-blood-pool'))
+    expect(Object.values(state.npcPositions)).toContainEqual(npcPool?.position)
+    expect(state.npcPoolsDropped).toBe(true)
   })
 
   it('tracks reusable tank stacks on the boss assigned to the player', () => {

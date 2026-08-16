@@ -1,5 +1,6 @@
 import type { WorldArena3D } from '../encounters'
 import type { TrainingClass } from '../contractRoom'
+import type { RaidRole } from '../contractRoom'
 import type { CombatProjectileShape } from '../../projectiles'
 import type { EncounterTimelineState } from '../encounters/timeline'
 
@@ -23,6 +24,8 @@ export interface AuraSnapshot {
   id: string
   tone: AuraTone
   stacks: number
+  label?: string
+  expiresAt?: number
 }
 
 export interface ActorSnapshot {
@@ -32,13 +35,14 @@ export interface ActorSnapshot {
   facing: number
   color: string
   playerClass?: TrainingClass
+  role?: RaidRole
   auras: readonly AuraSnapshot[]
   health?: number
 }
 
 export interface EffectSnapshot {
   id: string
-  kind: 'pulse' | 'projectile' | 'cosmetic-projectile' | 'projectile-impact' | 'ground-harmful' | 'ground-soak' | 'ground-spread' | 'ground-objective' | 'arrow' | 'dome'
+  kind: 'pulse' | 'projectile' | 'cosmetic-projectile' | 'projectile-impact' | 'ground-harmful' | 'ground-soak' | 'ground-spread' | 'ground-objective' | 'lane' | 'arrow' | 'dome'
   position: WorldPoint
   target?: WorldPoint
   radius: number
@@ -49,6 +53,8 @@ export interface EffectSnapshot {
   projectileShape?: CombatProjectileShape
   originHeight?: number
   targetHeight?: number
+  /** Stable actor attachment. Rendering resolves the live actor position. */
+  ownerId?: string
 }
 
 export type WorldMarkerKind = 'star' | 'cross' | 'diamond' | 'circle'

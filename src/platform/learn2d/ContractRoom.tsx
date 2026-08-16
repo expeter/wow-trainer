@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import AuraIcons from '../AuraIcons'
 import { ContractPullOverlay, useContractPullGate } from '../ContractPullGate'
 import { auraToneColors, contractRaidRoster, contractRosterForSlot, contractSelectedMember, trainingClassColors, CONTRACT_LANDING_SECONDS } from '../contractRoom'
 import { encounterActionLegend, type EncounterRuntimeProps } from '../encounters'
@@ -15,6 +14,7 @@ import { useRuntimeInputClear } from '../useRuntimeInputClear'
 import { activeContractEvent2D, contractGroundSlots2D, contractRaidPosition2D, createContractRoom2DState, prepareContractRoom2DSlot, stepContractRoom2D } from './contractRoomSimulation'
 import type { DiagramDirection } from './movement'
 import SnapshotEffects from './SnapshotEffects'
+import SnapshotActors, { SnapshotActorAuras } from './SnapshotActors'
 import { beginEncounterAction } from '../encounters/timeline'
 import { ambientNpcPosition } from '../encounters/ambientNpc'
 
@@ -82,7 +82,12 @@ export default function ContractRoom2D({ keyBindings, actions: actionRegistry, h
   const controlled = contractSelectedMember(gate.selectedSlotId)
   const age = view.time - view.eventStartedAt
   const actorPoint = (member: (typeof roster)[number]) => { const point = member.controlled ? { x: view.player.x, y: view.player.y } : contractRaidPosition2D(member); return { x: point.x - 50, z: (point.y - 50) * .6 } }
-  const combatActors: ActorSnapshot[] = roster.map(member => ({ id: member.controlled ? 'player' : member.id, kind: member.controlled ? 'player' : 'ally', playerClass: member.playerClass, position: actorPoint(member), facing: 0, color: trainingClassColors[member.playerClass], auras: [] }))
+  const combatActors: ActorSnapshot[] = roster.map(member => ({ id: member.controlled ? 'controlled-player' : member.id, kind: member.controlled ? 'player' : 'ally', role: member.role, playerClass: member.playerClass, position: actorPoint(member), facing: 0, color: trainingClassColors[member.playerClass], auras: member.controlled ? [{ id: event.id, tone: event.tone, stacks: 1 }] : [] }))
+  const raidActors: ActorSnapshot[] = roster.filter(member => !member.controlled).map(member => {
+    const origin = contractRaidPosition2D(member)
+    const position = ambientNpcPosition(member.id, { x: origin.x, z: origin.y }, view.time, { radius: member.role === 'tank' || member.role === 'melee' ? .45 : .8 })
+    return { id: member.id, kind: 'ally', role: member.role, playerClass: member.playerClass, position, facing: 0, color: trainingClassColors[member.playerClass], auras: [] }
+  })
   const bossPoint = { x: 0, z: -4.8 }
   const combatEffects = [...cosmeticClassProjectiles(combatActors, bossPoint, view.time), ...(actions.mainProjectileAge >= 0 ? classProjectileEffects('contract-player-main', actorPoint(roster.find(member => member.controlled)!), bossPoint, controlled.playerClass, actions.mainProjectileAge, view.eventIndex, 1) : [])]
   const setPad = (direction: DiagramDirection, active: boolean) => { if (active && gate.phaseRef.current === 'active' && !pause.pausedRef.current) pressedRef.current.add(direction); else pressedRef.current.delete(direction) }
@@ -93,13 +98,13 @@ export default function ContractRoom2D({ keyBindings, actions: actionRegistry, h
       <div className="learn2d-stage">
         <div className="learn2d-arena-frame"><div className="learn2d-board contract-2d-board" aria-label="Top-down contract training arena" data-raid-size={contractRaidRoster.length}>
           <div className="contract-2d-boss" aria-label="Training boss"><span>BOSS</span><i className="actor-health"><b style={{ width: '100%' }} /></i></div>
-          <SnapshotEffects effects={combatEffects} width={100} depth={60} />
+          <SnapshotEffects effects={combatEffects} actors={combatActors} width={100} depth={60} />
           {event.groundObjects.map(object => {
             const slot = contractGroundSlots2D[object.direction]
             return <div key={object.id} className={`contract-ground ${object.tone}${age < CONTRACT_LANDING_SECONDS ? ' incoming' : ''}`} style={{ left: `${slot.x}%`, top: `${slot.y}%`, '--ground-color': auraToneColors[object.tone] } as CSSProperties} aria-label={`${object.tone} ground rune`} />
           })}
-          {roster.filter(member => !member.controlled).map(member => { const origin = contractRaidPosition2D(member); const position = ambientNpcPosition(member.id, { x: origin.x, z: origin.y }, view.time, { radius: member.role === 'tank' || member.role === 'melee' ? .45 : .8 }); return <div key={member.id} className={`contract-raid-member ${member.role}`} style={{ left: `${position.x}%`, top: `${position.z}%` }} aria-label={`${member.role} NPC`}><span /></div> })}
-          <div ref={playerElementRef} className={`learn2d-character player ${gate.role}`} data-player-class={controlled.playerClass} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.y.toFixed(2)} style={{ left: `${view.player.x}%`, top: `${view.player.y}%`, '--player-class-color': trainingClassColors[controlled.playerClass] } as CSSProperties} aria-label={`Controlled ${controlled.playerClass.replace('-', ' ')} ${gate.role} player with ${event.tone} aura`}><AuraIcons tones={[event.tone]} label={`${event.tone} aura`} /><i className="actor-health"><b style={{ width: `${actions.health}%` }} /></i><span className="character-body" aria-hidden="true" /><ActorMainCastBar enabled={hudSettings.showActions} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} /></div>
+          <SnapshotActors actors={raidActors} xPercent={value => value} zPercent={value => value} time={view.time} />
+          <div ref={playerElementRef} className={`learn2d-character player ${gate.role}`} data-player-class={controlled.playerClass} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.y.toFixed(2)} style={{ left: `${view.player.x}%`, top: `${view.player.y}%`, '--player-class-color': trainingClassColors[controlled.playerClass] } as CSSProperties} aria-label={`Controlled ${controlled.playerClass.replace('-', ' ')} ${gate.role} player with ${event.tone} aura`}><SnapshotActorAuras actor={combatActors.find(actor => actor.kind === 'player')!} time={view.time} /><i className="actor-health"><b style={{ width: `${actions.health}%` }} /></i><span className="character-body" aria-hidden="true" /><ActorMainCastBar enabled={hudSettings.showActions} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} /></div>
           <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" />
           <RuntimeFeedback failures={view.failures} elapsed={view.time} />
         </div></div>

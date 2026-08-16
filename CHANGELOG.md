@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Completed the entity-owned mechanic and locomotion correction across the
+  contract rooms, Nek'zali, and Entombed Sentinels. Shared actors retain class
+  color, role silhouette, auras, timers, and attached effects; NPCs now travel
+  toward bounded destinations instead of changing position with phase branches,
+  and dropped effects detach at their carrier's final position. Toxic Droplets,
+  delayed Blood pools, Protovenom, Helical Toxins, Rend, Barrage, and Cremation
+  now use the same carrier/effect vocabulary for players and NPCs. Nek'zali's
+  roster-derived Realm Group is visible before and during the pull, Group 1 is
+  called in Phase 1, Group 2 in Phase 2, and neither is called during the Echo
+  intermission. Focused-practice selection remains cancelled.
+
 - Reconciled Nek'zali with the supplied 2026-08-16 fight research. Essence
   Rend is now a pull, knockback, timed Magic debuff, edge dispel, and one
   persistent Latent Cultist instead of a three-puddle abstraction; healers can

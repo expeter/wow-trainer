@@ -122,9 +122,10 @@ export function contractRoomSnapshot(state: ContractRoomState, playerSlotId = CO
     return {
       id: member.id,
       kind: 'ally' as const,
+      role: member.role,
       position,
       facing: Math.atan2(-origin.x, -origin.z),
-      color: member.role === 'tank' ? '#6f9cff' : member.role === 'healer' ? '#71dd99' : member.role === 'melee' ? '#e18a58' : '#b690e8',
+      color: trainingClassColors[member.playerClass],
       playerClass: member.playerClass,
       auras: index % 4 === 0 ? [{ id: `npc-${tone}`, tone, stacks: 1 }] : [], health: 100,
     }
@@ -138,7 +139,7 @@ export function contractRoomSnapshot(state: ContractRoomState, playerSlotId = CO
     timeline: state.timeline,
     arena: contractRoomArena,
     actors: [
-      { id: 'controlled-player', kind: 'player', position: state.player, facing: state.player.facing, color: trainingClassColors[controlled.playerClass], playerClass: controlled.playerClass, auras: [{ id: event.id, tone: event.tone, stacks: 1 }], health: playerHealth },
+      { id: 'controlled-player', kind: 'player', role: controlled.role, position: state.player, facing: state.player.facing, color: trainingClassColors[controlled.playerClass], playerClass: controlled.playerClass, auras: [{ id: event.id, tone: event.tone, stacks: 1 }], health: playerHealth },
       { id: 'spell-dummy', kind: 'boss', position: { x: 0, z: 0 }, facing: 0, color: '#607481', auras: [], health: 100 },
       ...npcActors,
     ],

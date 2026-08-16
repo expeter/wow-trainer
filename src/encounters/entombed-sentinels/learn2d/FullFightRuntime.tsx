@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { contractRosterForSlot, contractSelectedMember } from '../../../platform/contractRoom'
+import { contractSelectedMember } from '../../../platform/contractRoom'
 import { ContractPullOverlay, useContractPullGate } from '../../../platform/ContractPullGate'
 import EncounterActionButtons from '../../../platform/EncounterActionButtons'
 import { encounterActionLegend, useEncounterActionInput, type EncounterRuntimeProps } from '../../../platform/encounters'
@@ -7,12 +7,12 @@ import RuntimeFeedback from '../../../platform/RuntimeFeedback'
 import RuntimeOutcomeOverlay from '../../../platform/RuntimeOutcomeOverlay'
 import RuntimeStatusBar from '../../../platform/RuntimeStatusBar'
 import SnapshotEffects from '../../../platform/learn2d/SnapshotEffects'
+import SnapshotActors, { SnapshotActorAuras } from '../../../platform/learn2d/SnapshotActors'
 import { ActorMainCastBar } from '../../../platform/TrainingHud'
 import { keyLabel } from '../../../platform/trainingSettings'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from '../../../platform/train3d/types'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
 import { useRuntimeInputClear } from '../../../platform/useRuntimeInputClear'
-import ToxinIcons from '../ToxinIcons'
 import { activeSentinelsPrompt, createSentinelsState, dispelSentinels, nextSentinelsTimer, prepareSentinelsSlot, sentinelsPlayerRole, sentinelsSnapshot, startSentinelsMainCast, stepSentinelsDiagramState } from '../simulation'
 import { sentinelsArena } from '../train3d/arenas'
 
@@ -61,18 +61,16 @@ export default function SentinelsFullFight2D({ trainingDifficulty, keyBindings, 
   }, [gate.phaseRef, keyBindings, pause.pausedRef])
 
   const snapshot = sentinelsSnapshot(view)
+  const playerActor = snapshot.actors.find(actor => actor.kind === 'player')!
   const timer = nextSentinelsTimer(view)
-  const roster = contractRosterForSlot(gate.selectedSlotId)
-  const showToxins = view.phase === 'stasis' && view.time - view.phaseStartedAt >= 3 && !view.helicalResolved
   const setPad = (direction: keyof Pick<PlayerCommandState, 'forward' | 'backward' | 'left' | 'right'>, active: boolean) => { commandsRef.current[direction] = active && gate.phaseRef.current === 'active' && !pause.pausedRef.current }
   return <main className="training-shell sentinels-runtime">
-    <RuntimeStatusBar meta={`ENTOMBED SENTINELS · FULL FIGHT · ${trainingDifficulty.toUpperCase()} TRAINER · ${sentinelsPlayerRole(view).toUpperCase()}`} title="Entombed Sentinels full fight" status={`CYCLE ${view.cycle} · ${view.phase.toUpperCase()} · ${activeSentinelsPrompt(view)}`} paused={pause.paused} pauseKey={keyBindings.pause} onTogglePause={pause.toggle} onExit={onExit} />
+    <RuntimeStatusBar meta={`ENTOMBED SENTINELS · FULL FIGHT · ${trainingDifficulty.toUpperCase()} TRAINER · ${sentinelsPlayerRole(view).toUpperCase()}`} title="Entombed Sentinels full fight" status={`CYCLE ${view.cycle} · ${view.phase.toUpperCase()} · ${activeSentinelsPrompt(view)} · ${timer.label} ${Math.max(0, timer.seconds).toFixed(timer.seconds < 5 ? 1 : 0)}s`} paused={pause.paused} pauseKey={keyBindings.pause} onTogglePause={pause.toggle} onExit={onExit} />
     <section className="training-runtime-layout arena-only"><div className="learn2d-stage"><div className="learn2d-arena-frame"><div className="learn2d-board sentinels-2d-board" aria-label="Entombed Sentinels raid-plan training arena" style={{ '--sentinels-plan': `url(${RAID_PLAN})` } as CSSProperties}>
-      <div className="nekzali-2d-callout"><strong>{activeSentinelsPrompt(view)}</strong><span>{timer.label} {Math.max(0, timer.seconds).toFixed(timer.seconds < 5 ? 1 : 0)}s</span></div>
-      <SnapshotEffects effects={snapshot.effects} width={sentinelsArena.width} depth={sentinelsArena.depth} />
+      <SnapshotEffects effects={snapshot.effects} actors={snapshot.actors} width={sentinelsArena.width} depth={sentinelsArena.depth} />
       {snapshot.actors.filter(actor => actor.kind === 'boss' || actor.kind === 'enemy').map(actor => <div key={actor.id} className={`nekzali-2d-enemy ${actor.kind} sentinel-${actor.id.startsWith('breath') ? 'acid' : 'blood'}`} style={{ left: `${xPercent(actor.position.x)}%`, top: `${zPercent(actor.position.z)}%`, '--enemy-color': actor.color } as CSSProperties} aria-label={actor.id}><span>{actor.id.startsWith('breath') ? 'G' : actor.id.startsWith('blood') ? 'R' : 'A'}</span><i className="actor-health"><b style={{ width: `${actor.health ?? 100}%` }} /></i>{actor.kind === 'boss' && <i className="sentinel-energy"><b style={{ width: `${view.energy}%` }} /></i>}</div>)}
-      {snapshot.actors.filter(actor => actor.kind === 'ally').map(actor => { const member = roster.find(item => item.id === actor.id); const role = member?.role ?? 'ranged'; const poolAura = actor.auras.some(aura => aura.id === 'blood-pool-drop'); const toxinAuras = actor.auras.filter(aura => aura.id !== 'blood-pool-drop'); return <div key={actor.id} className={`contract-raid-member ${role}`} style={{ left: `${xPercent(actor.position.x)}%`, top: `${zPercent(actor.position.z)}%` }} aria-label={member ? `${role} NPC` : `${actor.id.replaceAll('-', ' ')} NPC`}><span />{toxinAuras.length > 0 && <ToxinIcons green={toxinAuras.find(aura => aura.tone === 'poison')?.stacks ?? 0} red={toxinAuras.find(aura => aura.tone === 'danger')?.stacks ?? 0} />}{poolAura && <i className="attached-aura-timer">Pool {Math.max(0, 28 - (view.time - view.phaseStartedAt)).toFixed(1)}s</i>}</div> })}
-      <div ref={playerRef} className={`learn2d-character player ${selected.role}`} style={{ left: `${xPercent(view.player.x)}%`, top: `${zPercent(view.player.z)}%` }} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.z.toFixed(2)} aria-label={`Controlled ${selected.playerClass.replace('-', ' ')} ${selected.role} player`}>{showToxins && <ToxinIcons green={1} red={3} />}{view.puddleDropAt !== undefined && <i className="attached-aura-timer">Pool {Math.max(0, view.puddleDropAt - view.time).toFixed(1)}s</i>}<span className="character-body" /><i className="actor-health"><b style={{ width: '100%' }} /></i><ActorMainCastBar enabled={hudSettings.showActions} castSeconds={view.mainCastRemaining} castSecondsSource={() => stateRef.current.mainCastRemaining} /></div>
+      <SnapshotActors actors={snapshot.actors} xPercent={xPercent} zPercent={zPercent} time={view.time} />
+      <div ref={playerRef} className={`learn2d-character player ${selected.role}`} data-player-class={selected.playerClass} style={{ left: `${xPercent(view.player.x)}%`, top: `${zPercent(view.player.z)}%`, '--player-class-color': playerActor.color } as CSSProperties} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.z.toFixed(2)} aria-label={`Controlled ${selected.playerClass.replace('-', ' ')} ${selected.role} player`}><SnapshotActorAuras actor={playerActor} time={view.time} /><span className="character-body" /><i className="actor-health"><b style={{ width: '100%' }} /></i><ActorMainCastBar enabled={hudSettings.showActions} castSeconds={view.mainCastRemaining} castSecondsSource={() => stateRef.current.mainCastRemaining} /></div>
       <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" dialogLabel="Entombed Sentinels encounter setup" title="Choose role for the full fight" description="Your raid position locks role, starting side, and side-specific responsibility. The raid swaps sides after Stasis." assignmentNotice={`Cycle one: ${view.assignedSide === 'acid' ? 'green side — priority add, droplet, and return lane.' : `red side — droplet, return lane, group soak${selected.role === 'healer' ? ', and Blighted Blood dispel.' : ', and delayed pool.'}`} Protovenom pairing occurs before Stasis.`} bossLabel="Two Sentinels" />
       <RuntimeFeedback failures={view.failures} elapsed={view.time} />
       {view.outcome !== 'active' && <RuntimeOutcomeOverlay resultKey={`${view.time}-${view.outcome}`} kind={view.outcome === 'success' ? 'success' : 'wipe'} reason={view.outcome === 'success' ? 'Both Sentinels defeated' : view.outcomeReason ?? 'The raid wiped'} advice={view.outcome === 'success' ? 'You completed the full-fight contract.' : view.failures[0]?.advice ?? 'Review your assignment and retry.'} onRetry={retry} onExit={onExit} />}

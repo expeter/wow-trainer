@@ -778,3 +778,31 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   resolves an interrupt, dispel, soak, crowd-control, tank movement, or damage
   responsibility; the absence of a player keybind does not create a separate
   NPC-only mechanic implementation.
+
+## SPEC-025 · Entity-owned mechanics, presentation, and locomotion
+
+- Every controlled player, raid NPC, enemy, and arena actor has one stable
+  identity record containing role/class presentation, health, position,
+  facing, movement intent, active casts, and timed mechanic applications.
+- A timed mechanic application owns its source, target, applied/expiry times,
+  stacks, visual attachments, removal reason, and optional removal outcome.
+  Equivalent spells use this state for players and NPCs; encounter code may
+  configure assignments but may not implement separate player/NPC semantics.
+- Attached circles, timers, icons, arrows, and other actor indicators resolve
+  their position from the owning entity on every snapshot. They become
+  independent world effects only through an explicit detach, launch, drop, or
+  expiry transition, using the entity's authoritative position at that moment.
+- NPC mechanics assign destinations and route constraints rather than replacing
+  positions. The simulation advances actors at bounded speeds, routes around
+  declared lethal arena regions, and permits discontinuous movement only for a
+  named realm-transfer event.
+- Learn 2D and Train 3D share one actor/effect projection contract. Class color,
+  role silhouette, aura icons, attached timers, and mechanic intent remain
+  consistent across the contract room and every encounter; projection-specific
+  renderers may change scale and dimensional presentation only.
+- World effects remain detached arena entities: persistent ground zones,
+  launched projectiles, impact waves, corpses/objectives, and explicit realm
+  geometry. Their lifecycle is never inferred from renderer coordinates.
+- Validation rejects duplicate controlled-player identities and missing effect
+  owners. Tests prove bounded displacement, attachment following, drop-at-final-
+  position, player/NPC mechanic parity, and cross-arena actor presentation.

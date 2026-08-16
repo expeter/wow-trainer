@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import type { TrainingCameraSettings } from '../trainingSettings'
 import type { ActorSnapshot, EffectSnapshot, Train3DSnapshot, WorldMarkerSnapshot } from './types'
 import { RUNTIME_PAUSE_REQUEST_EVENT } from '../useRuntimePause'
+import { resolveAttachedEffects } from '../encounters/entityState'
 
 interface ThreeWorldRendererProps {
   snapshot: Train3DSnapshot
@@ -48,12 +49,23 @@ function disposeObject(object: THREE.Object3D) {
 function actorObject(actor: ActorSnapshot) {
   const group = new THREE.Group()
   group.name = actor.id
+  const bodyGeometry = actor.kind === 'boss'
+    ? new THREE.CylinderGeometry(2.7, 3.2, 5.8, 20)
+    : actor.role === 'tank'
+      ? new THREE.BoxGeometry(1.55, 2.25, 1.35)
+      : new THREE.CapsuleGeometry(.72, 1.35, 5, 12)
   const body = new THREE.Mesh(
-    actor.kind === 'boss' ? new THREE.CylinderGeometry(2.7, 3.2, 5.8, 20) : new THREE.CapsuleGeometry(.72, 1.35, 5, 12),
+    bodyGeometry,
     new THREE.MeshStandardMaterial({ color: actor.color, roughness: .64, emissive: actor.color, emissiveIntensity: .12 }),
   )
   body.position.y = actor.kind === 'boss' ? 2.9 : 1.4
   group.add(body)
+  if (actor.role === 'healer' && actor.kind !== 'player') {
+    const healerRing = new THREE.Mesh(new THREE.TorusGeometry(.52, .09, 7, 18), new THREE.MeshBasicMaterial({ color: actor.color }))
+    healerRing.name = 'role-healer'
+    healerRing.position.y = 3.15
+    group.add(healerRing)
+  }
   if (actor.kind === 'player') {
     const head = new THREE.Mesh(new THREE.SphereGeometry(.5, 12, 8), new THREE.MeshStandardMaterial({ color: 0xf2c9a0, roughness: .78 }))
     head.position.y = 2.75
@@ -159,6 +171,12 @@ function effectObject(effect: EffectSnapshot) {
     head.position.z = -2.45
     group.add(shaft, head)
     return group
+  }
+  if (effect.kind === 'lane') {
+    const length = effect.target ? Math.hypot(effect.target.x - effect.position.x, effect.target.z - effect.position.z) : 1
+    const lane = new THREE.Mesh(new THREE.PlaneGeometry(length, effect.radius * 2), new THREE.MeshBasicMaterial({ color: effect.color, side: THREE.DoubleSide, transparent: true, opacity: .24, depthWrite: false }))
+    lane.rotation.x = -Math.PI / 2
+    return lane
   }
   if (effect.kind === 'ground-harmful' || effect.kind === 'ground-soak' || effect.kind === 'ground-spread' || effect.kind === 'ground-objective') {
     const group = new THREE.Group()
@@ -462,7 +480,8 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
           healthFill.position.x = -(1 - fraction) * 1.175
         }
       })
-      const liveEffectIds = new Set(current.effects.map(effect => effect.id))
+      const currentEffects = resolveAttachedEffects(current.effects, current.actors)
+      const liveEffectIds = new Set(currentEffects.map(effect => effect.id))
       for (const [id, object] of effects) {
         if (!liveEffectIds.has(id)) {
           scene.remove(object)
@@ -470,7 +489,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
           effects.delete(id)
         }
       }
-      current.effects.forEach(effect => {
+      currentEffects.forEach(effect => {
         let object = effects.get(effect.id)
         if (!object) {
           object = effectObject(effect)
@@ -480,7 +499,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         const target = effect.target ?? effect.position
         const x = THREE.MathUtils.lerp(effect.position.x, target.x, effect.progress)
         const z = THREE.MathUtils.lerp(effect.position.z, target.z, effect.progress)
-        const groundEffect = effect.kind === 'pulse' || effect.kind.startsWith('ground-') || effect.kind === 'dome'
+        const groundEffect = effect.kind === 'pulse' || effect.kind.startsWith('ground-') || effect.kind === 'lane' || effect.kind === 'dome'
         const projectileHeight = THREE.MathUtils.lerp(effect.originHeight ?? 1.1, effect.targetHeight ?? 1.1, effect.progress)
           + Math.sin(effect.progress * Math.PI) * (effect.projectileShape === 'arrow' ? .75 : effect.projectileShape === 'spear' ? .45 : .18)
         const y = groundEffect ? .08 : effect.kind === 'arrow' ? .18 : projectileHeight
@@ -503,6 +522,11 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         const fill = object.getObjectByName('effect-fill')
         if (fill) fill.visible = effect.filled !== false
         if (effect.kind === 'arrow' && effect.target) object.rotation.y = -Math.atan2(effect.target.x - effect.position.x, -(effect.target.z - effect.position.z))
+        if (effect.kind === 'lane' && effect.target) {
+          object.position.x = (effect.position.x + effect.target.x) / 2
+          object.position.z = (effect.position.z + effect.target.z) / 2
+          object.rotation.z = Math.atan2(effect.target.z - effect.position.z, effect.target.x - effect.position.x)
+        }
         if ((effect.kind === 'projectile' || effect.kind === 'cosmetic-projectile') && effect.target) object.rotation.y = -Math.atan2(effect.target.z - effect.position.z, effect.target.x - effect.position.x)
       })
       const currentMarkers = current.markers ?? []
