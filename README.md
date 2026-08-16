@@ -60,13 +60,16 @@ Use the repository dependency guard before running project code:
 ```bash
 sec-helper audit
 sec-helper install
-npm run dev:trainer
+npm run dev
 ```
 
-`npm run dev` starts the localhost-only global Project Inbox for this
-repository. `npm run inbox` is an explicit alias, and `npm run inbox:list`
-lists captured evidence without changing it. The inbox and trainer are
-separate processes; the trainer no longer embeds a second inbox implementation.
+`npm run dev` starts both the hot-reload Vite trainer and the localhost-only
+global Project Inbox. Use `npm run dev:trainer` or `npm run dev:inbox` when only
+one server is wanted. `npm run inbox` is an explicit inbox alias, and
+`npm run inbox:list` lists captured evidence without changing it. Ctrl+C stops
+both combined-development children. Run the dependency audit as the preflight;
+do not wrap the long-lived development command in `sec-helper npm`, whose own
+interrupt reporting is outside this repository.
 
 If `sec-helper` blocks a package or artifact, stop and resolve it through the
 guard; do not bypass the proxy or installation policy.

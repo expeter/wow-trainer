@@ -86,8 +86,11 @@ describe('maintained project documentation', () => {
     const packageJson = JSON.parse(read('package.json'))
     const inboxConfig = JSON.parse(read('.project-inbox.json'))
 
-    expect(packageJson.scripts.dev).toBe(packageJson.scripts.inbox)
-    expect(packageJson.scripts.dev).toContain('.agents/skills/project-inbox/scripts/project-inbox.mjs')
+    expect(packageJson.scripts.dev).toBe('node scripts/dev.mjs')
+    expect(read('scripts/dev.mjs')).toContain("start('dev:inbox')")
+    expect(read('scripts/dev.mjs')).toContain("start('dev:trainer')")
+    expect(packageJson.scripts['dev:inbox']).toContain('.agents/skills/project-inbox/scripts/project-inbox.mjs')
+    expect(packageJson.scripts['dev:inbox']).toContain('serve --root .')
     expect(packageJson.scripts.inbox).toContain('serve --root .')
     expect(packageJson.scripts['inbox:list']).toContain('.agents/skills/project-inbox/scripts/project-inbox.mjs')
     expect(packageJson.scripts['dev:trainer']).toBe('vite')

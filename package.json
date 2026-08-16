@@ -4,7 +4,8 @@
   "version": "0.9.1",
   "type": "module",
   "scripts": {
-    "dev": "node /home/codex/.agents/skills/project-inbox/scripts/project-inbox.mjs serve --root .",
+    "dev": "node scripts/dev.mjs",
+    "dev:inbox": "node /home/codex/.agents/skills/project-inbox/scripts/project-inbox.mjs serve --root .",
     "dev:trainer": "vite",
     "build": "tsc -b && vite build",
     "inbox": "node /home/codex/.agents/skills/project-inbox/scripts/project-inbox.mjs serve --root .",

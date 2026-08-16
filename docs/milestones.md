@@ -41,6 +41,12 @@ from individually accepted encounter evidence and tickets.
 - `CR-284` — completed: route `npm run dev` and the explicit inbox alias to the
   active global Project Inbox skill, retain Vite as `npm run dev:trainer`, and
   remove the superseded repository-local inbox implementation.
+- `CR-285` — completed: correct the default command so it supervises the Vite
+  hot-reload trainer and global Project Inbox together while retaining both
+  independent subcommands.
+- `BUG-193` — completed under `CR-285`: stop both children cleanly on Ctrl+C and
+  distinguish repository shutdown behavior from an outer sec-helper CLI
+  `KeyboardInterrupt` traceback.
 
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),
