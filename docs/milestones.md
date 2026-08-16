@@ -263,6 +263,10 @@ encounter development into an independently deployed Season 2 repository.
   finish after no more than two Stasis phases.
 - `CR-280` — completed under `SPEC-023`: split persisted Learn 2D and Train 3D
   movement bindings while retaining shared combat/system actions.
+- `CR-281` — planned under `SPEC-007`: remove the development extraction-status
+  banner from the setup start page.
+- `CR-282` — planned under `SPEC-007`: compact and refine the encounter catalogue,
+  difficulty selector, runtime actions, card interaction states, and contract room.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
