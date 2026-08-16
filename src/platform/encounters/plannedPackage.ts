@@ -27,6 +27,7 @@ export function createPlannedEncounterPackage(identity: PlannedEncounterIdentity
       defaults: [],
       capabilities: [],
     },
+    actions: [],
     abilities: [], phases: [], roles: [], timingProfiles: [],
     tacticSchema: { version: 1, fields: [] }, tactics: [],
     learn2d: [

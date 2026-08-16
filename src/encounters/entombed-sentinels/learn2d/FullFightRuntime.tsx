@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { contractRosterForSlot, contractSelectedMember } from '../../../platform/contractRoom'
 import { ContractPullOverlay, useContractPullGate } from '../../../platform/ContractPullGate'
-import type { EncounterRuntimeProps } from '../../../platform/encounters'
+import EncounterActionButtons from '../../../platform/EncounterActionButtons'
+import { encounterActionLegend, useEncounterActionInput, type EncounterRuntimeProps } from '../../../platform/encounters'
 import RuntimeFeedback from '../../../platform/RuntimeFeedback'
 import RuntimeOutcomeOverlay from '../../../platform/RuntimeOutcomeOverlay'
 import RuntimeStatusBar from '../../../platform/RuntimeStatusBar'
@@ -18,7 +19,7 @@ const RAID_PLAN = new URL('../../../../inbox/INBOX-20260815-131711-f9dac6.png', 
 const xPercent = (value: number) => 50 + value / sentinelsArena.width * 100
 const zPercent = (value: number) => 50 + value / sentinelsArena.depth * 100
 
-export default function SentinelsFullFight2D({ trainingDifficulty, keyBindings, hudSettings, onExit }: EncounterRuntimeProps) {
+export default function SentinelsFullFight2D({ trainingDifficulty, keyBindings, actions, hudSettings, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createSentinelsState('player', trainingDifficulty))
   const commandsRef = useRef<PlayerCommandState>({ ...IDLE_PLAYER_COMMANDS })
   const playerRef = useRef<HTMLDivElement>(null)
@@ -30,6 +31,10 @@ export default function SentinelsFullFight2D({ trainingDifficulty, keyBindings, 
   function chooseSlot(slotId: string) { gate.setSelectedSlotId(slotId); stateRef.current = prepareSentinelsSlot(stateRef.current, slotId); setView(stateRef.current) }
   function retry() { stateRef.current = createSentinelsState(gate.selectedSlotId, trainingDifficulty); setView(stateRef.current) }
   function dispel() { stateRef.current = dispelSentinels(stateRef.current); setView(stateRef.current) }
+  useEncounterActionInput({ actions, role: selected.role, mode: 'learn2d', enabled: gate.phase === 'active', paused: pause.paused, handlers: {
+    mainAbility: () => { stateRef.current = startSentinelsMainCast(stateRef.current) },
+    dispel,
+  } })
 
   useEffect(() => {
     let frame = 0; let previous = performance.now(); let lastPublish = 0
@@ -46,7 +51,7 @@ export default function SentinelsFullFight2D({ trainingDifficulty, keyBindings, 
   useEffect(() => {
     const movement = ['forward', 'backward', 'left', 'right'] as const
     const update = (event: KeyboardEvent, active: boolean) => { const action = movement.find(candidate => keyBindings[candidate] === event.code); if (!action) return; event.preventDefault(); commandsRef.current[action] = gate.phaseRef.current === 'active' && !pause.pausedRef.current ? active : false }
-    const down = (event: KeyboardEvent) => { if (!event.repeat && event.code === keyBindings.mainAbility && gate.phaseRef.current === 'active' && !pause.pausedRef.current) { event.preventDefault(); stateRef.current = startSentinelsMainCast(stateRef.current) } else if (!event.repeat && event.code === keyBindings.dispel) { event.preventDefault(); dispel() } update(event, true) }
+    const down = (event: KeyboardEvent) => update(event, true)
     const up = (event: KeyboardEvent) => update(event, false)
     const clear = () => { commandsRef.current = { ...IDLE_PLAYER_COMMANDS } }
     window.addEventListener('keydown', down); window.addEventListener('keyup', up); window.addEventListener('blur', clear)
@@ -69,6 +74,6 @@ export default function SentinelsFullFight2D({ trainingDifficulty, keyBindings, 
       <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" dialogLabel="Entombed Sentinels encounter setup" title="Choose role for the full fight" description="Your raid position locks role, starting side, and side-specific responsibility. The raid swaps sides after Stasis." assignmentNotice={`Cycle one: ${view.assignedSide === 'acid' ? 'green side — droplets and return beams.' : `red side — group soak${selected.role === 'healer' ? ' and Blighted Blood dispel.' : ' and delayed pool.'}`} Protovenom pairing occurs before Stasis.`} bossLabel="Two Sentinels" />
       <RuntimeFeedback failures={view.failures} elapsed={view.time} />
       {view.outcome !== 'active' && <RuntimeOutcomeOverlay resultKey={`${view.time}-${view.outcome}`} kind={view.outcome === 'success' ? 'success' : 'wipe'} reason={view.outcome === 'success' ? 'Both Sentinels defeated' : view.outcomeReason ?? 'The raid wiped'} advice={view.outcome === 'success' ? 'You completed the full-fight contract.' : view.failures[0]?.advice ?? 'Review your assignment and retry.'} onRetry={retry} onExit={onExit} />}
-    </div></div><div className="learn2d-controls"><span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · Main {keyLabel(keyBindings.mainAbility)}{selected.role === 'healer' ? ` · Dispel ${keyLabel(keyBindings.dispel)}` : ''}</span><div className="learn2d-dpad" aria-label="2D movement controls">{(['forward', 'left', 'backward', 'right'] as const).map(direction => <button type="button" key={direction} aria-label={`Move ${direction}`} disabled={gate.phase !== 'active'} onPointerDown={() => setPad(direction, true)} onPointerUp={() => setPad(direction, false)} onPointerLeave={() => setPad(direction, false)} onPointerCancel={() => setPad(direction, false)}>{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}</div>{selected.role === 'healer' && <button type="button" onClick={dispel} disabled={!view.blightedActive || view.blightedResolved}>Dispel</button>}</div></div></section>
+    </div></div><div className="learn2d-controls"><span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · {encounterActionLegend(actions, selected.role, 'learn2d')}</span><div className="learn2d-dpad" aria-label="2D movement controls">{(['forward', 'left', 'backward', 'right'] as const).map(direction => <button type="button" key={direction} aria-label={`Move ${direction}`} disabled={gate.phase !== 'active'} onPointerDown={() => setPad(direction, true)} onPointerUp={() => setPad(direction, false)} onPointerLeave={() => setPad(direction, false)} onPointerCancel={() => setPad(direction, false)}>{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}</div><EncounterActionButtons actions={actions} role={selected.role} mode="learn2d" handlers={{ dispel }} disabled={{ dispel: gate.phase !== 'active' || pause.paused || !view.blightedActive || view.blightedResolved }} /></div></div></section>
   </main>
 }

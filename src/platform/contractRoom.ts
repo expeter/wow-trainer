@@ -1,6 +1,7 @@
 import type { AuraTone } from './train3d/types'
+import type { EncounterPlayerRole } from './encounters'
 
-export type RaidRole = 'tank' | 'healer' | 'melee' | 'ranged'
+export type RaidRole = EncounterPlayerRole
 export type ContractPlayerRole = RaidRole
 export type ContractDirection = 'north' | 'east' | 'south' | 'west'
 export type TrainingClass = 'death-knight' | 'demon-hunter' | 'druid' | 'evoker' | 'hunter' | 'mage' | 'monk' | 'paladin' | 'priest' | 'rogue' | 'shaman' | 'warlock' | 'warrior'

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { contractSelectedMember } from '../../../platform/contractRoom'
 import { ContractPullOverlay, useContractPullGate } from '../../../platform/ContractPullGate'
-import type { EncounterRuntimeProps } from '../../../platform/encounters'
+import EncounterActionButtons from '../../../platform/EncounterActionButtons'
+import { encounterActionLegend, useEncounterActionInput, type EncounterRuntimeProps } from '../../../platform/encounters'
 import RuntimeFeedback from '../../../platform/RuntimeFeedback'
 import RuntimeOutcomeOverlay from '../../../platform/RuntimeOutcomeOverlay'
 import RuntimeStatusBar from '../../../platform/RuntimeStatusBar'
@@ -13,7 +14,7 @@ import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from '../../../platform
 import { useRuntimePause } from '../../../platform/useRuntimePause'
 import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, isNekzaliPlayerRendTarget, nekzaliRendRemaining, nekzaliSnapshot, nextNekzaliTimer, prepareNekzaliSlot, startNekzaliMainCast, stepNekzaliState, tauntNekzali, turnNekzaliPlayer } from '../simulation'
 
-export default function NekzaliTrain3D({ trainingDifficulty, keyBindings, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
+export default function NekzaliTrain3D({ trainingDifficulty, keyBindings, actions, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createNekzaliState('player', trainingDifficulty))
   const renderSnapshotRef = useRef(nekzaliSnapshot(stateRef.current))
   const [view, setView] = useState(stateRef.current)
@@ -37,6 +38,14 @@ export default function NekzaliTrain3D({ trainingDifficulty, keyBindings, hudSet
     renderSnapshotRef.current = nekzaliSnapshot(stateRef.current)
     setView(stateRef.current); setSnapshot(renderSnapshotRef.current)
   }
+
+  function mainAbility() { stateRef.current = startNekzaliMainCast(stateRef.current) }
+  function taunt() { stateRef.current = tauntNekzali(stateRef.current) }
+  function interrupt() { stateRef.current = interruptNekzali(stateRef.current) }
+
+  useEncounterActionInput({ actions, role: selected.role, mode: 'train3d', enabled: gate.phase === 'active', paused: pause.paused, handlers: {
+    mainAbility, taunt, interrupt,
+  } })
 
   useEffect(() => {
     let frame = 0
@@ -67,14 +76,7 @@ export default function NekzaliTrain3D({ trainingDifficulty, keyBindings, hudSet
       if (gate.phaseRef.current !== 'active' || pause.pausedRef.current) { commandsRef.current[action] = false; return }
       if (action === 'forward') { keyboardForwardRef.current = active; commandsRef.current.forward = active || mouseForwardRef.current } else commandsRef.current[action] = active
     }
-    const down = (event: KeyboardEvent) => {
-      if (!event.repeat && gate.phaseRef.current === 'active' && !pause.pausedRef.current) {
-        if (event.code === keyBindings.mainAbility) { event.preventDefault(); stateRef.current = startNekzaliMainCast(stateRef.current) }
-        if (event.code === keyBindings.taunt) { event.preventDefault(); stateRef.current = tauntNekzali(stateRef.current) }
-        if (event.code === keyBindings.interrupt) { event.preventDefault(); stateRef.current = interruptNekzali(stateRef.current) }
-      }
-      update(event, true)
-    }
+    const down = (event: KeyboardEvent) => update(event, true)
     const up = (event: KeyboardEvent) => update(event, false)
     const clear = () => { commandsRef.current = { ...IDLE_PLAYER_COMMANDS }; keyboardForwardRef.current = false; mouseForwardRef.current = false }
     window.addEventListener('keydown', down); window.addEventListener('keyup', up); window.addEventListener('blur', clear)
@@ -91,11 +93,11 @@ export default function NekzaliTrain3D({ trainingDifficulty, keyBindings, hudSet
     <section className="training-runtime-layout arena-only"><div className="train3d-stage"><div className={`train3d-viewport nekzali-viewport${inRealm ? ' realm-active' : ''}`}>
       <ThreeWorldRenderer snapshot={snapshot} snapshotSource={() => renderSnapshotRef.current} cameraSettings={cameraSettings} onCameraSettingsChange={onCameraSettingsChange} onPlayerLook={yaw => { stateRef.current = turnNekzaliPlayer(stateRef.current, yaw); renderSnapshotRef.current = nekzaliSnapshot(stateRef.current) }} onBothButtonsForward={active => { mouseForwardRef.current = active && gate.phaseRef.current === 'active' && !pause.pausedRef.current; commandsRef.current.forward = mouseForwardRef.current || keyboardForwardRef.current }} />
       {isNekzaliPlayerRendTarget(view) && <i className="train3d-attached-aura-timer" aria-label="Essence Rend on controlled player">Rend {nekzaliRendRemaining(view).toFixed(1)}s</i>}
-      <ArenaTrainingHud settings={hudSettings} compactMechanic objective={activeNekzaliPrompt(view)} timers={view.rendStartedAt === undefined ? [timer] : []} bossLabel={inRealm ? 'Drowned Echo' : "Nek'zali"} bossHealth={inRealm ? Math.max(0, 100 - view.realmAddHits * 5) : view.bossHealth} bossThreat={inRealm ? undefined : ownsAggro ? 'owned' : 'hostile'} auraLabel={isNekzaliPlayerRendTarget(view) ? `Essence Rend ${nekzaliRendRemaining(view).toFixed(1)}s` : inRealm ? view.soulExhausted ? 'Soul Exhaustion' : 'Grasping Depths' : view.phase.startsWith('echo') ? `Soak group ${view.soakGroup}` : view.phase === 'phase-2' ? `Ritual energy ${view.bossEnergy}%` : 'No active aura'} actionStatus={view.innerCastStartedAt !== undefined && !view.innerCastInterrupted ? 'Interrupt assigned cast' : view.mainCastRemaining > 0 ? 'Main ability casting' : inRealm ? 'Main ability ready · watch disruption' : view.phase.startsWith('echo') ? 'Resolve the assigned Pyre or Cremation' : selected.role === 'tank' ? ownsAggro ? 'You have aggro' : 'Taunt available' : 'Main ability ready'} castSeconds={view.mainCastRemaining} castSecondsSource={() => stateRef.current.mainCastRemaining} enemyCast={view.innerCastStartedAt !== undefined && !view.innerCastInterrupted ? { label: 'Drowned Echo · Soulcoil', seconds: Math.max(0, 5 - (view.time - view.innerCastStartedAt)), duration: 5 } : undefined} />
+      <ArenaTrainingHud settings={hudSettings} compactMechanic objective={activeNekzaliPrompt(view)} timers={view.rendStartedAt === undefined ? [timer] : []} bossLabel={inRealm ? 'Drowned Echo' : "Nek'zali"} bossHealth={inRealm ? Math.max(0, 100 - view.realmAddHits * 5) : view.bossHealth} bossThreat={inRealm ? undefined : ownsAggro ? 'owned' : 'hostile'} auraLabel={isNekzaliPlayerRendTarget(view) ? `Essence Rend ${nekzaliRendRemaining(view).toFixed(1)}s` : inRealm ? view.soulExhausted ? 'Soul Exhaustion' : 'Grasping Depths' : view.phase.startsWith('echo') ? `Soak group ${view.soakGroup}` : view.phase === 'phase-2' ? `Ritual energy ${view.bossEnergy}%` : 'No active aura'} actionStatus={view.innerCastStartedAt !== undefined && !view.innerCastInterrupted ? 'Interrupt assigned cast' : view.mainCastRemaining > 0 ? 'Main ability casting' : inRealm ? 'Main ability ready · watch disruption' : view.phase.startsWith('echo') ? 'Resolve the assigned Pyre or Cremation' : selected.role === 'tank' ? ownsAggro ? 'You have aggro' : 'Taunt available' : 'Main ability ready'} castSeconds={view.mainCastRemaining} castSecondsSource={() => stateRef.current.mainCastRemaining} enemyCast={view.innerCastStartedAt !== undefined && !view.innerCastInterrupted ? { label: 'Drowned Echo · Soulcoil', seconds: Math.max(0, 5 - (view.time - view.innerCastStartedAt)), duration: 5 } : undefined} actionButton={<EncounterActionButtons actions={actions} role={selected.role} mode="train3d" handlers={{ mainAbility, interrupt, taunt }} disabled={{ mainAbility: gate.phase !== 'active' || pause.paused || view.mainCastRemaining > 0, interrupt: gate.phase !== 'active' || pause.paused || view.innerCastStartedAt === undefined || view.innerCastInterrupted, taunt: gate.phase !== 'active' || pause.paused }} />} />
       <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Train 3D" dialogLabel="Nek'zali encounter setup" title="Choose role and assignment" description="Your raid position locks your role, class, alternating intermission duty, and Well half for this pull." assignmentNotice={`You are in soak group ${view.soakGroup}: ${view.soakGroup === 1 ? 'soak the first Echo, spread for the second.' : 'spread for the first Echo, soak the second.'} Well half ${view.wellGroup}: ${view.wellGroup === 1 ? 'enter during Phase 1.' : 'stay out in Phase 1 and enter during Phase 2.'}`} bossLabel="Nek'zali" />
       <RuntimeFeedback failures={view.failures} elapsed={view.time} />
       {view.outcome !== 'active' && <RuntimeOutcomeOverlay resultKey={`${view.time}-${view.outcome}`} kind={view.outcome === 'success' ? 'success' : 'wipe'} reason={view.outcome === 'success' ? "Nek'zali defeated" : view.outcomeReason ?? 'The raid wiped'} advice={outcomeAdvice} onRetry={retry} onExit={onExit} />}
-    </div><p className="train3d-controls">Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · Main {keyLabel(keyBindings.mainAbility)} · Interrupt {keyLabel(keyBindings.interrupt)}{selected.role === 'tank' ? ` · Taunt / Spott ${keyLabel(keyBindings.taunt)}` : ''} · left orbit · right face · both buttons forward</p></div></section>
+    </div><p className="train3d-controls">Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · {encounterActionLegend(actions, selected.role, 'train3d')} · left orbit · right face · both buttons forward</p></div></section>
     <details className="contract-lab-drawer"><summary>Encounter evidence and provisional timing</summary><div><p><strong>Mechanics:</strong> one complete supplied encounter contract. <strong>Trainer:</strong> {trainingDifficulty}.</p><p>Phase 1 is paced to 50% at 90s. Essence Rend selects one player, gives two seconds to move outward, drops three persistent puddles, and repeats on NPCs to seed Invoke.</p><p>Grasping Depths alternates raid halves. The assigned player has seven seconds to enter the Well, contributes 20 Main hits, owns one five-second interrupt, avoids orbiting/outward spirits, and returns after five seconds. The outer raid continues its assigned mechanics.</p></div></details>
   </main>
 }

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState, type ComponentType, type SetStateAction } from 'react'
 import BuildStatus from './platform/BuildStatus'
 import CreatorCard from './platform/CreatorCard'
+import { contractRoomActions } from './platform/contractActions'
 import EncounterIcon from './platform/EncounterIcon'
 import HudLayoutPreview from './platform/HudLayoutPreview'
 import type { EncounterCatalogue } from './platform/encounters/discovery'
-import { loadEncounterCatalogue, type EncounterMode, type EncounterPackageV1, type EncounterRuntimeProps } from './platform/encounters'
+import { bindEncounterActions, loadEncounterCatalogue, type EncounterActionDefinition, type EncounterMode, type EncounterPackageV1, type EncounterRuntimeProps } from './platform/encounters'
 import {
   DEFAULT_TRAINING_SETTINGS,
   assignTrainingKeyBinding,
@@ -88,7 +89,7 @@ export default function Season2App() {
   const [settings, setSettings] = useState<TrainingSettings>(() => loadTrainingSettings())
   const [rebinding, setRebinding] = useState<Rebinding>()
   const [runtimeLoading, setRuntimeLoading] = useState<EncounterMode>()
-  const [runtime, setRuntime] = useState<{ mode: EncounterMode; scenarioId: string; Component: ComponentType<EncounterRuntimeProps> }>()
+  const [runtime, setRuntime] = useState<{ mode: EncounterMode; scenarioId: string; actions: readonly EncounterActionDefinition[]; Component: ComponentType<EncounterRuntimeProps> }>()
   const panel = panelCopy[activeTab]
   const encounter = catalogue?.packages[0]
   const catalogueFailed = catalogue && !encounter
@@ -126,7 +127,7 @@ export default function Season2App() {
     if (!scenario) return
     setRuntimeLoading(mode)
     const module = await selectedEncounter.runtimeLoaders[mode]()
-    setRuntime({ mode, scenarioId: scenario.id, Component: module.default })
+    setRuntime({ mode, scenarioId: scenario.id, actions: selectedEncounter.actions, Component: module.default })
     setRuntimeLoading(undefined)
   }
 
@@ -135,7 +136,7 @@ export default function Season2App() {
     const module = mode === 'learn2d'
       ? await import('./platform/learn2d/ContractRoom')
       : await import('./platform/train3d/ContractRoom')
-    setRuntime({ mode, scenarioId: 'platform-contract-room', Component: module.default })
+    setRuntime({ mode, scenarioId: 'platform-contract-room', actions: contractRoomActions, Component: module.default })
     setRuntimeLoading(undefined)
   }
 
@@ -145,6 +146,7 @@ export default function Season2App() {
       scenarioId={runtime.scenarioId}
       trainingDifficulty={settings.difficulty}
       keyBindings={runtimeKeyBindings(settings, runtime.mode)}
+      actions={bindEncounterActions(runtime.actions, runtimeKeyBindings(settings, runtime.mode))}
       hudSettings={settings.hud}
       cameraSettings={settings.camera}
       onCameraSettingsChange={camera => updateSettings(current => ({ ...current, camera }))}

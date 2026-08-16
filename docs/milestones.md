@@ -17,6 +17,20 @@ in [`specifications.md`](specifications.md).
 Goal: preserve the reviewed L’ura trainer platform knowledge while moving new
 encounter development into an independently deployed Season 2 repository.
 
+### Core completion gate
+
+`FR-077` dynamic actions are now complete. The active execution order continues
+with the shared entity/timeline work in `CR-283` plus ambient NPC activity in
+`FR-088`, followed by `FR-076` lifecycle closure and final `FR-072` platform
+acceptance. `FR-087`
+audits the frozen trainer in parallel and brings any newly discovered reusable
+capability back for explicit keep/drop discussion before `FR-072` closes.
+
+Nek'zali, Entombed Sentinels, and both contract rooms are the acceptance
+harnesses for this core. Shell polish, additional bosses, expanded result
+presentation, planner, audio, publication, optimization, and online services
+remain outside the gate and do not interrupt it.
+
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),
   including the reuse audit, separate Learn 2D and Train 3D contracts,
@@ -93,14 +107,25 @@ encounter development into an independently deployed Season 2 repository.
   changelog/issue links, and deployed-version update notification.
 - `SPEC-019` — completed: maintain the v0.9.1 extraction parity matrix and
   link every reusable active gap to a Season 2 ticket.
-- `FR-076` — in progress under `FR-072`: shared countdown/pause/failure lifecycle;
-  pause/status controls land now while failure/results remain open.
-- `FR-077` — planned under `FR-072`: dynamic package-declared actions.
+- `FR-077` — completed under `FR-072`: package-declared actions, role/mode
+  filtering, shell-owned bindings, shared keyboard dispatch, legends, and HUD
+  buttons are proven through both contract rooms and both implemented encounters.
+- `CR-283` — planned core prerequisite under `FR-072`: compose controlled player,
+  raid NPC, enemy, and arena systems as drop-in entities with independent
+  deterministic timelines, shared snapshot/HUD semantics, and simulation-owned
+  collision and positioning checks across both projections.
+- `FR-088` — planned core runtime work under `CR-283`: add reusable seeded ambient
+  NPC movement and class activity that yields to every mechanic assignment.
+- `FR-076` — in progress under `FR-072`: finish shared countdown, pause, failure,
+  restart/exit, input-clear, and renderer-recovery lifecycle behavior.
+- `FR-087` — planned core audit under `SPEC-019`: revisit the frozen trainer and
+  place any missing reusable capability in the backlog for explicit discussion.
 - `FR-078` — planned under `FR-072`: independent persisted audio services.
 - `FR-079` — planned under `FR-072`: versioned encounter tactic editor; the
   supplied Sentinels raid-plan image is preserved as package evidence.
-- `FR-080` — in progress under `FR-072`: `CR-249` restores reusable live
-  failure/points corners; recap and offline result identity remain.
+- `FR-080` — deferred until the core gate closes: `CR-249` restored reusable live
+  failure/points corners; scenario recap and copyable/shareable offline result
+  identity remain pending.
 - `CR-247` — completed under `FR-072`: restore the full-viewport runtime,
   compact status header, top-right lab performance, and lab-only slide-in panel.
 - `CR-248` — completed under `FR-072`: correct the wide-screen status-bar and
@@ -165,10 +190,10 @@ encounter development into an independently deployed Season 2 repository.
   Protovenom, in one full fight per runtime.
 - `CR-258` — completed under `FR-077`: add a persisted encounter Dispel binding
   that only healer-capable Sentinels roles can resolve.
-- `FR-085` — planned under `FR-075`: implement Vash'nik as the next isolated
-  full-fight package after `CR-261` is stable, preserving the
+- `FR-085` — backlogged under `FR-075`: implement Vash'nik as the next isolated
+  full-fight package after core acceptance, preserving the
   supplied three-well raid plan and provisional player/role mechanic contract.
-- `FR-086` — planned under `FR-075`: implement The Lost Explorers after
+- `FR-086` — backlogged under `FR-075`: implement The Lost Explorers after
   Vash'nik as an isolated three-boss full fight, preserving the supplied
   octagonal raid plan and provisional Ikku/Namaa/Gebbo/Morzahi contract.
 - `BUG-170` — completed under `FR-082`: restore a circular, undistorted and
@@ -263,9 +288,9 @@ encounter development into an independently deployed Season 2 repository.
   finish after no more than two Stasis phases.
 - `CR-280` — completed under `SPEC-023`: split persisted Learn 2D and Train 3D
   movement bindings while retaining shared combat/system actions.
-- `CR-281` — planned under `SPEC-007`: remove the development extraction-status
+- `CR-281` — backlogged after core completion under `SPEC-007`: remove the development extraction-status
   banner from the setup start page.
-- `CR-282` — planned under `SPEC-007`: compact and refine the encounter catalogue,
+- `CR-282` — backlogged after core completion under `SPEC-007`: compact and refine the encounter catalogue,
   difficulty selector, runtime actions, card interaction states, and contract room.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
@@ -282,22 +307,24 @@ encounter development into an independently deployed Season 2 repository.
 - `CR-234` — deferred until the first static publication: perform a measured
   bundle, runtime, accessibility, responsive, and test-duration optimization
   pass without changing encounter mechanics.
-- `FR-075` — in progress with its sequence revised by `SPEC-022`: Nek'zali is
-  the first approved full-fight package; other bosses remain metadata-only until
-  individually approved.
+- `FR-075` — core-only in progress with its expansion backlogged: Nek'zali and
+  Entombed Sentinels remain the only active full-fight packages; other bosses
+  remain metadata-only until core acceptance and individual approval.
 
-The approved encounter sequence is `FR-085` Vash'nik → `FR-086` The Lost
-Explorers. Publication remains separate: the still-required pre-publication
+The backlogged encounter order is `FR-085` Vash'nik → `FR-086` The Lost
+Explorers, but neither begins before the core completion gate. Publication
+remains separate: the still-required pre-publication
 sequence is `CR-235` → `CR-236` → `FR-074`, followed by the measured `CR-234`
 optimization pass.
 `FR-073` remains a separate later online-platform milestone and does not block
 the static trainer sequence.
 
-No boss beyond Nek'zali, Entombed Sentinels, and the explicitly approved
-`FR-085` Vash'nik and `FR-086` Lost Explorers packages may gain playable
-mechanics without a new approved ticket. Catalogue-only metadata does not
-authorize an encounter runtime. The L'ura API and leaderboard remain frozen
-legacy reference behavior and cannot deploy from this repository.
+No boss beyond Nek'zali and Entombed Sentinels may gain playable mechanics
+before the core gate closes. `FR-085` Vash'nik and `FR-086` Lost Explorers keep
+their research and plans in the backlog but do not authorize runtime work yet.
+Catalogue-only metadata does not authorize an encounter runtime. The L'ura API
+and leaderboard remain frozen legacy reference behavior and cannot deploy from
+this repository.
 
 The remaining milestones below are the frozen L'ura v0.9.1 delivery record.
 They are retained for source archaeology, not as the Season 2 execution order.

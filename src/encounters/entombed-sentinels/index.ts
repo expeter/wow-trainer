@@ -1,4 +1,5 @@
 import type { EncounterPackageV1 } from '../../platform/encounters'
+import { actions } from './actions'
 import { abilities } from './abilities'
 import { learn2dScenarios } from './learn2d/scenarios'
 import { manifest } from './manifest'
@@ -13,6 +14,7 @@ import { train3dScenarios } from './train3d/scenarios'
 const encounterPackage = {
   apiVersion: 1,
   manifest,
+  actions,
   abilities,
   phases,
   roles,

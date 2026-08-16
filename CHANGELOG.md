@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Replaced encounter-local fixed combat keys with validated package-declared
+  action registries. The contract rooms, Nek'zali, and Entombed Sentinels now
+  share role/mode filtering, shell bindings, keyboard dispatch, action legends,
+  and optional HUD buttons across their separate 2D and 3D projections.
 - Split keyboard movement into independently autosaved Learn 2D and Train 3D
   layouts while retaining shared pause and encounter-action bindings. Existing
   flat Season 2 settings migrate into both movement layouts.

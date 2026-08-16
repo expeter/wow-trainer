@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import AuraIcons from '../AuraIcons'
 import { ContractPullOverlay, useContractPullGate } from '../ContractPullGate'
 import { auraToneColors, contractRaidRoster, contractRosterForSlot, contractSelectedMember, trainingClassColors, CONTRACT_LANDING_SECONDS } from '../contractRoom'
-import type { EncounterRuntimeProps } from '../encounters'
+import { encounterActionLegend, type EncounterRuntimeProps } from '../encounters'
 import RuntimeStatusBar from '../RuntimeStatusBar'
 import RuntimeFeedback from '../RuntimeFeedback'
 import { ActorMainCastBar } from '../TrainingHud'
@@ -15,14 +15,14 @@ import { activeContractEvent2D, contractGroundSlots2D, contractRaidPosition2D, c
 import type { DiagramDirection } from './movement'
 import SnapshotEffects from './SnapshotEffects'
 
-export default function ContractRoom2D({ keyBindings, hudSettings, onExit }: EncounterRuntimeProps) {
+export default function ContractRoom2D({ keyBindings, actions: actionRegistry, hudSettings, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createContractRoom2DState())
   const playerElementRef = useRef<HTMLDivElement>(null)
   const pressedRef = useRef(new Set<DiagramDirection>())
   const [view, setView] = useState(stateRef.current)
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
-  const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, eventIndex: view.eventIndex, keyBindings, includeMainAndPotion: true })
+  const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, mode: 'learn2d', eventIndex: view.eventIndex, actions: actionRegistry })
 
   function chooseSlot(slotId: string) {
     gate.setSelectedSlotId(slotId)
@@ -97,7 +97,7 @@ export default function ContractRoom2D({ keyBindings, hudSettings, onExit }: Enc
           <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" />
           <RuntimeFeedback failures={view.failures} elapsed={view.time} />
         </div></div>
-        <div className="learn2d-controls"><span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · Main {keyLabel(keyBindings.mainAbility)} · Shield {keyLabel(keyBindings.shield)} · Potion {keyLabel(keyBindings.healthPot)}{gate.role === 'tank' ? ` · Taunt / Spott ${keyLabel(keyBindings.taunt)}` : ''}</span><div className="learn2d-dpad" aria-label="2D movement controls">{(['forward', 'left', 'backward', 'right'] as DiagramDirection[]).map(direction => <button type="button" key={direction} aria-label={`Move ${direction}`} disabled={gate.phase !== 'active'} onPointerDown={() => setPad(direction, true)} onPointerUp={() => setPad(direction, false)} onPointerLeave={() => setPad(direction, false)} onPointerCancel={() => setPad(direction, false)}>{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}</div></div>
+        <div className="learn2d-controls"><span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · {encounterActionLegend(actionRegistry, gate.role, 'learn2d')}</span><div className="learn2d-dpad" aria-label="2D movement controls">{(['forward', 'left', 'backward', 'right'] as DiagramDirection[]).map(direction => <button type="button" key={direction} aria-label={`Move ${direction}`} disabled={gate.phase !== 'active'} onPointerDown={() => setPad(direction, true)} onPointerUp={() => setPad(direction, false)} onPointerLeave={() => setPad(direction, false)} onPointerCancel={() => setPad(direction, false)}>{direction === 'forward' ? '↑' : direction === 'backward' ? '↓' : direction === 'left' ? '←' : '→'}</button>)}</div></div>
       </div>
     </section>
     <details className="contract-lab-drawer"><summary>Lab configuration</summary><div><p>Four ground objects land together. Only the rune matching your attached icon is correct.</p><p>20-player raid · {view.successes} resolved · {view.misses} missed · {view.wrongGrounds} wrong rune</p></div></details>

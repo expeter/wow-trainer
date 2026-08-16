@@ -19,7 +19,9 @@ import of L’ura encounter code.
 | Reviewed in-arena HUD frames, cast bar and action position | Extracted; mandatory mechanic/timer and display-rate cast progress retained | `CR-245`, `BUG-164`, `BUG-167`, `CR-254` |
 | Class-specific combat projectile scheduler, travel, and impact vocabulary | Extracted for shared Season 2 snapshots and the Three.js renderer | `CR-256`, `CR-264`, `BUG-176` |
 | Pull countdown, pause/resume, restart, failure lifecycle | Partial: lab countdown, pause, and centered dismissible drill outcomes extracted; renderer recovery remains | `FR-076`, `BUG-169` |
-| Dynamic encounter action declarations and bindings | Prototype only; contract gap | `FR-077` |
+| Dynamic encounter action declarations and bindings | Extracted and validated across both labs and active encounters | `FR-077` |
+| Drop-in player/NPC/enemy/arena entities on one deterministic encounter clock | Contract gap; required before package acceptance | `CR-283` |
+| Reusable bounded NPC ambient movement that yields to mechanics | Partial and encounter-local; core gap | `FR-088` |
 | Independent music, encounter SFX and raid-lead/TTS channels | Active gap | `FR-078` |
 | Draggable/group tactical planning with validation and sharing | Active gap | `FR-079` |
 | Stable failure review, recap and offline share/result identity | Partial: live corners and detailed terminal drill card extracted; recap/share pending | `CR-249`, `BUG-169`, `FR-080` |
@@ -27,6 +29,11 @@ import of L’ura encounter code.
 | Unit/component/focused browser/build delivery gates | Extracted and evolving | `CR-231`, `FR-072` |
 | Dedicated Pages workflow and production monitoring | Deliberately deferred | `FR-074` |
 | Online identity, public activity, achievements and rankings | Deliberately deferred to isolated `/v2` | `FR-073` |
+
+`FR-087` performs one more source-and-ticket-history review before the core
+platform closes. Any newly identified reusable feature enters the Season 2
+backlog for explicit keep/drop discussion; the audit itself does not authorize
+copying legacy encounter behavior.
 
 ## Boundaries preserved during extraction
 

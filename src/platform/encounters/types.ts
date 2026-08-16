@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import type { MovementKeyBindings, TrainingCameraSettings, TrainingDifficulty, TrainingHudSettings } from '../trainingSettings'
+import type { CombatAction, MovementKeyBindings, TrainingCameraSettings, TrainingDifficulty, TrainingHudSettings } from '../trainingSettings'
 
 export type EncounterMode = 'learn2d' | 'train3d'
 export type EncounterAvailability = 'research' | 'ptr-preview' | 'live-validated' | 'retired'
@@ -7,6 +7,7 @@ export type ScenarioKind = 'focused' | 'full-fight'
 export type ScenarioStatus = 'planned' | 'ready'
 export type SourceKind = 'journal' | 'ptr-guide' | 'ptr-video' | 'live-log' | 'hotfix' | 'local-tactic'
 export type Confidence = 'high' | 'medium' | 'low'
+export type EncounterPlayerRole = 'tank' | 'healer' | 'melee' | 'ranged'
 
 export interface SourceProvenance {
   kind: SourceKind
@@ -61,17 +62,24 @@ export interface PhaseDefinition {
 
 export interface EncounterActionDefinition {
   id: string
+  binding: CombatAction
   label: string
   kind: 'interrupt' | 'taunt' | 'swap' | 'claim' | 'soak' | 'dispel' | 'special'
-  defaultBinding?: string
+  roles: readonly EncounterPlayerRole[]
+  modes: readonly EncounterMode[]
+  hud: boolean
   cooldown?: number
+}
+
+export interface BoundEncounterAction extends EncounterActionDefinition {
+  keyCode: string
 }
 
 export interface RoleDefinition {
   id: string
   label: string
   responsibilities: readonly string[]
-  actions: readonly EncounterActionDefinition[]
+  actionIds: readonly string[]
 }
 
 export interface TimingValue {
@@ -166,6 +174,7 @@ export interface EncounterRuntimeProps {
   scenarioId: string
   trainingDifficulty: TrainingDifficulty
   keyBindings: MovementKeyBindings
+  actions: readonly BoundEncounterAction[]
   hudSettings: TrainingHudSettings
   cameraSettings: TrainingCameraSettings
   onCameraSettingsChange: (settings: TrainingCameraSettings) => void
@@ -177,6 +186,7 @@ export type EncounterRuntimeLoader = () => Promise<{ default: ComponentType<Enco
 export interface EncounterPackageV1 {
   apiVersion: 1
   manifest: EncounterManifest
+  actions: readonly EncounterActionDefinition[]
   abilities: readonly AbilityDefinition[]
   phases: readonly PhaseDefinition[]
   roles: readonly RoleDefinition[]

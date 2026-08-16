@@ -175,7 +175,7 @@ test('launches the single Entombed Sentinels full fight in separate 2D and 3D ar
   await expect(setup2d).toContainText('Blighted Blood dispel')
   await setup2d.getByRole('button', { name: 'Start' }).click()
   await expect(page.getByLabel('Entombed Sentinels raid-plan training arena')).toBeVisible({ timeout: 5000 })
-  await expect(page.getByText(/Dispel R/)).toBeVisible()
+  await expect(page.locator('.learn2d-controls > span')).toContainText('Dispel R')
   await expect(page.getByLabel('2D movement controls')).toBeVisible()
   await expect(page.locator('.learn2d-controls')).toContainText('Main F')
   await expect(page.getByRole('button', { name: 'Move forward' })).toHaveText('↑')

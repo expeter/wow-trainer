@@ -55,7 +55,7 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
 
   const requiredObjects = ['manifest', 'tacticSchema', 'runtimeLoaders']
   const requiredArrays = [
-    'abilities', 'phases', 'roles', 'timingProfiles', 'tactics', 'learn2d', 'train3d', 'train3dArenas',
+    'actions', 'abilities', 'phases', 'roles', 'timingProfiles', 'tactics', 'learn2d', 'train3d', 'train3dArenas',
   ]
   const shapeErrors = [
     ...requiredObjects.filter(key => !isRecord(value[key])).map(key => `${key} must be an object.`),
@@ -76,6 +76,7 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
   }
 
   checkIds('Ability', pkg.abilities, errors)
+  checkIds('Action', pkg.actions, errors)
   checkIds('Phase', pkg.phases, errors)
   checkIds('Role', pkg.roles, errors)
   checkIds('Timing profile', pkg.timingProfiles, errors)
@@ -86,6 +87,14 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
   checkIds('Tactic field', pkg.tacticSchema.fields, errors)
 
   const abilityIds = ids(pkg.abilities)
+  const actionIds = ids(pkg.actions)
+  const bindings = new Set<string>()
+  for (const action of pkg.actions) {
+    if (bindings.has(action.binding)) errors.push(`Action binding "${action.binding}" is declared more than once.`)
+    bindings.add(action.binding)
+    if (!action.roles.length) errors.push(`Action "${action.id}" needs at least one player role.`)
+    if (!action.modes.length) errors.push(`Action "${action.id}" needs at least one runtime mode.`)
+  }
   const phaseIds = ids(pkg.phases)
   const roleIds = ids(pkg.roles)
   const timingProfileIds = ids(pkg.timingProfiles)
@@ -94,6 +103,7 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
   const tacticFieldIds = ids(pkg.tacticSchema.fields)
 
   for (const phase of pkg.phases) checkReferences(`Phase "${phase.id}"`, phase.abilityIds, abilityIds, 'ability', errors)
+  for (const role of pkg.roles) checkReferences(`Role "${role.id}"`, role.actionIds, actionIds, 'action', errors)
   for (const profile of pkg.timingProfiles) {
     if (profile.encounterId !== pkg.manifest.id) errors.push(`Timing profile "${profile.id}" targets another encounter.`)
     for (const valueDefinition of profile.values) {

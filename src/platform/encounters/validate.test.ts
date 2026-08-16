@@ -27,6 +27,7 @@ describe('EncounterPackageV1 conformance', () => {
       apiVersion: 1,
       manifest: {},
       tacticSchema: {},
+      actions: [],
       abilities: [],
       phases: [],
       roles: [],
@@ -53,5 +54,13 @@ describe('EncounterPackageV1 conformance', () => {
 
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.errors).toContain('learn2d needs exactly one full-fight scenario.')
+  })
+
+  it('rejects duplicate package action bindings', () => {
+    const malformed = { ...sentinels, actions: [...sentinels.actions, { ...sentinels.actions[0], id: 'sentinels_other_main' }] }
+    const result = validateEncounterPackage(malformed)
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.errors).toContain('Action binding "mainAbility" is declared more than once.')
   })
 })

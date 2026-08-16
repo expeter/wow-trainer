@@ -680,6 +680,24 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 
 ## SPEC-023 · Shared encounter runtime capabilities
 
+- The development contract rooms are the acceptance harness for platform
+  capabilities, not private alternatives to the encounter runtime. A capability
+  demonstrated there is complete only when Nek'zali and Entombed Sentinels can
+  consume the same public contract without encounter-local reimplementation.
+- Every package action declaration has a stable action ID, one shell binding
+  slot, eligible player roles, supported runtime modes, and HUD eligibility.
+  Package validation rejects duplicate binding slots and role references to
+  unknown actions. The shell binds declarations once; keyboard dispatch,
+  below-arena legends, and optional HUD buttons consume that bound registry.
+- Controlled players, raid NPCs, enemies, and arena systems are composable
+  entities with independent deterministic action timelines coordinated by one
+  encounter clock. Keyboard, mouse, and HUD actions enqueue controlled-player
+  commands into that same timeline; they do not bypass it through renderer or
+  component-local mechanic paths.
+- Simulation owns movement constraints, collision/contact, range, occupancy,
+  positioning, target validity, and mechanic outcomes. Renderers consume the
+  resulting snapshots and may never infer those outcomes from DOM or Three.js
+  geometry.
 - Encounter packages consume the platform Main lifecycle: begin, display-rate
   cast progress, pause/resume, completion, projectile publication, and impact.
   A package selects the valid target and authoritative damage/outcome only; it
@@ -698,6 +716,19 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   but may not filter a declared capability out of one mode. Learn 2D always
   attaches Main cast progress below the controlled actor's health presentation;
   the configurable central cast-bar anchor belongs only to Train 3D.
+- Shared HUD capability means common state and action semantics, not identical
+  screen geometry. Train 3D uses its configurable WoW-like frames; Learn 2D
+  keeps actor-attached health, cast, aura, and mechanic visuals appropriate to
+  its tactical projection. Spell and debuff state must remain visibly readable
+  in both modes.
+- Soak, avoid, spread, assignment, and occupancy visuals retain the existing
+  shared behavior: filled shapes request player/NPC entry, satisfied shapes
+  become outlines, harmful shapes remain visibly hazardous, and guidance may
+  be reduced by trainer difficulty without changing the underlying mechanic.
+- During mechanic downtime, NPCs use bounded, seeded ambient movement and
+  class-appropriate activity so the raid remains alive. Active assignments,
+  tank positioning, formation, hazards, targeting, and scheduled casts always
+  override ambient behavior; tests can reproduce it from the same seed.
 - Runtime pause blocks new movement and combat actions and freezes active cast
   progress. Camera look may remain available while paused, but an encounter
   snapshot may not mask the resulting player-facing update.
