@@ -103,6 +103,8 @@
 .season2-binding-panel { min-width: 0; padding-right: 14px; border-right: 1px solid var(--s2-color-border); }
 .season2-binding-panel h3, .season2-camera-settings h3 { margin: 0; font-size: 15px; }
 .season2-binding-panel > p, .season2-camera-settings > p { margin: 3px 0 10px; color: var(--s2-color-muted); font-size: 11px; }
+.season2-binding-scope + .season2-binding-scope { margin-top: 8px; }
+.season2-binding-scope h4 { margin: 0 0 4px; color: var(--s2-color-accent); font: 600 10px/1.2 var(--s2-font-mono); letter-spacing: .08em; text-transform: uppercase; }
 .season2-keybind-grid { display: grid; grid-template-columns: repeat(6, minmax(72px, 1fr)); gap: 7px; }
 .season2-keybind {
   display: grid;

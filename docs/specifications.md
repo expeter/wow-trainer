@@ -487,13 +487,15 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   product shell may pass shared preferences and select a scenario, but it must
   not import a boss runtime directly or resolve boss mechanics itself.
 - Movement, pause, and reusable encounter-action bindings are shell-owned, use
-  Season 2 storage keys, autosave with each change, and flow into both runtimes
-  without sharing simulation state. Additive schema migrations preserve valid
-  bindings field by field rather than resetting the entire map. The default
+  Season 2 storage keys, and autosave with each change without sharing
+  simulation state. Learn 2D and Train 3D movement maps are independent; pause
+  and encounter-action bindings remain shared. Additive schema migrations
+  preserve valid bindings field by field, and migrate the former flat movement
+  map into both runtime scopes rather than resetting custom keys. The default
   movement contract is W forward, S backward, Q/E turn, and A/D strafe. Train
   3D HUD visibility, scale, and box layout are likewise shell-owned; Learn 2D
   uses diagram-native attached state instead of inheriting 3D frames.
-- Learn 2D may accept the shared movement bindings, but owns only abstract
+- Learn 2D accepts its shell-owned movement map, but owns only abstract
   percentage-space movement and icon/diagram contact. Character debuffs are
   represented by attached visual icons with accessible labels, not text baked
   into actor tokens. Controlled-player transforms update directly at display
@@ -606,7 +608,10 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   grid snapping plus keyboard nudging.
 - Keys & Mouse retains the complete autosaved binding and camera contract in a
   dense keyboard grid beside compact mouse-camera controls; individual actions
-  must not expand into oversized full-width cards.
+  must not expand into oversized full-width cards. Learn 2D and Train 3D own
+  independent movement maps, while pause and encounter actions remain shared.
+  A previously stored flat Season 2 map initializes both movement maps so an
+  existing customization is not lost during migration.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.

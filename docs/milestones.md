@@ -261,6 +261,8 @@ encounter development into an independently deployed Season 2 repository.
   Blood pools and preserve spacing for Protovenom.
 - `CR-279` — completed under `FR-084`: use one shared boss-health progression and
   finish after no more than two Stasis phases.
+- `CR-280` — completed under `SPEC-023`: split persisted Learn 2D and Train 3D
+  movement bindings while retaining shared combat/system actions.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — deferred until the first trainable Sentinels release candidate:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,

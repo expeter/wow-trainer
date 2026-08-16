@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Split keyboard movement into independently autosaved Learn 2D and Train 3D
+  layouts while retaining shared pause and encounter-action bindings. Existing
+  flat Season 2 settings migrate into both movement layouts.
 - Corrected the latest two-dimensional encounter review. Essence Rend now ends
   exactly on its third drop, NPC drops match their visible path, and Invoke
   moves both Rend and additional Cultists with circular-wall reflection.

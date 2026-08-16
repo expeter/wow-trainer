@@ -387,17 +387,18 @@ test('opens paired contract rooms with full-raid ground reactions and paced 3D r
   await expect(page.getByText(/\d+ FPS · p95/)).toBeVisible()
 })
 
-test('uses rebound movement keys, shared HUD settings, and paused camera look in the Sentinels 3D full fight', async ({ page }) => {
+test('uses independently rebound movement keys, shared HUD settings, and paused camera look in the Sentinels 3D full fight', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Keys & Mouse' }).click()
   const inputPanel = page.getByRole('group', { name: 'Input bindings' })
   await expect(inputPanel).toBeVisible()
   expect((await inputPanel.boundingBox())!.height).toBeLessThan(420)
-  await page.getByRole('button', { name: 'Rebind forward, current W' }).click()
+  await page.getByRole('button', { name: 'Rebind Train 3D movement forward, current W' }).click()
   await page.keyboard.press('ArrowUp')
   await page.reload()
   await page.getByRole('button', { name: 'Keys & Mouse' }).click()
-  await expect(page.getByRole('button', { name: 'Rebind forward, current ArrowUp' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Rebind Train 3D movement forward, current ArrowUp' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Rebind Learn 2D movement forward, current W' })).toBeVisible()
   await page.getByRole('button', { name: 'HUD' }).click()
   await expect(page.getByRole('complementary', { name: 'Training HUD' })).toHaveCount(0)
   await expect(page.getByLabel('Draggable HUD preview')).toBeVisible()

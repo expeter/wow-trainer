@@ -7,10 +7,15 @@ import type { EncounterCatalogue } from './platform/encounters/discovery'
 import { loadEncounterCatalogue, type EncounterMode, type EncounterPackageV1, type EncounterRuntimeProps } from './platform/encounters'
 import {
   DEFAULT_TRAINING_SETTINGS,
+  assignTrainingKeyBinding,
   keyLabel,
   loadTrainingSettings,
+  runtimeKeyBindings,
   saveTrainingSettings,
+  type Learn2DMovementAction,
   type MovementAction,
+  type SharedTrainingAction,
+  type TrainingBindingScope,
   type TrainingAction,
   type TrainingSettings,
 } from './platform/trainingSettings'
@@ -39,6 +44,10 @@ const actionLabels = {
   interrupt: 'Interrupt',
 } as const
 const trainingLabels: Record<TrainingAction, string> = { ...movementLabels, ...actionLabels }
+const learn2dMovementActions: Learn2DMovementAction[] = ['forward', 'backward', 'left', 'right']
+const train3dMovementActions: MovementAction[] = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight']
+const sharedActions: SharedTrainingAction[] = ['pause', 'mainAbility', 'taunt', 'healthPot', 'shield', 'dispel', 'interrupt']
+type Rebinding = { scope: TrainingBindingScope; action: TrainingAction }
 
 const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string }> = {
   'Game settings': {
@@ -48,8 +57,8 @@ const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string
   },
   'Keys & Mouse': {
     eyebrow: 'CONTROLS',
-    title: 'Familiar inputs, package-owned actions',
-    body: 'The reviewed keyboard, mouse, camera, and rebinding patterns will be extracted here without coupling either runtime to the L’ura simulation.',
+    title: 'Independent movement, shared actions',
+    body: 'Learn 2D and Train 3D keep separate movement layouts. Combat, pause, and encounter actions remain shared across both runtimes.',
   },
   HUD: {
     eyebrow: 'HUD',
@@ -77,7 +86,7 @@ export default function Season2App() {
   const [activeTab, setActiveTab] = useState<SetupTab>('Game settings')
   const [catalogue, setCatalogue] = useState<EncounterCatalogue>()
   const [settings, setSettings] = useState<TrainingSettings>(() => loadTrainingSettings())
-  const [rebinding, setRebinding] = useState<TrainingAction>()
+  const [rebinding, setRebinding] = useState<Rebinding>()
   const [runtimeLoading, setRuntimeLoading] = useState<EncounterMode>()
   const [runtime, setRuntime] = useState<{ mode: EncounterMode; scenarioId: string; Component: ComponentType<EncounterRuntimeProps> }>()
   const panel = panelCopy[activeTab]
@@ -104,22 +113,12 @@ export default function Season2App() {
     if (!rebinding) return
     const onKeyDown = (event: KeyboardEvent) => {
       event.preventDefault()
-      const previousCode = settings.keyBindings[rebinding]
-      const occupiedAction = (Object.keys(settings.keyBindings) as TrainingAction[])
-        .find(action => action !== rebinding && settings.keyBindings[action] === event.code)
-      updateSettings(current => ({
-        ...current,
-        keyBindings: {
-          ...current.keyBindings,
-          [rebinding]: event.code,
-          ...(occupiedAction ? { [occupiedAction]: previousCode } : {}),
-        },
-      }))
+      updateSettings(current => assignTrainingKeyBinding(current, rebinding.scope, rebinding.action, event.code))
       setRebinding(undefined)
     }
     window.addEventListener('keydown', onKeyDown, { once: true })
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [rebinding, settings.keyBindings, updateSettings])
+  }, [rebinding, updateSettings])
 
   async function launch(selectedEncounter: EncounterPackageV1, mode: EncounterMode, scenarioId: string) {
     const scenario = (mode === 'learn2d' ? selectedEncounter.learn2d : selectedEncounter.train3d)
@@ -145,7 +144,7 @@ export default function Season2App() {
     return <Runtime
       scenarioId={runtime.scenarioId}
       trainingDifficulty={settings.difficulty}
-      keyBindings={settings.keyBindings}
+      keyBindings={runtimeKeyBindings(settings, runtime.mode)}
       hudSettings={settings.hud}
       cameraSettings={settings.camera}
       onCameraSettingsChange={camera => updateSettings(current => ({ ...current, camera }))}
@@ -228,14 +227,25 @@ export default function Season2App() {
       </div>}
       {activeTab === 'Keys & Mouse' && <div className="season2-settings-grid" role="group" aria-label="Input bindings">
         <div className="season2-binding-panel">
-          <h3>Keyboard</h3><p>Click a binding, then press its new key.</p>
-          <div className="season2-keybind-grid">{(Object.keys(settings.keyBindings) as TrainingAction[]).map(action => <label className="season2-keybind" key={action}>
-            <span>{trainingLabels[action]}</span>
-            <button type="button" aria-label={`Rebind ${action}, current ${keyLabel(settings.keyBindings[action])}`} className={rebinding === action ? 'listening' : ''} onClick={() => setRebinding(action)}>
-              {rebinding === action ? 'Press a key…' : keyLabel(settings.keyBindings[action])}
-            </button>
-          </label>)}</div>
-          <button type="button" className="secondary season2-reset" onClick={() => updateSettings(current => ({ ...current, keyBindings: { ...DEFAULT_TRAINING_SETTINGS.keyBindings } }))}>Reset keybindings</button>
+          <h3>Keyboard</h3><p>Click a binding, then press its new key. Movement layouts autosave independently.</p>
+          {([
+            ['learn2d', 'Learn 2D movement', learn2dMovementActions],
+            ['train3d', 'Train 3D movement', train3dMovementActions],
+            ['shared', 'Shared actions', sharedActions],
+          ] as const).map(([scope, label, actions]) => <section className="season2-binding-scope" aria-label={label} key={scope}>
+            <h4>{label}</h4>
+            <div className="season2-keybind-grid">{actions.map(action => {
+              const bindings = settings.keyBindings[scope] as Partial<Record<TrainingAction, string>>
+              const active = rebinding?.scope === scope && rebinding.action === action
+              return <label className="season2-keybind" key={action}>
+                <span>{trainingLabels[action]}</span>
+                <button type="button" aria-label={`Rebind ${label} ${action}, current ${keyLabel(bindings[action]!)}`} className={active ? 'listening' : ''} onClick={() => setRebinding({ scope, action })}>
+                  {active ? 'Press a key…' : keyLabel(bindings[action]!)}
+                </button>
+              </label>
+            })}</div>
+          </section>)}
+          <button type="button" className="secondary season2-reset" onClick={() => updateSettings(current => ({ ...current, keyBindings: structuredClone(DEFAULT_TRAINING_SETTINGS.keyBindings) }))}>Reset keybindings</button>
         </div>
         <div className="season2-camera-settings">
           <h3>Mouse camera</h3><p>Train 3D look and camera behavior.</p>

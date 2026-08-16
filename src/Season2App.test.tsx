@@ -40,18 +40,22 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' })).toHaveTextContent('Protovenom pairing occurs before Stasis')
   })
 
-  it('persists unique movement bindings and exposes the configured keys to the shell', async () => {
+  it('persists independent Learn 2D and Train 3D movement bindings', async () => {
     const view = render(<Season2App />)
     fireEvent.click(screen.getByRole('button', { name: 'Keys & Mouse' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Rebind forward, current W' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Rebind Learn 2D movement forward, current W' }))
     fireEvent.keyDown(window, { code: 'ArrowUp' })
 
-    expect(screen.getByRole('button', { name: 'Rebind forward, current ArrowUp' })).toHaveTextContent('ArrowUp')
-    expect(JSON.parse(localStorage.getItem('midnight-s2:training-settings:v1') || '{}').keyBindings.forward).toBe('ArrowUp')
+    expect(screen.getByRole('button', { name: 'Rebind Learn 2D movement forward, current ArrowUp' })).toHaveTextContent('ArrowUp')
+    expect(screen.getByRole('button', { name: 'Rebind Train 3D movement forward, current W' })).toHaveTextContent('W')
+    const saved = JSON.parse(localStorage.getItem('midnight-s2:training-settings:v1') || '{}')
+    expect(saved.keyBindings.learn2d.forward).toBe('ArrowUp')
+    expect(saved.keyBindings.train3d.forward).toBe('KeyW')
     view.unmount()
     render(<Season2App />)
     fireEvent.click(screen.getByRole('button', { name: 'Keys & Mouse' }))
-    expect(screen.getByRole('button', { name: 'Rebind forward, current ArrowUp' })).toHaveTextContent('ArrowUp')
+    expect(screen.getByRole('button', { name: 'Rebind Learn 2D movement forward, current ArrowUp' })).toHaveTextContent('ArrowUp')
+    expect(screen.getByRole('button', { name: 'Rebind Train 3D movement forward, current W' })).toHaveTextContent('W')
   })
 
   it('keeps build provenance on setup and uses scoring-ready runtime corners', async () => {
