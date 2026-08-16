@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Accepted the reusable Season 2 trainer core across both labs, Nek'zali, and
+  Entombed Sentinels. Package discovery, separate projections, actions, entity
+  timelines, NPC activity, lifecycle recovery, settings/HUD, and the frozen
+  feature audit now pass the complete local gate. The unreachable focused
+  Helical prototype left behind when Sentinels became one full fight was
+  removed instead of being exposed as an unapproved practice scenario.
 - Completed the frozen v0.9.1 core-feature audit without importing legacy
   encounter code. Jump/vertical traversal, diagnostic time scaling, opt-in
   vitality/recovery state, and focused-practice selection are now explicit

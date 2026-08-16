@@ -20,10 +20,10 @@ encounter development into an independently deployed Season 2 repository.
 ### Core completion gate
 
 `FR-077` dynamic actions, `CR-283` shared entity timelines, `FR-088` ambient
-NPC activity, and `FR-076` lifecycle recovery are now complete. The active
-execution order has completed the `FR-087` frozen-trainer audit and now reaches
-final `FR-072` platform acceptance. Newly discovered reusable capabilities are
-recorded for explicit keep/drop discussion and do not silently expand the gate.
+NPC activity, `FR-076` lifecycle recovery, and the `FR-087` frozen-trainer
+audit are complete. `FR-072` platform acceptance passed; newly discovered
+reusable capabilities are recorded for explicit keep/drop discussion and do
+not silently expand the accepted core.
 
 Nek'zali, Entombed Sentinels, and both contract rooms are the acceptance
 harnesses for this core. Shell polish, additional bosses, expanded result
@@ -47,17 +47,20 @@ remain outside the gate and do not interrupt it.
   documentation only, never as a deployed Midnight shell link.
 - `SPEC-018` — completed: make the shared-shell/separate-runtime and isolated
   auto-discovered encounter-package boundaries binding.
-- `FR-072` — in progress now that `CR-230` and `SPEC-018` are stable: Stage 4A
+- `FR-072` — completed: Stage 4A
   introduced `EncounterPackageV1`, conformance validation, lazy automatic
-  discovery, and the isolated Entombed Sentinels package. Stage 4B makes the
-  focused Helical Toxins lesson playable through separate package-owned Learn
-  2D and Train 3D runtimes, with shell-owned persisted movement bindings and
-  HUD preferences. Corrective Stage 4C adds movable icon-based 2D practice,
+  discovery, and the isolated Entombed Sentinels package. Stage 4B initially
+  proved package-owned focused Helical Toxins runtimes before `CR-261` collapsed
+  the encounter to its one accepted full-fight contract; final acceptance
+  removes that unreachable prototype. Corrective Stage 4C added icon-based 2D practice,
   headless fixed-step 3D mechanics, a snapshot-only third-person renderer, and
   the development contract room. Stage 4D restores input reliability,
   interpolated rendering, the creator/action/HUD platform features, and paired
-  full-raid 2D/3D contract labs. Full-fight and plan-image work is now present;
-  planner editing and scoring remain.
+  full-raid 2D/3D contract labs. Final acceptance retired the unreachable
+  focused prototype left behind by `CR-261` and passed the complete
+  unit/component suite, package/runtime conformance, bootstrap contract,
+  production build, and seven focused Season 2 browser checks. Planner editing
+  and scoring remain separate backlog work.
 - `CR-237` — completed under `FR-072`: make Learn 2D movement-driven and
   represent each character's toxin composition with attached icons rather than
   character text while preserving abstract 2D geometry.
@@ -117,7 +120,7 @@ remain outside the gate and do not interrupt it.
   yielding to mechanic-owned positions and assignments.
 - `FR-076` — completed under `FR-072`: shared countdown, pause, failure,
   restart/exit, held-input clearing, and WebGL renderer-recovery lifecycle now
-  serves labs, focused drills, and both full fights.
+  serves both labs and both full fights.
 - `FR-087` — completed under `SPEC-019`: the frozen source, ticket register,
   feature inventory, changelog, and deferred ideas were reconciled into explicit
   extraction mappings and four keep/drop discussion tickets.
@@ -129,10 +132,10 @@ remain outside the gate and do not interrupt it.
   shared vitality, potion, defensive, and cooldown state.
 - `FR-092` — backlog after core acceptance: decide how explicitly approved
   focused practice scenarios become player-selectable.
-- `FR-078` — planned under `FR-072`: independent persisted audio services.
-- `FR-079` — planned under `FR-072`: versioned encounter tactic editor; the
+- `FR-078` — backlog after core acceptance: independent persisted audio services.
+- `FR-079` — backlog after core acceptance: versioned encounter tactic editor; the
   supplied Sentinels raid-plan image is preserved as package evidence.
-- `FR-080` — deferred until the core gate closes: `CR-249` restored reusable live
+- `FR-080` — backlog after core acceptance: `CR-249` restored reusable live
   failure/points corners; scenario recap and copyable/shareable offline result
   identity remain pending.
 - `CR-247` — completed under `FR-072`: restore the full-viewport runtime,
@@ -302,7 +305,7 @@ remain outside the gate and do not interrupt it.
 - `CR-282` — backlogged after core completion under `SPEC-007`: compact and refine the encounter catalogue,
   difficulty selector, runtime actions, card interaction states, and contract room.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
-- `CR-235` — deferred until the first trainable Sentinels release candidate:
+- `CR-235` — ready for pre-publication scheduling after core acceptance:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
   and branding residue from the active product while preserving the immutable
   baseline tag, privacy-safe history, handover evidence, and README lineage.
@@ -316,12 +319,12 @@ remain outside the gate and do not interrupt it.
 - `CR-234` — deferred until the first static publication: perform a measured
   bundle, runtime, accessibility, responsive, and test-duration optimization
   pass without changing encounter mechanics.
-- `FR-075` — core-only in progress with its expansion backlogged: Nek'zali and
+- `FR-075` — core gate completed with its expansion backlogged: Nek'zali and
   Entombed Sentinels remain the only active full-fight packages; other bosses
-  remain metadata-only until core acceptance and individual approval.
+  remain metadata-only until individual approval.
 
 The backlogged encounter order is `FR-085` Vash'nik → `FR-086` The Lost
-Explorers, but neither begins before the core completion gate. Publication
+Explorers; both remain catalogue-only until individually approved. Publication
 remains separate: the still-required pre-publication
 sequence is `CR-235` → `CR-236` → `FR-074`, followed by the measured `CR-234`
 optimization pass.
@@ -329,8 +332,9 @@ optimization pass.
 the static trainer sequence.
 
 No boss beyond Nek'zali and Entombed Sentinels may gain playable mechanics
-before the core gate closes. `FR-085` Vash'nik and `FR-086` Lost Explorers keep
-their research and plans in the backlog but do not authorize runtime work yet.
+without its individually approved encounter ticket. `FR-085` Vash'nik and
+`FR-086` Lost Explorers keep their research and plans in the backlog but do not
+authorize runtime work yet.
 Catalogue-only metadata does not authorize an encounter runtime. The L'ura API
 and leaderboard remain frozen legacy reference behavior and cannot deploy from
 this repository.
