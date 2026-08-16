@@ -21,9 +21,9 @@ encounter development into an independently deployed Season 2 repository.
 
 `FR-077` dynamic actions, `CR-283` shared entity timelines, `FR-088` ambient
 NPC activity, and `FR-076` lifecycle recovery are now complete. The active
-execution order continues with the `FR-087` frozen-trainer audit and final
-`FR-072` platform acceptance. The audit brings any newly discovered reusable
-capability back for explicit keep/drop discussion before `FR-072` closes.
+execution order has completed the `FR-087` frozen-trainer audit and now reaches
+final `FR-072` platform acceptance. Newly discovered reusable capabilities are
+recorded for explicit keep/drop discussion and do not silently expand the gate.
 
 Nek'zali, Entombed Sentinels, and both contract rooms are the acceptance
 harnesses for this core. Shell polish, additional bosses, expanded result
@@ -118,8 +118,17 @@ remain outside the gate and do not interrupt it.
 - `FR-076` — completed under `FR-072`: shared countdown, pause, failure,
   restart/exit, held-input clearing, and WebGL renderer-recovery lifecycle now
   serves labs, focused drills, and both full fights.
-- `FR-087` — planned core audit under `SPEC-019`: revisit the frozen trainer and
-  place any missing reusable capability in the backlog for explicit discussion.
+- `FR-087` — completed under `SPEC-019`: the frozen source, ticket register,
+  feature inventory, changelog, and deferred ideas were reconciled into explicit
+  extraction mappings and four keep/drop discussion tickets.
+- `FR-089` — backlog after core acceptance: decide whether accepted encounters
+  require shared Train 3D jump/vertical traversal.
+- `FR-090` — backlog after core acceptance: decide whether authoring needs a
+  development/Test-only whole-timeline simulation speed control.
+- `FR-091` — backlog after core acceptance: decide whether packages may opt into
+  shared vitality, potion, defensive, and cooldown state.
+- `FR-092` — backlog after core acceptance: decide how explicitly approved
+  focused practice scenarios become player-selectable.
 - `FR-078` — planned under `FR-072`: independent persisted audio services.
 - `FR-079` — planned under `FR-072`: versioned encounter tactic editor; the
   supplied Sentinels raid-plan image is preserved as package evidence.

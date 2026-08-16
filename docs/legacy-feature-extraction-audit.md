@@ -30,10 +30,36 @@ import of L’ura encounter code.
 | Dedicated Pages workflow and production monitoring | Deliberately deferred | `FR-074` |
 | Online identity, public activity, achievements and rankings | Deliberately deferred to isolated `/v2` | `FR-073` |
 
-`FR-087` performs one more source-and-ticket-history review before the core
-platform closes. Any newly identified reusable feature enters the Season 2
-backlog for explicit keep/drop discussion; the audit itself does not authorize
-copying legacy encounter behavior.
+## Final frozen-source review (`FR-087`)
+
+The final review compared the frozen v0.9.1 `App.tsx`, `GameScene.tsx`, complete
+ticket register, feature inventory, release changelog, and deferred-ideas list
+against the active Season 2 source. It found four reusable decisions not yet
+represented precisely enough in the Season 2 backlog:
+
+| Candidate | Decision state | Season 2 work |
+| --- | --- | --- |
+| Train 3D jump/vertical traversal | Discuss; implement only when an accepted encounter needs vertical collision or traversal | `FR-089` |
+| Simulation time-scale control | Discuss as a development/Test-only diagnostic; never alter encounter timing or comparable results | `FR-090` |
+| Shared player vitality, damage, potion, defensive, and cooldown state | Discuss as an opt-in package service; do not restore L’ura’s permanent global actions | `FR-091` |
+| Player selection of explicitly approved focused practice scenarios | Discuss after encounter authors supply the situations; reuse package scenario declarations | `FR-092` |
+
+The review also confirmed these mappings and exclusions:
+
+- Reduced-motion behavior and measured accessibility work remain in `CR-236`
+  and `CR-234`; independent audio remains `FR-078`.
+- Attempt recap/share identity remains `FR-080`, planning remains `FR-079`,
+  deployment remains `FR-074`, and all online activity/profile/ranking work
+  remains isolated under `FR-073` and `/v2`.
+- Configurable player movement speed is not retained: `SPEC-020` owns the fixed
+  WoW-calibrated Train 3D yard model. A diagnostic time scale, if accepted,
+  scales the one encounter clock rather than changing movement alone.
+- Permanent global combat actions, render-position-owned collision, L’ura
+  phase practice data, fake completion shortcuts, achievements, live activity,
+  `/v1`, and production deployment targets remain intentionally excluded.
+
+This closes the audit only. Every discuss item still requires an explicit
+keep/drop decision before implementation.
 
 ## Boundaries preserved during extraction
 
@@ -54,3 +80,5 @@ copying legacy encounter behavior.
 - [`handover/midnight-season-2/06-migration-roadmap.md`](../handover/midnight-season-2/06-migration-roadmap.md)
 - [`handover/midnight-season-2/08-testing-and-release.md`](../handover/midnight-season-2/08-testing-and-release.md)
 - Frozen request history and implemented feature inventory in [`README.md`](README.md)
+- Frozen `legacy-source-v0.9.1` `App.tsx`, `GameScene.tsx`,
+  `docs/README.md`, and `CHANGELOG.md`

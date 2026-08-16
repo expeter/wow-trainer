@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Completed the frozen v0.9.1 core-feature audit without importing legacy
+  encounter code. Jump/vertical traversal, diagnostic time scaling, opt-in
+  vitality/recovery state, and focused-practice selection are now explicit
+  keep/drop backlog decisions; existing audio, planner, results, publication,
+  accessibility, and online boundaries were reconfirmed.
 - Completed the shared training lifecycle: pause, pull countdowns, focus loss,
   retries, exits, and unmounts now clear held input consistently; full-fight
   retries repeat the locked countdown; and WebGL startup/context failures pause
