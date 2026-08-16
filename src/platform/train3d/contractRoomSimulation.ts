@@ -4,6 +4,8 @@ import { distance, stepPlayerMovement } from './simulation'
 import type { PlayerCommandState, Train3DSnapshot, WorldPoint } from './types'
 import { cosmeticClassProjectiles } from './cosmeticCombat'
 import type { RuntimeFailure } from '../RuntimeFeedback'
+import { beginEncounterAction, coreEncounterEntities, createEncounterTimeline, type EncounterTimelineState } from '../encounters/timeline'
+import { advanceAmbientNpcTimeline, ambientNpcPosition } from '../encounters/ambientNpc'
 
 export { CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS } from '../contractRoom'
 
@@ -27,6 +29,7 @@ export const contractRoomMarkers = [
 
 export interface ContractRoomState {
   time: number
+  timeline: EncounterTimelineState
   eventStartedAt: number
   eventIndex: number
   player: { x: number; z: number; facing: number }
@@ -54,13 +57,15 @@ export function contractPlayerStart3D(slotId: string): WorldPoint {
 }
 
 export function prepareContractRoomSlot(state: ContractRoomState, slotId: string): ContractRoomState {
-  return { ...state, player: { ...contractPlayerStart3D(slotId), facing: 0 } }
+  const timeline = createEncounterTimeline(coreEncounterEntities('controlled-player', contractRaidRoster.filter(member => member.id !== slotId).map(member => member.id), ['spell-dummy'], contractRoomArena.id))
+  return { ...state, timeline: { ...timeline, time: state.time }, player: { ...contractPlayerStart3D(slotId), facing: 0 } }
 }
 
 export function createContractRoomState(seed = 238): ContractRoomState {
   const controlled = contractSelectedMember(CONTRACT_DEFAULT_PLAYER_SLOT)
   const start = worldPosition(controlled)
-  return { time: 0, eventStartedAt: 0, eventIndex: 0, player: { ...start, facing: 0 }, events: seededEvents(seed), successes: 0, misses: 0, wrongGrounds: 0, failures: [] }
+  const timeline = createEncounterTimeline(coreEncounterEntities('controlled-player', contractRaidRoster.filter(member => member.id !== controlled.id).map(member => member.id), ['spell-dummy'], contractRoomArena.id))
+  return { time: 0, timeline, eventStartedAt: 0, eventIndex: 0, player: { ...start, facing: 0 }, events: seededEvents(seed), successes: 0, misses: 0, wrongGrounds: 0, failures: [] }
 }
 
 export function turnContractRoomPlayer(state: ContractRoomState, yawDelta: number): ContractRoomState {
@@ -74,12 +79,13 @@ export function activeContractEvent(state: ContractRoomState) {
 export function stepContractRoom(state: ContractRoomState, commands: PlayerCommandState, seconds: number): ContractRoomState {
   const player = stepPlayerMovement(state.player, commands, seconds, { halfWidth: contractRoomArena.width / 2, halfDepth: contractRoomArena.depth / 2 })
   const time = state.time + seconds
+  let timeline = advanceAmbientNpcTimeline(state.timeline, seconds, 'spell-dummy')
   const age = time - state.eventStartedAt
   const contact = age >= CONTRACT_LANDING_SECONDS
     ? activeContractEvent(state).groundObjects.find(object => distance(player, contractGroundSlots[object.direction]) < 3.2)
     : undefined
   const expired = age >= CONTRACT_EVENT_SECONDS
-  if (!contact && !expired) return { ...state, time, player }
+  if (!contact && !expired) return { ...state, time, timeline, player }
   const event = activeContractEvent(state)
   const failure = contact?.correct ? undefined : {
     id: `contract-3d-${state.eventIndex}-${time.toFixed(3)}`,
@@ -88,9 +94,11 @@ export function stepContractRoom(state: ContractRoomState, commands: PlayerComma
     label: contact ? `Entered the ${contact.tone} rune with a ${event.tone} aura` : `Did not reach the ${event.tone} rune in time`,
     advice: contact ? 'Read your attached aura icon and enter only the matching ground effect.' : 'Turn toward the matching ground effect and begin moving while the landing projectiles are still visible.',
   } satisfies RuntimeFailure
+  timeline = beginEncounterAction(timeline, { id: contractRoomArena.id, kind: 'arena' }, contact?.correct ? 'reaction-resolved' : 'reaction-failed', 0, state.events[state.eventIndex % state.events.length].id)
   return {
     ...state,
     time,
+    timeline,
     player,
     eventIndex: state.eventIndex + 1,
     eventStartedAt: time,
@@ -109,12 +117,12 @@ export function contractRoomSnapshot(state: ContractRoomState, playerSlotId = CO
   const controlled = roster.find(member => member.controlled)!
   const npcActors = roster.filter(member => !member.controlled).map((member, index) => {
     const origin = worldPosition(member)
-    const sway = Math.sin(state.time * .65 + index * 1.7) * (member.role === 'melee' || member.role === 'tank' ? .35 : .7)
+    const position = ambientNpcPosition(member.id, origin, state.time, { radius: member.role === 'melee' || member.role === 'tank' ? .45 : .8 })
     const tone = contractTones[(index + state.eventIndex) % contractTones.length]
     return {
       id: member.id,
       kind: 'ally' as const,
-      position: { x: origin.x + sway, z: origin.z + Math.cos(state.time * .5 + index) * .3 },
+      position,
       facing: Math.atan2(-origin.x, -origin.z),
       color: member.role === 'tank' ? '#6f9cff' : member.role === 'healer' ? '#71dd99' : member.role === 'melee' ? '#e18a58' : '#b690e8',
       playerClass: member.playerClass,
@@ -127,6 +135,7 @@ export function contractRoomSnapshot(state: ContractRoomState, playerSlotId = CO
   ])
   return {
     time: state.time,
+    timeline: state.timeline,
     arena: contractRoomArena,
     actors: [
       { id: 'controlled-player', kind: 'player', position: state.player, facing: state.player.facing, color: trainingClassColors[controlled.playerClass], playerClass: controlled.playerClass, auras: [{ id: event.id, tone: event.tone, stacks: 1 }], health: playerHealth },

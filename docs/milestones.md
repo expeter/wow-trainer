@@ -19,11 +19,10 @@ encounter development into an independently deployed Season 2 repository.
 
 ### Core completion gate
 
-`FR-077` dynamic actions are now complete. The active execution order continues
-with the shared entity/timeline work in `CR-283` plus ambient NPC activity in
-`FR-088`, followed by `FR-076` lifecycle closure and final `FR-072` platform
-acceptance. `FR-087`
-audits the frozen trainer in parallel and brings any newly discovered reusable
+`FR-077` dynamic actions, `CR-283` shared entity timelines, and `FR-088` ambient
+NPC activity are now complete. The active execution order continues with
+`FR-076` lifecycle closure and final `FR-072` platform acceptance. `FR-087`
+audits the frozen trainer before acceptance and brings any newly discovered reusable
 capability back for explicit keep/drop discussion before `FR-072` closes.
 
 Nek'zali, Entombed Sentinels, and both contract rooms are the acceptance
@@ -110,12 +109,12 @@ remain outside the gate and do not interrupt it.
 - `FR-077` — completed under `FR-072`: package-declared actions, role/mode
   filtering, shell-owned bindings, shared keyboard dispatch, legends, and HUD
   buttons are proven through both contract rooms and both implemented encounters.
-- `CR-283` — planned core prerequisite under `FR-072`: compose controlled player,
-  raid NPC, enemy, and arena systems as drop-in entities with independent
-  deterministic timelines, shared snapshot/HUD semantics, and simulation-owned
-  collision and positioning checks across both projections.
-- `FR-088` — planned core runtime work under `CR-283`: add reusable seeded ambient
-  NPC movement and class activity that yields to every mechanic assignment.
+- `CR-283` — completed under `FR-072`: controlled player, raid NPC, enemy, and
+  arena systems now expose independent deterministic tracks on one simulation
+  clock; player actions enter that path and snapshots expose it to rendering.
+- `FR-088` — completed under `CR-283`: reusable seeded ambient NPC movement and
+  class-cast timeline activity now serve both labs and active encounters while
+  yielding to mechanic-owned positions and assignments.
 - `FR-076` — in progress under `FR-072`: finish shared countdown, pause, failure,
   restart/exit, input-clear, and renderer-recovery lifecycle behavior.
 - `FR-087` — planned core audit under `SPEC-019`: revisit the frozen trainer and

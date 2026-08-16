@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added a shared simulation-owned entity timeline to every lab and active
+  encounter. Controlled players, raid NPCs, enemies, and arena systems now use
+  independent deterministic tracks on one encounter clock, with package and
+  contract-room actions entering the same path and snapshots exposing it to
+  rendering. Raid NPCs also use reusable seeded, bounded idle movement and
+  class-cast activity that yields to mechanic positioning and assignments.
 - Replaced encounter-local fixed combat keys with validated package-declared
   action registries. The contract rooms, Nek'zali, and Entombed Sentinels now
   share role/mode filtering, shell bindings, keyboard dispatch, action legends,

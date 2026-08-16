@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ContractPlayerRole } from './contractRoom'
 import { encounterActionBinding, useEncounterActionInput, type BoundEncounterAction, type EncounterMode } from './encounters'
+import type { CombatAction } from './trainingSettings'
 
-export function useContractActions({ enabled, paused = false, role, mode, eventIndex, actions }: { enabled: boolean; paused?: boolean; role: ContractPlayerRole; mode: EncounterMode; eventIndex: number; actions: readonly BoundEncounterAction[] }) {
+export function useContractActions({ enabled, paused = false, role, mode, eventIndex, actions, onAction }: { enabled: boolean; paused?: boolean; role: ContractPlayerRole; mode: EncounterMode; eventIndex: number; actions: readonly BoundEncounterAction[]; onAction?: (action: CombatAction) => void }) {
   const [health, setHealth] = useState(72)
   const [shieldCooldown, setShieldCooldown] = useState(0)
   const [potionUsed, setPotionUsed] = useState(false)
@@ -24,15 +25,16 @@ export function useContractActions({ enabled, paused = false, role, mode, eventI
     mainProjectileStartedAtRef.current = 0
     setMainProjectileAge(-1)
     setMainCast(1)
+    onAction?.('mainAbility')
     return true
-  }, [actions, enabled, mainCastSecondsSource, mode, role])
+  }, [actions, enabled, mainCastSecondsSource, mode, onAction, role])
   const activateShield = useCallback(() => {
-    if (role === 'tank' || shieldCooldown <= 0) { setHealth(100); setShieldCooldown(role === 'tank' ? 20 : Number.POSITIVE_INFINITY) }
-  }, [role, shieldCooldown])
+    if (role === 'tank' || shieldCooldown <= 0) { setHealth(100); setShieldCooldown(role === 'tank' ? 20 : Number.POSITIVE_INFINITY); onAction?.('shield') }
+  }, [onAction, role, shieldCooldown])
   const activatePotion = useCallback(() => {
-    if (!potionUsed) { setPotionUsed(true); setHealth(100) }
-  }, [potionUsed])
-  const activateTaunt = useCallback(() => { /* Contract validates availability; encounter packages own threat. */ }, [])
+    if (!potionUsed) { setPotionUsed(true); setHealth(100); onAction?.('healthPot') }
+  }, [onAction, potionUsed])
+  const activateTaunt = useCallback(() => { onAction?.('taunt') }, [onAction])
 
   useEffect(() => {
     setHealth(72)

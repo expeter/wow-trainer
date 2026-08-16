@@ -1,6 +1,7 @@
 import type { WorldArena3D } from '../encounters'
 import type { TrainingClass } from '../contractRoom'
 import type { CombatProjectileShape } from '../../projectiles'
+import type { EncounterTimelineState } from '../encounters/timeline'
 
 export interface WorldPoint {
   x: number
@@ -61,6 +62,7 @@ export interface WorldMarkerSnapshot {
 
 export interface Train3DSnapshot {
   time: number
+  timeline: EncounterTimelineState
   arena: WorldArena3D
   actors: readonly ActorSnapshot[]
   effects: readonly EffectSnapshot[]

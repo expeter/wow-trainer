@@ -7,6 +7,8 @@ import { classProjectileEffects, cosmeticClassProjectiles } from '../../platform
 import { distance, stepPlayerMovement } from '../../platform/train3d/simulation'
 import type { ActorSnapshot, EffectSnapshot, PlayerCommandState, Train3DSnapshot, WorldPoint } from '../../platform/train3d/types'
 import { sentinelsArena } from './train3d/arenas'
+import { beginEncounterAction, coreEncounterEntities, createEncounterTimeline, type EncounterTimelineState } from '../../platform/encounters/timeline'
+import { advanceAmbientNpcTimeline, ambientNpcPosition } from '../../platform/encounters/ambientNpc'
 
 export type SentinelSide = 'acid' | 'blood'
 export type SentinelsPhase = 'active' | 'stasis'
@@ -17,6 +19,7 @@ export interface BloodPoolState { id: string; position: WorldPoint; createdAt: n
 
 export interface SentinelsState {
   time: number
+  timeline: EncounterTimelineState
   phase: SentinelsPhase
   phaseStartedAt: number
   cycle: 1 | 2
@@ -95,8 +98,9 @@ function playerStart(slotId: string, cycle: 1 | 2): { x: number; z: number; faci
 }
 
 export function createSentinelsState(selectedSlotId = 'player', trainingDifficulty: TrainingDifficulty = 'normal'): SentinelsState {
+  const timeline = createEncounterTimeline(coreEncounterEntities('controlled-player', contractRaidRoster.filter(member => member.id !== selectedSlotId).map(member => member.id), ['breath-of-ulatek', 'blood-of-ulatek'], sentinelsArena.id))
   return {
-    time: 0, phase: 'active', phaseStartedAt: 0, cycle: 1, trainingDifficulty, selectedSlotId,
+    time: 0, timeline, phase: 'active', phaseStartedAt: 0, cycle: 1, trainingDifficulty, selectedSlotId,
     assignedSide: sideForSlot(selectedSlotId, 1), player: playerStart(selectedSlotId, 1),
     acidBoss: { ...ACID_HOME }, bloodBoss: { ...BLOOD_HOME }, acidHealth: 100, bloodHealth: 100, energy: 50,
     acidMarks: 0, bloodMarks: 0, lastMarkAt: 0, droplets: [], dropletsSpawned: false,
@@ -119,7 +123,9 @@ export function startSentinelsMainCast(state: SentinelsState): SentinelsState {
   if (state.outcome !== 'active' || state.mainCastRemaining > 0) return state
   const phaseAge = state.time - state.phaseStartedAt
   const addActive = state.phase === 'active' && phaseAge >= 8 && state.coagulationHealth > 0
-  return beginMainAction(state, addActive ? 'venom-coagulation' : state.assignedSide === 'acid' ? 'breath-of-ulatek' : 'blood-of-ulatek', .7)
+  const targetId = addActive ? 'venom-coagulation' : state.assignedSide === 'acid' ? 'breath-of-ulatek' : 'blood-of-ulatek'
+  const next = beginMainAction(state, targetId, .7)
+  return next === state ? state : { ...next, timeline: beginEncounterAction(state.timeline, { id: 'controlled-player', kind: 'controlled-player' }, 'main-ability', .7, targetId) }
 }
 
 function stepMainCast(state: SentinelsState, seconds: number): SentinelsState {
@@ -173,7 +179,7 @@ function spawnDroplets(cycle: 1 | 2): readonly DropletState[] {
 
 export function dispelSentinels(state: SentinelsState): SentinelsState {
   if (state.phase !== 'active' || !state.blightedActive || state.blightedResolved || state.assignedSide !== 'blood' || !isHealer(state)) return state
-  return { ...state, blightedResolved: true }
+  return { ...state, blightedResolved: true, timeline: beginEncounterAction(state.timeline, { id: 'controlled-player', kind: 'controlled-player' }, 'dispel', 0, 'blighted-blood') }
 }
 
 function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds: number, screenRelative = false): SentinelsState {
@@ -299,13 +305,13 @@ function stepStasis(state: SentinelsState, commands: PlayerCommandState, seconds
 
 export function stepSentinelsState(state: SentinelsState, commands: PlayerCommandState, seconds: number): SentinelsState {
   if (state.outcome !== 'active') return state
-  const timed = { ...state, time: state.time + seconds }
+  const timed = { ...state, time: state.time + seconds, timeline: advanceAmbientNpcTimeline(state.timeline, seconds, state.assignedSide === 'acid' ? 'breath-of-ulatek' : 'blood-of-ulatek') }
   return timed.phase === 'active' ? stepActive(timed, commands, seconds) : stepStasis(timed, commands, seconds)
 }
 
 export function stepSentinelsDiagramState(state: SentinelsState, commands: PlayerCommandState, seconds: number): SentinelsState {
   if (state.outcome !== 'active') return state
-  const timed = { ...state, time: state.time + seconds }
+  const timed = { ...state, time: state.time + seconds, timeline: advanceAmbientNpcTimeline(state.timeline, seconds, state.assignedSide === 'acid' ? 'breath-of-ulatek' : 'blood-of-ulatek') }
   return timed.phase === 'active' ? stepActive(timed, commands, seconds, true) : stepStasis(timed, commands, seconds, true)
 }
 
@@ -390,7 +396,7 @@ function memberPosition(member: ContractRaidMember, state: SentinelsState): Worl
   const column = index % 3
   const row = Math.floor(index / 3)
   const base = { x: towardCentre(home, 10 + column * 3), z: -13 + row * 8 }
-  let position = { x: base.x + Math.sin(state.time * .45 + index) * .8, z: base.z + Math.cos(state.time * .38 + index) * .55 }
+  let position = ambientNpcPosition(member.id, base, state.time, { radius: .9 })
   const returnBeam = state.droplets.find(droplet => droplet.soakedAt !== undefined && state.time - droplet.soakedAt > .2 && state.time - droplet.soakedAt < 2)
   if (returnBeam && lineDistance(position, returnBeam.position, state.acidBoss) < 3) position = { ...position, z: position.z + (index % 2 ? 4 : -4) }
   return position
@@ -454,7 +460,7 @@ export function sentinelsSnapshot(state: SentinelsState): Train3DSnapshot {
   const mainProjectile = state.mainProjectileFiredAt !== undefined && state.mainProjectileOrigin && state.mainProjectileTarget
     ? classProjectileEffects('player-main', state.mainProjectileOrigin, state.mainProjectileTarget, controlled.playerClass, state.time - state.mainProjectileFiredAt, state.mainProjectileOrdinal, .9)
     : []
-  return { time: state.time, arena: sentinelsArena, actors, effects: [...effects, ...cosmeticClassProjectiles(actors, cosmeticTarget, state.time), ...mainProjectile] }
+  return { time: state.time, timeline: state.timeline, arena: sentinelsArena, actors, effects: [...effects, ...cosmeticClassProjectiles(actors, cosmeticTarget, state.time), ...mainProjectile] }
 }
 
 export function activeSentinelsPrompt(state: SentinelsState) {

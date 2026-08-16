@@ -113,7 +113,9 @@ test("keeps Nek'zali Well mechanics and interrupt controls in its single full fi
   await expect(setup3d).toContainText(/Well half [12]/)
   await setup3d.getByRole('button', { name: 'Start' }).click()
   await expect(page.locator('.train3d-controls')).toContainText('Interrupt T')
-  await expect(page.getByLabel('HUD action buttons')).toHaveCount(0)
+  await expect(page.getByLabel('HUD action buttons')).toHaveCount(1)
+  await expect(page.getByRole('button', { name: 'Main ability F', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Interrupt T', exact: true })).toBeVisible()
 })
 
 test("keeps Nek'zali mechanic coaching compact and assignment-neutral before selection", async ({ page }) => {

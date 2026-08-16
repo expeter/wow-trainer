@@ -14,6 +14,8 @@ import { useRuntimePause } from '../useRuntimePause'
 import { activeContractEvent2D, contractGroundSlots2D, contractRaidPosition2D, createContractRoom2DState, prepareContractRoom2DSlot, stepContractRoom2D } from './contractRoomSimulation'
 import type { DiagramDirection } from './movement'
 import SnapshotEffects from './SnapshotEffects'
+import { beginEncounterAction } from '../encounters/timeline'
+import { ambientNpcPosition } from '../encounters/ambientNpc'
 
 export default function ContractRoom2D({ keyBindings, actions: actionRegistry, hudSettings, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createContractRoom2DState())
@@ -22,7 +24,9 @@ export default function ContractRoom2D({ keyBindings, actions: actionRegistry, h
   const [view, setView] = useState(stateRef.current)
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
-  const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, mode: 'learn2d', eventIndex: view.eventIndex, actions: actionRegistry })
+  const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, mode: 'learn2d', eventIndex: view.eventIndex, actions: actionRegistry, onAction: action => {
+    stateRef.current = { ...stateRef.current, timeline: beginEncounterAction(stateRef.current.timeline, { id: 'controlled-player', kind: 'controlled-player' }, action, action === 'mainAbility' ? 1 : 0, 'spell-dummy') }
+  } })
 
   function chooseSlot(slotId: string) {
     gate.setSelectedSlotId(slotId)
@@ -92,7 +96,7 @@ export default function ContractRoom2D({ keyBindings, actions: actionRegistry, h
             const slot = contractGroundSlots2D[object.direction]
             return <div key={object.id} className={`contract-ground ${object.tone}${age < CONTRACT_LANDING_SECONDS ? ' incoming' : ''}`} style={{ left: `${slot.x}%`, top: `${slot.y}%`, '--ground-color': auraToneColors[object.tone] } as CSSProperties} aria-label={`${object.tone} ground rune`} />
           })}
-          {roster.filter(member => !member.controlled).map((member, index) => { const origin = contractRaidPosition2D(member); return <div key={member.id} className={`contract-raid-member ${member.role}`} style={{ left: `${origin.x + Math.sin(view.time * .7 + index) * .6}%`, top: `${origin.y + Math.cos(view.time * .5 + index) * .35}%` }} aria-label={`${member.role} NPC`}><span /></div> })}
+          {roster.filter(member => !member.controlled).map(member => { const origin = contractRaidPosition2D(member); const position = ambientNpcPosition(member.id, { x: origin.x, z: origin.y }, view.time, { radius: member.role === 'tank' || member.role === 'melee' ? .45 : .8 }); return <div key={member.id} className={`contract-raid-member ${member.role}`} style={{ left: `${position.x}%`, top: `${position.z}%` }} aria-label={`${member.role} NPC`}><span /></div> })}
           <div ref={playerElementRef} className={`learn2d-character player ${gate.role}`} data-player-class={controlled.playerClass} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.y.toFixed(2)} style={{ left: `${view.player.x}%`, top: `${view.player.y}%`, '--player-class-color': trainingClassColors[controlled.playerClass] } as CSSProperties} aria-label={`Controlled ${controlled.playerClass.replace('-', ' ')} ${gate.role} player with ${event.tone} aura`}><AuraIcons tones={[event.tone]} label={`${event.tone} aura`} /><i className="actor-health"><b style={{ width: `${actions.health}%` }} /></i><span className="character-body" aria-hidden="true" /><ActorMainCastBar enabled={hudSettings.showActions} castSeconds={actions.mainCast} castSecondsSource={actions.mainCastSecondsSource} /></div>
           <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" />
           <RuntimeFeedback failures={view.failures} elapsed={view.time} />

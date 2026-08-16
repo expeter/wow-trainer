@@ -2,11 +2,13 @@ import { distance, stepPlayerMovement } from '../../../platform/train3d/simulati
 import { cosmeticClassProjectiles } from '../../../platform/train3d/cosmeticCombat'
 import type { ActorSnapshot, PlayerCommandState, Train3DSnapshot } from '../../../platform/train3d/types'
 import { train3dArenas } from './arenas'
+import { advanceEncounterTimeline, coreEncounterEntities, createEncounterTimeline, type EncounterTimelineState } from '../../../platform/encounters/timeline'
 
 export type HelicalOutcome = 'active' | 'success' | 'wrong-partner' | 'third-player' | 'expired'
 
 export interface HelicalSimulationState {
   time: number
+  timeline: EncounterTimelineState
   player: { x: number; z: number; facing: number }
   outcome: HelicalOutcome
 }
@@ -17,7 +19,7 @@ const wrongPartner = { x: 0, z: 18 }
 const thirdPlayer = { x: 17, z: -3 }
 
 export function createHelicalState(): HelicalSimulationState {
-  return { time: 0, player: { x: -22, z: 0, facing: 0 }, outcome: 'active' }
+  return { time: 0, timeline: createEncounterTimeline(coreEncounterEntities('player', ['player', 'compatible-partner', 'wrong-partner', 'third-player'], ['acid-boss', 'blood-boss'], arena.id)), player: { x: -22, z: 0, facing: 0 }, outcome: 'active' }
 }
 
 export function turnHelicalPlayer(state: HelicalSimulationState, yawDelta: number): HelicalSimulationState {
@@ -37,7 +39,7 @@ export function stepHelicalState(state: HelicalSimulationState, commands: Player
         : time >= 28
           ? 'expired'
           : 'active'
-  return { time, player, outcome }
+  return { time, timeline: advanceEncounterTimeline(state.timeline, seconds), player, outcome }
 }
 
 function toxins(green: number, red: number) {
@@ -58,6 +60,7 @@ export function helicalSnapshot(state: HelicalSimulationState): Train3DSnapshot 
   ]
   return {
     time: state.time,
+    timeline: state.timeline,
     arena,
     actors,
     effects: [

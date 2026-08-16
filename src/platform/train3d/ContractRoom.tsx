@@ -13,6 +13,7 @@ import { classProjectileEffects } from './cosmeticCombat'
 import ThreeWorldRenderer from './ThreeWorldRenderer'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from './types'
 import { activeContractEvent, CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS, contractRoomSnapshot, createContractRoomState, prepareContractRoomSlot, stepContractRoom, turnContractRoomPlayer } from './contractRoomSimulation'
+import { beginEncounterAction } from '../encounters/timeline'
 
 export default function ContractRoom({ keyBindings, actions: actionRegistry, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
   const stateRef = useRef(createContractRoomState())
@@ -25,7 +26,9 @@ export default function ContractRoom({ keyBindings, actions: actionRegistry, hud
   const [performanceSample, setPerformanceSample] = useState({ fps: 0, p95Ms: 0 })
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
-  const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, mode: 'train3d', eventIndex: summary.eventIndex, actions: actionRegistry })
+  const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, mode: 'train3d', eventIndex: summary.eventIndex, actions: actionRegistry, onAction: action => {
+    stateRef.current = { ...stateRef.current, timeline: beginEncounterAction(stateRef.current.timeline, { id: 'controlled-player', kind: 'controlled-player' }, action, action === 'mainAbility' ? 1 : 0, 'spell-dummy') }
+  } })
   const healthRef = useRef(actions.health)
   healthRef.current = actions.health
 
