@@ -60,8 +60,13 @@ Use the repository dependency guard before running project code:
 ```bash
 sec-helper audit
 sec-helper install
-npm run dev
+npm run dev:trainer
 ```
+
+`npm run dev` starts the localhost-only global Project Inbox for this
+repository. `npm run inbox` is an explicit alias, and `npm run inbox:list`
+lists captured evidence without changing it. The inbox and trainer are
+separate processes; the trainer no longer embeds a second inbox implementation.
 
 If `sec-helper` blocks a package or artifact, stop and resolve it through the
 guard; do not bypass the proxy or installation policy.

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Made `npm run dev` start the active global Project Inbox exclusively, moved
+  Vite trainer development to `npm run dev:trainer`, and removed the obsolete
+  repository-local Vite inbox implementation.
 - Accepted the reusable Season 2 trainer core across both labs, Nek'zali, and
   Entombed Sentinels. Package discovery, separate projections, actions, entity
   timelines, NPC activity, lifecycle recovery, settings/HUD, and the frozen

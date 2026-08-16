@@ -30,6 +30,18 @@ harnesses for this core. Shell polish, additional bosses, expanded result
 presentation, planner, audio, publication, optimization, and online services
 remain outside the gate and do not interrupt it.
 
+### Milestone 2 — encounter evidence, completion, and playtesting
+
+Milestone 2 begins by making the active global Project Inbox the default local
+development command (`CR-284`). The two forthcoming research specifications
+for Nek'zali and Entombed Sentinels will then be reconciled with their current
+contracts before joint playtesting. Remaining boss implementation follows only
+from individually accepted encounter evidence and tickets.
+
+- `CR-284` — completed: route `npm run dev` and the explicit inbox alias to the
+  active global Project Inbox skill, retain Vite as `npm run dev:trainer`, and
+  remove the superseded repository-local inbox implementation.
+
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),
   including the reuse audit, separate Learn 2D and Train 3D contracts,
