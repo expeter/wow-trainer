@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- Reconciled Nek'zali with the supplied 2026-08-16 fight research. Essence
+  Rend is now a pull, knockback, timed Magic debuff, edge dispel, and one
+  persistent Latent Cultist instead of a three-puddle abstraction; healers can
+  dispel another edge-positioned target. Soulcoil Rite/Burn, Anguished Echo,
+  shield-before-health Amani with NPC crowd control, Soul Transfer, explicit
+  Pyre-versus-Cremation assignments, ten-second Well interrupt, Hollowing
+  Strikes, timed Soul Exhaustion, and discrete clockwise Invoke steps now use
+  the canonical encounter contract.
+- Reconciled Entombed Sentinels with its supplied research while retaining the
+  approved linked-health/time-driven Stasis simplification. Marks expire per
+  application, both encounter sides receive Toxic Droplets and Living Venom
+  lanes, Blighted Blood dispel creates an edge pool, Clinging Murk lasts six
+  seconds, tank stacks are visible, Protovenom uses a deterministic carrier
+  set with invalid-contact knockback, and Stasis/Helical now use their sourced
+  30/28-second windows.
+- Added reusable projection timing, timed-application, discrete-rotation, and
+  radial-knockback mechanic primitives. Each boss now owns explicit Learn 2D
+  and Train 3D schedules while trainer difficulty remains assistance/failure
+  tolerance only. Canonical iterative specifications live in one document per
+  boss.
+- Kept focused Playwright runs trainer-only after `npm run dev` became the
+  two-service trainer/inbox supervisor. The focused wrapper audits installed
+  packages before Playwright starts the repository-local Vite server.
 - Made `npm run dev` supervise both the hot-reload Vite trainer and active
   global Project Inbox, with clean combined shutdown and independent
   `dev:trainer`/`dev:inbox` commands. The obsolete repository-local Vite inbox

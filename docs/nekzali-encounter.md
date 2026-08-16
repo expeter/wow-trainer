@@ -1,160 +1,150 @@
-# Nek'zali the Soulcoiler encounter contract
+# Nek'zali the Soulcoiler encounter specification
 
-Tickets: `SPEC-022`, `FR-081`, `FR-082`, `FR-083`, `CR-261`, `BUG-187`,
-`BUG-188`, `BUG-189`, `CR-271`, `CR-272`, `CR-273`, `BUG-190`, `CR-274`
+Tickets: `SPEC-022`, `SPEC-024`, `FR-082`, `FR-083`, `CR-286`
 
-This is one complete supplied mechanics contract shared by Learn 2D and Train
-3D. Test, Easy, Normal, and Hard control guidance and failure tolerance only;
-they never add, remove, or retime mechanics. Evidence profiles remain internal,
-versioned, and visibly replaceable until authoritative live data is available.
+This is the canonical, iterative trainer definition for Nek'zali. The supplied
+2026-08-16 research is source evidence, not a second implementation contract.
+Learn 2D and Train 3D use the same mechanics, assignments, causal order, and
+failure conditions with separately declared schedules.
 
-## Evidence and confidence
+## Evidence boundary
 
-- The supplied arena reference is
-  [`INBOX-20260815-124454-f3a9e1`](../inbox/INBOX-20260815-124454-f3a9e1.md).
-  It is used as the contained Learn 2D arena background; the Train 3D room uses
-  a code-rendered interpretation rather than applying the bitmap as a texture.
-- The supplied Heroic quick recap is
-  [`INBOX-20260815-125743-a610b5`](../inbox/INBOX-20260815-125743-a610b5.md).
-- The maintained pre-release synthesis is
-  [`raid-research.md`](../handover/midnight-season-2/source-material/raid-research.md).
-- The current Dungeon Journal transcription is represented by the
-  [Wowhead PTR encounter guide](https://www.wowhead.com/ptr/guide/midnight/raids/venomous-abyss-nekzali-the-soulcoiler-boss-strategy-abilities),
-  updated 2026-08-10.
-- The raid has not opened on live EU servers. Pull-relative timing remains a
-  replaceable PTR/profile assumption. Rules tied to health, deaths, energy, or
-  aura removal remain event driven.
-- Nek'zali was withdrawn from scheduled pre-release testing for the Well-realm
-  additions. Their timing may not be inferred from other footage or presented
-  as validated.
+- Source synthesis: [`inbox/nekzali-the-soulcoiler-wow-trainer-spec.md`](../inbox/nekzali-the-soulcoiler-wow-trainer-spec.md).
+- Arena reference: [`INBOX-20260815-124454-f3a9e1`](../inbox/INBOX-20260815-124454-f3a9e1.md).
+- The raid was not live in EU when the synthesis was written. Intrinsic spell
+  durations supported by current spell/journal data are higher confidence than
+  pull-relative recurrence inferred from edited footage.
+- Unknown target counts, recurrence, add count, shield size, and movement
+  geometry remain configurable trainer assumptions and must not be described as
+  validated live values.
 
-## Arena and raid
+## Projection schedules
 
-- Use a circular 90-yard playable room around a lethal central Soulcoil Well.
-- Learn 2D uses the supplied top-down reference as a contained tactical
-  background. Train 3D recreates its readable structure with dark teal stone,
-  radial platforms, spectral cyan light, and restrained venom accents; it does
-  not use the 2D bitmap as a 3D floor texture.
-- Simulate a 20-player raid: two tanks, five healers, five melee, and eight
-  ranged. The controlled slot is selected before pull and is locked in combat.
-- Randomly assign the controlled player to intermission soak group one or two
-  and show that assignment before the countdown.
-- The current aggro holder controls boss pursuit. Player-controlled tanks can
-  use Taunt/Spott; the other tank swaps automatically when Possession Barrage
-  begins. Boss health is green when the player tank owns aggro and red when the
-  player does not; non-tanks always see the hostile red state.
+| Event | Learn 2D | Train 3D | Confidence |
+| --- | ---: | ---: | --- |
+| Phase 1 pacing to 50% | 82s | 90s | trainer proxy |
+| Soulcoil Ignition channel | 4s | 4s | sourced |
+| Essence Rend pull | 5s | 5s | sourced |
+| Essence Rend Magic debuff | 12s | 15s | 2D projection / sourced 3D |
+| Possession Barrage | 7s | 6s | 2D movement / sourced 3D |
+| Drowned Echo interrupt | 10s | 10s | sourced |
+| Hungering Pyre | 9s | 7.5s | 2D projection / sourced 3D |
+| Slithering Flame | 8s | 8s | sourced |
+| Return from Well | 5s | 5s | sourced trainer realization |
+| Invoke | 5s | 5s | sourced |
 
-## Phase 1 · Soulcoiler Initiation
+Cadence arrays live beside these profiles. A profile changes only between
+projections, never with Test/Easy/Normal/Hard.
 
-- Boss health drains from 100% to 50% over approximately 90 simulated seconds.
-  This is a trainer pacing profile, not an asserted live DPS check.
-- **Essence Rend:** one selected player carries a provisional trainer aura.
-  The first two seconds are a readable outward-movement lead; three puddles
-  then drop at one-second intervals and the aura ends on the third drop with
-  no hidden post-drop hold. Target selection remains unknown until applied. When the
-  controlled player is selected, a compact attached timer appears; the player
-  moves toward a free outer lane and drops exactly three provisional training
-  puddles before the aura ends and ordinary play resumes. All three Latent
-  Cultist zones remain after removal. NPC targets repeat the same readable
-  movement/drop vocabulary, with each puddle landing at the target's visible
-  position, often enough to seed the later Invoke field; this
-  remains a provisional trainer realization until authoritative timing exists.
-- **Possession Barrage:** the active tank moves away in a clear lane. Spirits
-  travel from boss to tank and burst in a small area; raid damage decreases with
-  travel distance. Non-tanks avoid the lane and impacts. The off-tank takes
-  aggro so the boss does not chase the Barrage target. When neither tank is
-  controlled, the NPC Barrage tank travels to a far outer edge while the other
-  NPC tank visibly holds Nek'zali at the raid; the encounter never resolves an
-  NPC Barrage at the former close fixed target.
-- **Restless Amani:** at roughly 60 seconds, adds spawn from outer sarcophagi and
-  move toward the Well. NPCs switch targets and attack them. The controlled
-  player is responsible for killing exactly three marked adds with Main ability;
-  each add has an attached health bar. Any living add reaching the Well fails
-  the attempt. The full wave remains authoritative while an assigned half is in
-  the Well realm: outer NPCs finish their responsibilities, but they do not
-  erase the controlled player's assigned duty. Intermission cannot begin while
-  a living Amani remains. Main always selects the nearest living priority add
-  before the boss. Dead Amani leave Vessels of Awakening for intermission.
+## Arena, raid, and assignments
 
-## Intermission · Ritual of Awakening
+- Circular 90-yard room with a lethal six-yard Soulcoil Well.
+- Twenty players: two tanks, five healers, five melee, and eight ranged.
+- Pre-pull assignment states the player's Well team and either `Pyre soak` or
+  `Cremation cleanup`. Cleanup is a smaller deterministic group; the main raid
+  soaks. The role remains visible in the mechanic prompt.
+- The active tank owns aggro. Possession Barrage swaps aggro immediately; NPC
+  tanks carry it to a far clear edge lane. Player tanks use Taunt when assigned.
+- Main damages priority adds before Nek'zali. NPCs use the same target/action
+  vocabulary and own crowd control; there is no player CC keybind.
 
-- Trigger at 50% boss health. Nek'zali moves to the Well and is untargetable.
-- Two Echoes of Jawae activate one after the other at opposite outer edges.
-- Each Echo casts Hungering Pyre on one raid half. A pending group soak is a
-  filled large circle with an inward arrow; once enough assigned players enter,
-  it becomes outline-only. Only the active half soaks.
-- The other half receives small red spread circles, fans into available room,
-  and uses the explosions to Cremate every assigned Amani corpse within four
-  yards. The controlled spread has an explicit ten-second expiry and must reach
-  one compatible visible corpse; NPCs visibly cover the other residuals. The
-  explosion leaves a distinct short-lived orange burning zone that all players
-  avoid. Nek'zali remains untargetable and Main does not advertise or fire at a
-  false boss target during either Echo.
-- Repeat with the second Echo and the opposite soak half. Any missed group soak,
-  harmful overlap, or surviving required corpse is a terminal failure.
+## Shared mechanic states
 
-## Phase 2 · Uncoiling
+- Cast/channel: Soulcoil Ignition, Possession Barrage, Soul Transfer, Hungering
+  Pyre, Slithering Flame, Invoke, Drowned Echo interrupt, and return.
+- Timed Magic debuff: Essence Rend, including target, remaining time, removal
+  reason, and spawned remain.
+- Absorb/fixate/CC: Gravebound Advance on Restless Amani; the shield is damaged
+  before health and NPC crowd control begins only after the shield breaks.
+- Persistent ground entity: one Latent Cultist per Rend removal. It remains for
+  the fight and never behaves as a disposable puddle.
+- Soak/spread: filled Pyre requests entry and becomes outline-only when
+  satisfied; Cremation is a harmful player circle used to burn a corpse.
+- Projectile/lane: Barrage spirits and Soul Transfer.
 
-- Begins after both Echoes die. Phase 1 mechanics continue.
-- **Invoke** is shown as a five-second training cast. On completion it triggers
-  Soulcoil Rite and sends every Latent Cultist hazard in a deterministic seeded
-  random direction around the Well. The first Rite also seeds six additional
-  ambient Cultists. Every moving zone reflects from the circular wall and every
-  later Rend patch joins the active movement field. Players avoid the moving
-  six-yard zones.
-- Boss energy rises from Rites and leaked adds. Reaching 100 energy is a
-  terminal failure; defeating Nek'zali is the completion condition.
+## Phase 1
 
-## Well-realm mechanics
+### Soulcoil cycle
 
-- Grasping Depths opens the Well for one assigned team.
-- The team kills the Drowned Echo while avoiding Swirling Spirits, exits once,
-  and receives Soul Exhaustion. Re-entry while exhausted is invalid.
-- Invoke interrupts active casts and silences interrupters for three
-  seconds while Cultists reposition.
-- These rules are part of the sole full-fight mechanics contract. Their
-  provisional cadence remains isolated in a versioned evidence profile, not a
-  player-selectable raid-difficulty scenario.
+- Soulcoil Ignition is a four-second channel. Its one-second pulses create
+  Anguished Echo impact circles and advance the Well's Rite state.
+- Each Rite adds five energy and a 44-second Ritual Burn application. The
+  simulation tracks applications independently; they tick every two seconds.
+- One hundred energy begins Uncoiled Rage and fails the attempt after its
+  five-second cast.
 
-### Approved trainer realization
+### Essence Rend
 
-- Active phases assign alternating raid halves to Grasping Depths. Only the
-  assigned half enters; the other half and outer arena are hidden while the
-  controlled player is inside the centre dome.
-- Entry presents a seven-second countdown during which the assigned player must
-  physically enter the centre Well. Crossing that centre boundary transfers the
-  assigned half into the inner realm; missing it records the assignment failure
-  rather than teleporting the player. The inner team attacks one Drowned Echo;
-  the player contributes 20 completed Main casts.
-- The Drowned Echo gives the player one readable five-second assigned cast to
-  Interrupt. Missing it is terminal.
-- Four small spirits orbit the Echo. Every ten seconds four additional spirits
-  travel outward along the cardinal directions. Contact is harmful.
-- Nek'zali schedules seeded variable three-second disruption casts inside the
-  realm. If one completes during the player's Main cast, that cast is cancelled
-  and a non-terminal performance record is emitted. It cannot wipe or deduct
-  points until scoring is explicitly implemented.
-- Killing the Echo begins a five-second return cast, after which the player
-  returns to the outer encounter state with Soul Exhaustion. The outer half's
-  NPC-resolved adds, corpses, hazards, boss pacing, and event time continue while
-  the controlled player is inside; the five-second return cannot freeze a Main
-  cast or leave stale cast feedback.
+- Rend pulls selected targets for five seconds, then knocks them outward and
+  applies a dispellable Magic debuff.
+- The target carries one visible icon and countdown, not text over the actor.
+- The target moves to a clear outer lane. A controlled affected player is
+  automatically dispelled once they reach a clear edge position. If they do not,
+  expiry removes the debuff at their current location and records bad placement.
+- A controlled healer who is not affected may use Dispel on the assigned NPC
+  target once that NPC reaches its clear edge destination.
+- Removal by dispel or expiry creates exactly one six-yard Latent Cultist at the
+  removal location. It persists until the fight ends. NPC targets visibly move
+  to their actual removal position.
 
-## Rendering and validation
+### Possession Barrage and tank state
 
-- Learn 2D and Train 3D consume shared encounter events but own separate arena
-  coordinates and renderers.
-- Before a target is selected, central coaching may indicate only an
-  approximate upcoming mechanic. Once the controlled player is affected, the
-  attached timer and one concise reaction line become authoritative; the
-  central panel must not duplicate assignment/status prose.
-- Soak fill/outline state, spread circles, harmful ground, add health, target
-  switching, aggro color, boss pursuit, spirit travel, corpse state, and Invoke
-  motion must come from simulation snapshots rather than renderer-owned logic.
-- Automated coverage must prove phase triggers, three controlled add kills,
-  add leaks, distance-scaled Barrage, tank swap/boss pursuit, exact third-drop
-  Rend expiry and NPC drop/path agreement, alternating soak
-  groups, corpse cremation, residual-corpse failure, moving Phase 2 hazards,
-  alternating Well-realm entry, isolated snapshots, 20 completed Main hits,
-  assigned interrupt failure, non-terminal disruption, reflected bounded Invoke
-  movement, and five-second return.
+- Six-second distance-scaled spirit barrage from boss to target tank. The tank
+  travels to the far edge and other players leave the lane and impact zones.
+- Hollowing Strikes is a reusable 15-second independently expiring tank stack;
+  each stack reduces healing/absorb received by five percent. The trainer shows
+  stack state and swaps according to assignment rather than inventing an exact
+  live threshold.
+
+### Restless Amani
+
+- A wave spawns around the room and fixates the Well. Gravebound Advance is a
+  25%-maximum-health Magic absorb; NPC crowd control becomes effective only
+  after it breaks.
+- Main prefers the closest living Amani. The player is responsible for three
+  marked targets; NPCs handle the rest, including while the player is in the
+  Well realm. A leak remains a trainer wipe condition.
+- Every death leaves a Vessel of Awakening at that exact location.
+
+## Well realm
+
+- Grasping Depths assigns alternating teams. The assigned player enters the
+  centre during a projection-specific entry window; the outer encounter keeps
+  advancing under NPC responsibility.
+- Inside, Main kills the Drowned Echo in 20 hits. The player must interrupt its
+  ten-second assigned cast while avoiding orbiting and outward spirits.
+- Nek'zali's three-second disruption cancels a Main cast if it completes during
+  that cast; it is a performance record until scoring is approved.
+- Death begins a five-second return and applies 60-second Soul Exhaustion.
+
+## Intermission
+
+- At the time-driven 50% proxy, surviving adds remain authoritative and must be
+  killed before the transition. Nek'zali becomes untargetable in the Well.
+- Two Echoes activate sequentially. Soul Transfer is a 15-second line hazard
+  from Nek'zali to the active Echo.
+- The main raid receives Hungering Pyre and soaks the 7.5-yard split. Assigned
+  cleanup players stay out, receive Slithering Flame, spread, and place their
+  four-yard Cremation explosions on visible Vessels.
+- Cremation leaves a three-second burning zone. Every required Vessel must be
+  removed before the Echo sequence ends.
+
+## Phase 2
+
+- Phase 1 mechanics continue. Boss health drains from 50% as a trainer pacing
+  proxy.
+- Invoke is a five-second cast and advances the Rite state. On completion every
+  persistent Latent Cultist makes one abrupt clockwise Entwined Step around the
+  Well while retaining its radius. Cultists do not drift continuously or bounce
+  from the wall.
+- A player caught casting is silenced for three seconds. Later Rend removals
+  join the persistent field and move on subsequent Invokes.
+- One hundred Well energy is terminal; zero boss health completes the lesson.
+
+## Validation
+
+Coverage must prove both schedules, pull/debuff/removal state, edge auto-dispel,
+healer dispel assignment, exactly one persistent remain, discrete clockwise
+Invoke steps, Pyre/cleanup assignments, 10-second interrupt, persistent NPC and
+arena timelines, shield-before-health Amani damage, NPC-owned CC, tank swap,
+and identical mechanics across trainer difficulty.

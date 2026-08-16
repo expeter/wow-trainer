@@ -47,6 +47,17 @@ from individually accepted encounter evidence and tickets.
 - `BUG-193` — completed under `CR-285`: stop both children cleanly on Ctrl+C and
   distinguish repository shutdown behavior from an outer sec-helper CLI
   `KeyboardInterrupt` traceback.
+- `BUG-194` — completed: keep the audited isolated Playwright web server
+  trainer-only now that the default `dev` command owns two services.
+- `SPEC-024` — completed: introduce reusable mechanic state and explicit
+  Learn 2D/Train 3D encounter schedules without allowing trainer difficulty to
+  alter mechanics or timing.
+- `CR-286` — completed under `SPEC-024`: reconcile the canonical Nek'zali
+  contract and both projections with the supplied 2026-08-16 research.
+- `CR-287` — completed under `SPEC-024`: reconcile the canonical Entombed
+  Sentinels contract and both projections with the supplied 2026-08-16
+  research while documenting the approved shared-health and both-side-droplet
+  trainer abstractions.
 
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),

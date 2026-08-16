@@ -663,7 +663,9 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   mechanic mistakes from ending the attempt, Easy ends only on encounter-level
   failure conditions, Normal also ends after two recorded mistakes, and Hard
   ends on the first recorded mistake. Guidance may vary, but assignments,
-  event order, geometry, and timings remain identical.
+  event order, geometry, and timings remain identical within the selected
+  runtime projection. `SPEC-024` permits an encounter to declare different 2D
+  and 3D schedules; trainer difficulty may not alter either schedule.
 - A package has one full-fight scenario per supported mode. Focused scenarios
   are optional and may be added only by an explicit accepted ticket; they are
   not generated as default catalogue placeholders.
@@ -746,3 +748,33 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - React state publication is limited to a display-rate summary; deterministic
   simulation and imperative player/render transforms continue at their own
   fixed or animation-frame cadence.
+
+## SPEC-024 · Reusable mechanics and projection-specific schedules
+
+- A mechanic is defined once as reusable entity state: cast/channel, timed or
+  independently expiring aura stack, dispellable debuff, absorb shield,
+  fixate, interrupt, crowd-control state, soak/spread/proximity resolution,
+  projectile or return lane, and persistent or temporary ground effect.
+  Encounter packages configure names, visuals, geometry, targets, durations,
+  consequences, and evidence provenance without creating private renderer
+  meanings for equivalent mechanics.
+- Each full encounter declares an explicit `learn2d` schedule and an explicit
+  `train3d` schedule. They share assignments, mechanic semantics, causal order,
+  success/failure conditions, and sourced relationships, but may use different
+  cadence, travel time, and reaction windows where the tactical projection
+  requires it. A global time multiplier is not an encounter definition.
+- Train 3D uses sourced cast, aura, travel, and geometry values when confidence
+  supports them. Learn 2D may compress downtime and adjust a movement/reaction
+  window deliberately, but every override is named and testable in the boss's
+  canonical specification and timing profile.
+- Test, Easy, Normal, and Hard never select or mutate these schedules. They
+  continue to control only guidance and failure tolerance under `SPEC-022`.
+- The simulation, not either renderer, owns application, remaining duration,
+  removal cause, stack expiry, collision, target state, and spawned effects.
+  Both projections consume the same snapshot vocabulary and may present it in
+  projection-appropriate geometry.
+- NPCs consume the same mechanic states and entity timeline vocabulary as the
+  controlled player. Encounter assignments decide whether the player or an NPC
+  resolves an interrupt, dispel, soak, crowd-control, tank movement, or damage
+  responsibility; the absence of a player keybind does not create a separate
+  NPC-only mechanic implementation.

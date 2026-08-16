@@ -10,7 +10,7 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
   },
   webServer: {
-    command: `npm run dev -- --host 127.0.0.1 --port ${e2ePort}`,
+    command: `node node_modules/vite/bin/vite.js --host 127.0.0.1 --port ${e2ePort}`,
     url: e2eOrigin,
     reuseExistingServer: !process.env.MIDNIGHT_E2E_ISOLATED && !process.env.LURA_E2E_ISOLATED,
   },

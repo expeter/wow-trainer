@@ -12,13 +12,13 @@ import type { PlayerCommandState } from '../../../platform/train3d/types'
 import { IDLE_PLAYER_COMMANDS } from '../../../platform/train3d/types'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
 import { useRuntimeInputClear } from '../../../platform/useRuntimeInputClear'
-import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, isNekzaliPlayerRendTarget, nekzaliRendRemaining, nekzaliSnapshot, nextNekzaliTimer, prepareNekzaliSlot, startNekzaliMainCast, stepNekzaliDiagramState, tauntNekzali } from '../simulation'
+import { activeNekzaliPrompt, createNekzaliState, dispelNekzali, interruptNekzali, isNekzaliPlayerRendTarget, nekzaliRendRemaining, nekzaliSnapshot, nextNekzaliTimer, prepareNekzaliSlot, startNekzaliMainCast, stepNekzaliDiagramState, tauntNekzali } from '../simulation'
 
 const RAID_PLAN = new URL('../../../../inbox/INBOX-20260815-124454-f3a9e1.png', import.meta.url).href
 const percent = (value: number) => 50 + value / 90 * 100
 
 export default function NekzaliLearn2D({ trainingDifficulty, keyBindings, actions, hudSettings, onExit }: EncounterRuntimeProps) {
-  const stateRef = useRef(createNekzaliState('player', trainingDifficulty))
+  const stateRef = useRef(createNekzaliState('player', trainingDifficulty, 'learn2d'))
   const commandsRef = useRef<PlayerCommandState>({ ...IDLE_PLAYER_COMMANDS })
   const playerRef = useRef<HTMLDivElement>(null)
   const [view, setView] = useState(stateRef.current)
@@ -28,11 +28,12 @@ export default function NekzaliLearn2D({ trainingDifficulty, keyBindings, action
   const selected = contractSelectedMember(gate.selectedSlotId)
 
   function chooseSlot(slotId: string) { gate.setSelectedSlotId(slotId); stateRef.current = prepareNekzaliSlot(stateRef.current, slotId); setView(stateRef.current) }
-  function retry() { pause.reset(); gate.restart(); stateRef.current = createNekzaliState(gate.selectedSlotId, trainingDifficulty); setView(stateRef.current) }
+  function retry() { pause.reset(); gate.restart(); stateRef.current = createNekzaliState(gate.selectedSlotId, trainingDifficulty, 'learn2d'); setView(stateRef.current) }
   useEncounterActionInput({ actions, role: selected.role, mode: 'learn2d', enabled: gate.phase === 'active', paused: pause.paused, handlers: {
     mainAbility: () => { stateRef.current = startNekzaliMainCast(stateRef.current) },
     taunt: () => { stateRef.current = tauntNekzali(stateRef.current) },
     interrupt: () => { stateRef.current = interruptNekzali(stateRef.current) },
+    dispel: () => { stateRef.current = dispelNekzali(stateRef.current) },
   } })
 
   useEffect(() => {
@@ -71,8 +72,8 @@ export default function NekzaliLearn2D({ trainingDifficulty, keyBindings, action
       {snapshot.actors.filter(actor => actor.kind === 'boss' || actor.kind === 'enemy').map(actor => <div key={actor.id} className={`nekzali-2d-enemy ${actor.kind}${actor.id === 'nekzali-boss' ? ownsAggro ? ' owned' : ' hostile' : ''}`} style={{ left: `${percent(actor.position.x)}%`, top: `${percent(actor.position.z)}%`, '--enemy-color': actor.color } as CSSProperties} aria-label={actor.id === 'nekzali-boss' ? `Nek'zali · ${ownsAggro ? 'your aggro' : 'no aggro'}` : actor.id}><span>{actor.id === 'nekzali-boss' ? 'N' : actor.id.startsWith('echo') ? 'E' : 'A'}</span><i className="actor-health"><b style={{ width: `${actor.health ?? 100}%` }} /></i></div>)}
       {snapshot.actors.filter(actor => actor.kind === 'ally').map(actor => <div key={actor.id} className="contract-raid-member ranged" style={{ left: `${percent(actor.position.x)}%`, top: `${percent(actor.position.z)}%` }} aria-label="assigned-realm NPC"><span />{actor.auras.some(aura => aura.id === 'essence-rend') && <i className="attached-aura-timer">Rend {nekzaliRendRemaining(view).toFixed(1)}s</i>}</div>)}
       <div ref={playerRef} className={`learn2d-character player ${selected.role}`} style={{ left: `${percent(view.player.x)}%`, top: `${percent(view.player.z)}%` }} data-position-x={view.player.x.toFixed(2)} data-position-y={view.player.z.toFixed(2)} aria-label={`Controlled ${selected.playerClass.replace('-', ' ')} ${selected.role} player`}><span className="character-body" />{isNekzaliPlayerRendTarget(view) && <i className="attached-aura-timer">Rend {nekzaliRendRemaining(view).toFixed(1)}s</i>}<i className="actor-health"><b style={{ width: '100%' }} /></i><ActorMainCastBar enabled={hudSettings.showActions} castSeconds={view.mainCastRemaining} castSecondsSource={() => stateRef.current.mainCastRemaining} /></div>
-      <EncounterCastBars settings={hudSettings} enemyCast={view.innerCastStartedAt !== undefined && !view.innerCastInterrupted ? { label: 'Drowned Echo · Soulcoil', seconds: Math.max(0, 5 - (view.time - view.innerCastStartedAt)), duration: 5 } : undefined} />
-      <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" dialogLabel="Nek'zali encounter setup" title="Choose role and assignment" description="Your raid position locks your role, class, alternating intermission duty, and Well half for this pull." assignmentNotice={`Soak group ${view.soakGroup}. Well half ${view.wellGroup}: ${view.wellGroup === 1 ? 'enter during Phase 1' : 'stay out in Phase 1 and enter during Phase 2'}.`} bossLabel="Nek'zali" />
+      <EncounterCastBars settings={hudSettings} enemyCast={view.innerCastStartedAt !== undefined && !view.innerCastInterrupted ? { label: 'Drowned Echo · Soulcoil', seconds: Math.max(0, 10 - (view.time - view.innerCastStartedAt)), duration: 10 } : undefined} />
+      <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Learn 2D" dialogLabel="Nek'zali encounter setup" title="Choose role and assignment" description="Your raid position locks your role, class, intermission duty, and Well half for this pull." assignmentNotice={`${view.cleanupDuty ? 'Cremation cleanup: stay out of Pyre and burn remains.' : 'Pyre soak: join the main raid soak.'} Well half ${view.wellGroup}: ${view.wellGroup === 1 ? 'enter during Phase 1' : 'stay out in Phase 1 and enter during Phase 2'}.`} bossLabel="Nek'zali" />
     </div><RuntimeFeedback failures={view.failures} elapsed={view.time} />
       {view.outcome !== 'active' && <RuntimeOutcomeOverlay resultKey={`${view.time}-${view.outcome}`} kind={view.outcome === 'success' ? 'success' : 'wipe'} reason={view.outcome === 'success' ? "Nek'zali defeated" : view.outcomeReason ?? 'The raid wiped'} advice={view.outcome === 'success' ? 'You completed the encounter contract.' : view.failures[0]?.advice ?? 'Review the mechanic and retry.'} onRetry={retry} onExit={onExit} />}
     </div><div className="learn2d-controls"><span>Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · {encounterActionLegend(actions, selected.role, 'learn2d')}</span></div></div></section>

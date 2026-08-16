@@ -5,4 +5,5 @@ repository_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 export PLAYWRIGHT_BROWSERS_PATH="${repository_root}/.tmp/ms-playwright"
 
 cd -- "${repository_root}"
+sec-helper audit
 exec npm run test:e2e -- "$@"

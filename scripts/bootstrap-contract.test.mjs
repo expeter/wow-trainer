@@ -48,6 +48,14 @@ test('disables both inherited production deployment paths', () => {
   assert.match(api, /workflow_dispatch:/)
 })
 
+test('keeps focused browser tests audited and trainer-only', () => {
+  const playwright = read('playwright.config.ts')
+  const wrapper = read('scripts/playwright-local.sh')
+  assert.match(wrapper, /sec-helper audit\nexec npm run test:e2e/)
+  assert.match(playwright, /node node_modules\/vite\/bin\/vite\.js --host 127\.0\.0\.1/)
+  assert.doesNotMatch(playwright, /npm run dev --/)
+})
+
 test('records the ordered migration boundary', () => {
   const ledger = read('docs/README.md')
   const milestones = read('docs/milestones.md')

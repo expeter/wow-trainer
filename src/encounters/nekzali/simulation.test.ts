@@ -1,265 +1,126 @@
 import { describe, expect, it } from 'vitest'
 import { IDLE_PLAYER_COMMANDS } from '../../platform/train3d/types'
-import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, NEKZALI_TIMING, nekzaliRendRemaining, nekzaliSnapshot, nextNekzaliTimer, startNekzaliMainCast, stepNekzaliDiagramState, stepNekzaliState, tauntNekzali, type NekzaliState } from './simulation'
+import { contractRaidRoster } from '../../platform/contractRoom'
+import { createNekzaliState, dispelNekzali, interruptNekzali, NEKZALI_TIMING, nekzaliRendRemaining, nekzaliSnapshot, startNekzaliMainCast, stepNekzaliDiagramState, stepNekzaliState, type NekzaliState } from './simulation'
 
 const idle = IDLE_PLAYER_COMMANDS
 
-describe("Nek'zali headless full-fight simulation", () => {
-  it('assigns one of two alternating soak groups before pull', () => {
-    expect(createNekzaliState('tank-1').soakGroup).toBe(1)
-    expect(createNekzaliState('tank-2').soakGroup).toBe(2)
+describe("Nek'zali reconciled encounter contract", () => {
+  it('declares separate 2D and 3D schedules over one mechanic set', () => {
+    expect(createNekzaliState('player', 'normal', 'learn2d').projection).toBe('learn2d')
+    expect(NEKZALI_TIMING.projections.learn2d.phaseOneSeconds).toBe(82)
+    expect(NEKZALI_TIMING.projections.train3d.phaseOneSeconds).toBe(90)
+    expect(NEKZALI_TIMING.projections.learn2d.essenceRendDebuffSeconds).toBe(12)
+    expect(NEKZALI_TIMING.projections.train3d.essenceRendDebuffSeconds).toBe(15)
   })
 
-  it('moves equally in all fixed screen directions in Learn 2D while 3D keeps its WoW profile', () => {
-    const initial = { ...createNekzaliState('player', 'hard'), player: { x: 0, z: 0, facing: Math.PI / 2 } }
-    const left = stepNekzaliDiagramState(initial, { ...idle, left: true }, .5)
-    const right = stepNekzaliDiagramState(initial, { ...idle, right: true }, .5)
-    const up = stepNekzaliDiagramState(initial, { ...idle, forward: true }, .5)
-    const down = stepNekzaliDiagramState(initial, { ...idle, backward: true }, .5)
-    expect(Math.abs(left.player.x)).toBeCloseTo(Math.abs(right.player.x))
-    expect(Math.abs(up.player.z)).toBeCloseTo(Math.abs(down.player.z))
-    expect(Math.abs(left.player.x)).toBeCloseTo(Math.abs(up.player.z))
-    expect(stepNekzaliState(initial, { ...idle, backward: true }, .5).player).not.toEqual(down.player)
+  it('keeps Learn 2D screen-relative and Train 3D facing-relative movement', () => {
+    const diagram = createNekzaliState('player', 'test', 'learn2d')
+    const forward2d = stepNekzaliDiagramState(diagram, { ...idle, forward: true }, .5)
+    const forward3d = stepNekzaliState({ ...diagram, projection: 'train3d' }, { ...idle, forward: true }, .5)
+    expect(forward2d.player.z).toBeLessThan(diagram.player.z)
+    expect(forward3d.player).not.toEqual(forward2d.player)
   })
 
-  it('spawns nine Amani for the outer half and makes Main prefer the nearest add', () => {
-    let state = stepNekzaliState({ ...createNekzaliState('tank-2'), time: 59.99, wellEventIndex: 1, rendEventIndex: 2, barrageStarted: true, barrageResolved: true }, idle, .02)
-    expect(state.adds).toHaveLength(9)
-    expect(state.adds.filter(add => add.assignedToPlayer)).toHaveLength(3)
-    const nearest = [...state.adds].sort((a, b) => Math.hypot(state.player.x - a.position.x, state.player.z - a.position.z) - Math.hypot(state.player.x - b.position.x, state.player.z - b.position.z))[0]
-    state = startNekzaliMainCast(state)
-    expect(state.mainTargetId).toBe(nearest.id)
-  })
-
-  it('lets continuous nearest-target Main clear the complete outside add assignment', () => {
-    let state: NekzaliState = { ...createNekzaliState('tank-2', 'test'), time: 59.99, wellEventIndex: 1, rendEventIndex: 2, barrageStarted: true, barrageResolved: true }
-    for (let step = 0; step < 301; step += 1) {
-      if (state.mainCastRemaining === 0) state = startNekzaliMainCast(state)
-      state = stepNekzaliState(state, idle, .1)
-    }
-    expect(state.playerAddKills).toBe(3)
-    expect(state.adds.every(add => add.health === 0)).toBe(true)
-    expect(state.phase).toBe('echo-1')
-  })
-
-  it('selects one player, attaches the Rend aura, and retains all three pools', () => {
-    let state: NekzaliState = { ...createNekzaliState('player', 'hard'), time: 16.99, player: { x: 38, z: 0, facing: 0 } }
-    expect(activeNekzaliPrompt({ ...state, time: 14 })).toBe('Essence Rend soon')
+  it('pulls, knocks, edge-dispels, and creates exactly one persistent Rend remain', () => {
+    let state: NekzaliState = { ...createNekzaliState('player', 'hard'), time: 16.99, player: { x: 31, z: 0, facing: 0 } }
     state = stepNekzaliState(state, idle, .02)
     expect(state.rendTargetId).toBe('player')
-    expect(NEKZALI_TIMING).toMatchObject({ rendSeconds: 4, rendDropLeadSeconds: 2 })
+    expect(nekzaliRendRemaining(state)).toBeGreaterThan(19)
     expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras).toContainEqual({ id: 'essence-rend', tone: 'danger', stacks: 1 })
-    expect(activeNekzaliPrompt(state)).toBe('Essence Rend — move out')
-
-    state = stepNekzaliState({ ...state, player: { x: 40, z: 0, facing: 0 } }, idle, 1.9)
-    expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(0)
-    for (let drop = 1; drop <= 3; drop += 1) {
-      const angle = drop * .32
-      state = stepNekzaliState({ ...state, player: { x: Math.cos(angle) * 40, z: Math.sin(angle) * 40, facing: 0 } }, idle, 1.01)
-    }
-    expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(3)
-    expect(nekzaliRendRemaining(state)).toBe(0)
-    expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(3)
+    state = stepNekzaliState({ ...state, player: { x: 35, z: 0, facing: 0 } }, idle, 5.01)
     expect(state.rendTargetId).toBeUndefined()
-    expect(nekzaliRendRemaining(state)).toBe(0)
+    expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(1)
+    expect(state.hazards[0]).toMatchObject({ radius: 6, kind: 'cultist' })
   })
 
-  it('does not expose or apply the controlled-player Rend reaction when an NPC is selected', () => {
-    let state: NekzaliState = { ...createNekzaliState('tank-2', 'hard'), time: 16.99 }
-    expect(activeNekzaliPrompt({ ...state, time: 14 })).toBe('Essence Rend soon')
-    state = stepNekzaliState(state, idle, .02)
-    expect(state.rendTargetId).not.toBe('tank-2')
-    expect(activeNekzaliPrompt(state)).toBe('Essence Rend active')
-    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras).toHaveLength(0)
-    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === state.rendTargetId)?.auras).toContainEqual({ id: 'essence-rend', tone: 'danger', stacks: 1 })
-    state = stepNekzaliState(state, idle, 5.1)
-    const drops = state.hazards.filter(hazard => hazard.id.startsWith('rend-')).map(hazard => hazard.position)
-    expect(drops).toHaveLength(3)
-    expect(Math.hypot(drops[0].x - drops[1].x, drops[0].z - drops[1].z)).toBeGreaterThan(10)
+  it('lets an unaffected healer dispel an NPC Rend only after edge positioning', () => {
+    const initial: NekzaliState = { ...createNekzaliState('healer-2', 'test'), time: 10, rendStartedAt: 0, rendTargetId: 'melee-1', rendEventIndex: 1, rendKnockbackApplied: true }
+    const dispelled = dispelNekzali(initial)
+    expect(dispelled.rendTargetId).toBeUndefined()
+    expect(dispelled.hazards).toHaveLength(1)
+    expect(dispelled.timeline.entities.find(entity => entity.id === 'controlled-player')?.actions.at(-1)?.kind).toBe('dispel')
   })
 
-  it('repeats NPC Rend and retains all six seeded Phase 1 patches', () => {
-    const firstSet = Array.from({ length: 3 }, (_, index) => ({ id: `rend-1-${index + 1}`, position: { x: 35 + index, z: 0 }, radius: 3.2, direction: { x: 0, z: 0 }, kind: 'cultist' as const, createdAt: 20 + index }))
-    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 27.99, rendEventIndex: 1, hazards: firstSet, player: { x: 0, z: -30, facing: 0 } }
-    state = stepNekzaliState(state, idle, .02)
-    expect(state.rendTargetId).not.toBeUndefined()
-    state = stepNekzaliState(state, idle, 5.1)
-    expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(6)
+  it('records expiry inside the raid and still preserves the resulting remain', () => {
+    const state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 19.99, rendStartedAt: 0, rendTargetId: 'player', rendEventIndex: 1, rendKnockbackApplied: true, player: { x: 20, z: 0, facing: 0 } }
+    const result = stepNekzaliState(state, idle, .02)
+    expect(result.failures[0]?.code).toBe('rend-inside')
+    expect(result.hazards).toHaveLength(1)
+    expect(result.outcome).toBe('active')
   })
 
-  it('fails if the three assigned adds were not handled at the 50% intermission', () => {
-    const assignedDead = Array.from({ length: 3 }, (_, index) => ({ id: `amani-${index}`, position: { x: 20 + index, z: 0 }, health: 0, assignedToPlayer: true, playerDamage: 0, corpseGroup: 1 as const }))
-    const state = stepNekzaliState({ ...createNekzaliState('tank-2'), time: 89.9, wellEventIndex: 1, rendEventIndex: 2, barrageStarted: true, barrageResolved: true, addsSpawned: true, adds: assignedDead, playerAddKills: 2 }, idle, .2)
-    expect(state).toMatchObject({ outcome: 'wipe', outcomeReason: 'Your three assigned Amani were not defeated' })
-  })
-
-  it('swaps the boss off a Barrage tank and rewards sufficient distance', () => {
-    let state = { ...createNekzaliState('tank-1', 'hard'), time: 37.9, player: { x: 0, z: 43.5, facing: 0 } }
-    state = stepNekzaliState(state, idle, .2)
-    expect(state.aggroOwner).toBe('tank-2')
-    state = stepNekzaliState({ ...state, time: 43.9 }, idle, .2)
-    expect(state.outcome).toBe('active')
-    expect(tauntNekzali(state).aggroOwner).toBe('tank-1')
-  })
-
-  it('has NPC tanks carry Barrage to the far edge while the off-tank holds the boss', () => {
-    let state = stepNekzaliState({ ...createNekzaliState('player', 'hard'), time: 37.9, wellEventIndex: 1 }, idle, .2)
-    expect(state).toMatchObject({ barrageTargetId: 'tank-1', aggroOwner: 'tank-2' })
-    state = stepNekzaliState(state, idle, 4.5)
-    const snapshot = nekzaliSnapshot(state)
-    const targetTank = snapshot.actors.find(actor => actor.id === 'tank-1')!
-    const holdingTank = snapshot.actors.find(actor => actor.id === 'tank-2')!
-    expect(Math.hypot(targetTank.position.x - state.boss.x, targetTank.position.z - state.boss.z)).toBeGreaterThan(50)
-    expect(Math.hypot(holdingTank.position.x - state.boss.x, holdingTank.position.z - state.boss.z)).toBeLessThan(6)
-    expect(snapshot.effects.some(effect => effect.id.includes('barrage-spirit') && effect.target?.z === targetTank.position.z)).toBe(true)
-  })
-
-  it('fails a tank that resolves Possession Barrage beside the boss', () => {
-    const state = stepNekzaliState({ ...createNekzaliState('tank-1', 'hard'), time: 43.9, barrageStarted: true, barrageStartedAt: 38, barrageTargetId: 'tank-1', aggroOwner: 'tank-2', player: { x: 0, z: 24, facing: 0 } }, idle, .2)
-    expect(state.outcomeReason).toBe('Possession Barrage exploded too close to the raid')
-  })
-
-  it('alternates the soak half and uses the spread half to cremate every corpse', () => {
-    const corpses = [
-      { id: 'corpse-a', position: { x: 20, z: 0 }, group: 1 as const, cremated: false },
-      { id: 'corpse-b', position: { x: -20, z: 0 }, group: 2 as const, cremated: false },
-    ]
-    let state: NekzaliState = { ...createNekzaliState('tank-1', 'hard'), time: 90, phase: 'echo-1', phaseStartedAt: 90, player: { x: 0, z: -34, facing: 0 }, playerAddKills: 3, corpses }
-    expect(nekzaliSnapshot(state).effects.find(effect => effect.id === 'pyre-1')).toMatchObject({ kind: 'ground-soak', filled: false })
-    state = stepNekzaliState(state, idle, 10.01)
-    expect(state.phase).toBe('echo-2')
-    state = { ...state, player: { x: 20, z: 0, facing: 0 } }
-    expect(nekzaliSnapshot(state).effects.some(effect => effect.id === 'corpse-arrow-2')).toBe(false)
-    expect(nekzaliSnapshot(state).effects.some(effect => effect.id === 'corpse-contact-corpse-a')).toBe(true)
-    state = stepNekzaliState(state, idle, 10.01)
-    expect(state.phase).toBe('phase-2')
-    expect(state.corpses.every(corpse => corpse.cremated)).toBe(true)
-  })
-
-  it('shows only the controlled intermission duty and disables false boss casts', () => {
-    const corpse = { id: 'corpse-a', position: { x: 20, z: 0 }, group: 2 as const, cremated: false }
-    const spreading: NekzaliState = { ...createNekzaliState('tank-1', 'hard'), time: 90, phase: 'echo-1', phaseStartedAt: 90, corpses: [corpse] }
-    const snapshot = nekzaliSnapshot(spreading)
-    expect(snapshot.effects.find(effect => effect.id === corpse.id)).toMatchObject({ kind: 'ground-objective' })
-    expect(snapshot.effects.some(effect => effect.id === 'pyre-1')).toBe(true)
-    const otherHalf = { ...spreading, soakGroup: 2 as const }
-    expect(nekzaliSnapshot(otherHalf).effects.some(effect => effect.id === 'pyre-1')).toBe(false)
-    expect(nextNekzaliTimer(otherHalf)).toMatchObject({ label: 'Slithering Flame', seconds: 10 })
-    expect(startNekzaliMainCast(otherHalf).mainCastRemaining).toBe(0)
-  })
-
-  it('moves persistent Cultist hazards in seeded directions when Invoke completes', () => {
-    const hazard = { id: 'cultist', position: { x: 20, z: 0 }, radius: 3, direction: { x: 0, z: 0 }, kind: 'cultist' as const }
-    let state: NekzaliState = { ...createNekzaliState(), time: 114.9, phase: 'phase-2', phaseStartedAt: 100, hazards: [hazard], bossHealth: 50 }
+  it('moves every persistent Cultist once clockwise when Invoke completes', () => {
+    const hazard = { id: 'cultist', position: { x: 20, z: 0 }, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist' as const }
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 114.9, phase: 'phase-2', phaseStartedAt: 100, hazards: [hazard], bossHealth: 50 }
     state = stepNekzaliState(state, idle, .2)
     expect(state.invokes).toBe(1)
-    const before = state.hazards[0].position
+    expect(state.hazards[0].position.x).toBeCloseTo(Math.cos(Math.PI / 6) * 20)
+    expect(state.hazards[0].position.z).toBeCloseTo(Math.sin(Math.PI / 6) * 20)
+    const stepped = state.hazards[0].position
     state = stepNekzaliState(state, idle, 1)
-    expect(state.hazards[0].position).not.toEqual(before)
+    expect(state.hazards[0].position).toEqual(stepped)
   })
 
-  it('reflects moving Invoke hazards at the circular room edge', () => {
-    const hazard = { id: 'cultist', position: { x: 41.7, z: 0 }, radius: 3.2, direction: { x: 1, z: 0 }, kind: 'cultist' as const }
-    const state: NekzaliState = { ...createNekzaliState(), time: 116, phase: 'phase-2', phaseStartedAt: 100, invokes: 1, hazards: [hazard], bossHealth: 50 }
-    const moved = stepNekzaliState(state, idle, .2).hazards[0]
-    expect(Math.hypot(moved.position.x, moved.position.z)).toBeLessThanOrEqual(41.8)
-    expect(moved.direction.x).toBeLessThan(0)
+  it('tracks Soulcoil Rite energy and independently expiring Ritual Burn applications', () => {
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 8.9 }
+    state = stepNekzaliState(state, idle, 3.2)
+    expect(state.bossEnergy).toBeGreaterThan(0)
+    expect(state.ritualBurnApplications.length).toBeGreaterThan(0)
+    expect(nekzaliSnapshot(state).effects.some(effect => effect.id.startsWith('anguished-'))).toBe(true)
+  })
+
+  it('tracks independently expiring Hollowing Strikes on the active controlled tank', () => {
+    let state: NekzaliState = { ...createNekzaliState('tank-1', 'test'), time: 11.99, aggroOwner: 'tank-1' }
+    state = stepNekzaliState(state, idle, .02)
+    expect(state.hollowingApplications).toHaveLength(1)
+    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras).toContainEqual({ id: 'hollowing-strikes', tone: 'danger', stacks: 1 })
+    state = stepNekzaliState({ ...state, aggroOwner: 'tank-2' }, idle, 15.01)
+    expect(state.hollowingApplications).toHaveLength(0)
+  })
+
+  it('breaks Amani shields before health and exposes NPC crowd control afterwards', () => {
+    let state: NekzaliState = { ...createNekzaliState('tank-2', 'test'), time: 59.99, wellEventIndex: 1, rendEventIndex: 2, barrageStarted: true, barrageResolved: true }
+    state = stepNekzaliState(state, idle, .02)
+    const target = [...state.adds].sort((a, b) => Math.hypot(state.player.x - a.position.x, state.player.z - a.position.z) - Math.hypot(state.player.x - b.position.x, state.player.z - b.position.z))[0]
+    state = stepNekzaliState(startNekzaliMainCast(state), idle, 1.01)
+    const damaged = state.adds.find(add => add.id === target.id)!
+    expect(damaged.shield).toBe(0)
+    expect(damaged.health).toBeGreaterThan(65)
+    expect(damaged.health).toBeLessThanOrEqual(70)
+    expect(damaged.crowdControlled).toBe(true)
+  })
+
+  it('assigns a stable Pyre-soak or smaller Cremation-cleanup role before pull', () => {
+    const duties = contractRaidRoster.map(member => createNekzaliState(member.id, 'test').cleanupDuty)
+    expect(duties.some(Boolean)).toBe(true)
+    expect(duties.filter(Boolean).length).toBeLessThan(duties.length / 2)
+  })
+
+  it('shows Soul Transfer before resolving the player intermission duty', () => {
+    const state: NekzaliState = { ...createNekzaliState('tank-1', 'test'), time: 90, phase: 'echo-1', phaseStartedAt: 90, player: { x: 20, z: 10, facing: 0 } }
+    expect(nekzaliSnapshot(state).effects.some(effect => effect.id === 'soul-transfer-1')).toBe(true)
+    const dutyState = { ...state, time: 105.1 }
+    expect(nekzaliSnapshot(dutyState).effects.some(effect => effect.id === 'pyre-1' || effect.id === 'spread-1')).toBe(true)
+    expect(startNekzaliMainCast(state).mainCastRemaining).toBe(0)
   })
 })
 
-describe("Nek'zali Well realm simulation", () => {
-  const insideState = (): NekzaliState => ({
-    ...createNekzaliState('player', 'normal'),
-    realmStage: 'inside',
-    realmStartedAt: 0,
-    player: { x: 8, z: 8, facing: Math.PI },
-    innerCastInterrupted: true,
-    disruptionIndex: 2,
-  })
+describe("Nek'zali Well realm", () => {
+  const insideState = (): NekzaliState => ({ ...createNekzaliState('player', 'test'), realmStage: 'inside', realmStartedAt: 0, player: { x: 8, z: 8, facing: Math.PI }, innerCastInterrupted: true, disruptionIndex: 2 })
 
-  it('alternates assigned raid halves and isolates the entered half inside the dome', () => {
-    const assigned = stepNekzaliState({ ...createNekzaliState('player', 'normal'), time: 44.99 }, idle, .02)
-    expect(assigned).toMatchObject({ realmStage: 'pull', wellGroup: 1, wellEventIndex: 1 })
-
-    const unassigned = stepNekzaliState({ ...createNekzaliState('tank-2', 'normal'), time: 44.99 }, idle, .02)
-    expect(unassigned).toMatchObject({ realmStage: 'none', wellGroup: 2, wellEventIndex: 1 })
-
-    expect(nekzaliSnapshot(assigned).actors.some(actor => actor.id === 'nekzali-boss')).toBe(true)
-    const entered = stepNekzaliState({ ...assigned, player: { x: 0, z: 5.9, facing: 0 } }, idle, .02)
-    expect(entered.realmStage).toBe('inside')
-
-    const snapshot = nekzaliSnapshot(entered)
-    expect(snapshot.effects.some(effect => effect.kind === 'dome')).toBe(true)
-    expect(snapshot.actors.some(actor => actor.id === 'nekzali-boss')).toBe(false)
-    expect(snapshot.actors.filter(actor => actor.kind === 'ally').length).toBeGreaterThan(0)
-    expect(snapshot.actors.filter(actor => actor.kind === 'ally').length).toBeLessThan(19)
-  })
-
-  it('lets the outer raid finish the Amani wave while the controlled half is inside', () => {
-    let state: NekzaliState = { ...insideState(), time: 59.99, realmStartedAt: 45, wellEventIndex: 1, innerCastInterrupted: true }
-    state = stepNekzaliState(state, idle, .02)
-    expect(state.adds).toHaveLength(9)
-    expect(state.adds.some(add => add.assignedToPlayer)).toBe(false)
-    for (let step = 0; step < 30; step += 1) state = stepNekzaliState(state, idle, .5)
-    expect(state.adds.every(add => add.health === 0)).toBe(true)
-    expect(state.corpses).toHaveLength(9)
-  })
-
-  it('records a missed seven-second movement-gated realm entry', () => {
-    let state = stepNekzaliState({ ...createNekzaliState('player', 'test'), time: 44.99 }, idle, .02)
-    expect(NEKZALI_TIMING.realmEntrySeconds).toBe(7)
-    state = stepNekzaliState(state, idle, 7.01)
-    expect(state.realmStage).toBe('none')
-    expect(state.failures[0]?.code).toBe('missed-realm-entry')
-  })
-
-  it('kills the Drowned Echo with 20 completed Main casts and returns after five seconds', () => {
-    let state = insideState()
-    for (let hit = 0; hit < 20; hit += 1) {
-      state = startNekzaliMainCast(state)
-      state = stepNekzaliState(state, idle, 1.01)
-    }
-    expect(state).toMatchObject({ realmAddHits: 20, realmStage: 'returning', outcome: 'active' })
-    state = stepNekzaliState(state, idle, 5.01)
-    expect(state).toMatchObject({ realmStage: 'none', soulExhausted: true, outcome: 'active' })
-  })
-
-  it('renders the controlled Main shot and expands the populated realm boundary', () => {
-    let state = startNekzaliMainCast(insideState())
-    state = stepNekzaliState(state, idle, 1.01)
-    const snapshot = nekzaliSnapshot(state)
-    expect(snapshot.effects.some(effect => effect.id.startsWith('player-main-') && effect.kind === 'cosmetic-projectile')).toBe(true)
-    expect(snapshot.effects.find(effect => effect.kind === 'dome')?.radius).toBe(NEKZALI_TIMING.realmRadius)
-    expect(snapshot.effects.filter(effect => effect.id.startsWith('well-spirit-'))).toHaveLength(14)
-  })
-
-  it('requires the assigned interrupt and keeps Nekzali disruption non-terminal', () => {
+  it('uses a ten-second assigned Drowned Echo interrupt', () => {
     const interruptible = { ...insideState(), time: 5, innerCastStartedAt: 4, innerCastInterrupted: false }
     expect(interruptNekzali(interruptible).innerCastInterrupted).toBe(true)
-    const missed = stepNekzaliState({ ...interruptible, time: 8.99 }, idle, .02)
-    expect(missed).toMatchObject({ outcome: 'wipe', outcomeReason: 'Drowned Echo completed its assigned cast' })
-
-    let disrupted: NekzaliState = { ...insideState(), time: 8.9, disruptionIndex: 0, mainCastRemaining: 20, mainTargetId: 'drowned-echo' }
-    while (disrupted.time < 18 && disrupted.disruptionIndex === 0) disrupted = stepNekzaliState(disrupted, idle, .2)
-    expect(disrupted).toMatchObject({ outcome: 'active', mistakes: 0, mainCastRemaining: 0, disruptionIndex: 1 })
-    expect(disrupted.failures[0]?.code).toBe('realm-main-interrupted')
+    const missed = stepNekzaliState({ ...interruptible, time: 13.99 }, idle, .02)
+    expect(missed.failures[0]?.code).toBe('missed-well-interrupt')
   })
 
-  it('records terminal mechanic mistakes without ending Test attempts', () => {
-    const testState = { ...insideState(), trainingDifficulty: 'test' as const, time: 8.99, innerCastStartedAt: 4, innerCastInterrupted: false }
-    const result = stepNekzaliState(testState, idle, .02)
-    expect(result.outcome).toBe('active')
-    expect(result.failures[0]?.code).toBe('missed-well-interrupt')
-    const later = stepNekzaliState(result, idle, 1)
-    expect(later.failures.filter(failure => failure.code === 'missed-well-interrupt')).toHaveLength(1)
-  })
-})
-
-describe("Nek'zali shared combat capability", () => {
-  it('casts at Nek\'zali during downtime instead of completing without a projectile target', () => {
-    let state = startNekzaliMainCast(createNekzaliState('player', 'test'))
-    expect(state.mainTargetId).toBe('nekzali-boss')
-    state = stepNekzaliState(state, idle, 1.01)
-    expect(nekzaliSnapshot(state).effects.some(effect => effect.id.startsWith('player-main'))).toBe(true)
+  it('kills the Drowned Echo with 20 Main casts and applies 60-second exhaustion after return', () => {
+    let state = insideState()
+    for (let hit = 0; hit < 20; hit += 1) state = stepNekzaliState(startNekzaliMainCast(state), idle, 1.01)
+    expect(state).toMatchObject({ realmAddHits: 20, realmStage: 'returning' })
+    state = stepNekzaliState(state, idle, 5.01)
+    expect(state.soulExhaustedUntil! - state.time).toBeCloseTo(60)
   })
 })
