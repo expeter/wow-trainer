@@ -124,14 +124,14 @@ remain outside the gate and do not interrupt it.
 - `FR-087` — completed under `SPEC-019`: the frozen source, ticket register,
   feature inventory, changelog, and deferred ideas were reconciled into explicit
   extraction mappings and four keep/drop discussion tickets.
-- `FR-089` — backlog after core acceptance: decide whether accepted encounters
-  require shared Train 3D jump/vertical traversal.
-- `FR-090` — backlog after core acceptance: decide whether authoring needs a
-  development/Test-only whole-timeline simulation speed control.
-- `FR-091` — backlog after core acceptance: decide whether packages may opt into
-  shared vitality, potion, defensive, and cooldown state.
-- `FR-092` — backlog after core acceptance: decide how explicitly approved
-  focused practice scenarios become player-selectable.
+- `FR-089` — deferred by product decision: no shared Train 3D jump/vertical
+  traversal unless an accepted encounter later requires it.
+- `FR-090` — deferred by product decision: no authoring time-scale control in
+  the current delivery sequence.
+- `FR-091` — deferred by product decision: no shared vitality/potion/defensive
+  service in the current delivery sequence.
+- `FR-092` — deferred until the user identifies and approves a specific
+  trainable subsection of a fight.
 - `FR-078` — backlog after core acceptance: independent persisted audio services.
 - `FR-079` — backlog after core acceptance: versioned encounter tactic editor; the
   supplied Sentinels raid-plan image is preserved as package evidence.
@@ -302,8 +302,10 @@ remain outside the gate and do not interrupt it.
   movement bindings while retaining shared combat/system actions.
 - `CR-281` — backlogged after core completion under `SPEC-007`: remove the development extraction-status
   banner from the setup start page.
-- `CR-282` — backlogged after core completion under `SPEC-007`: compact and refine the encounter catalogue,
-  difficulty selector, runtime actions, card interaction states, and contract room.
+- `CR-282` — backlogged for the shell/front-design milestone under `SPEC-007`:
+  turn the supplied boss order into responsive portrait/name navigation with
+  per-boss 2D/3D entry actions, then compact and refine the difficulty selector,
+  interaction states, and contract room without copying the supplied background.
 - `FR-073` — deferred: API `/v2`, public statistics, achievements, and rankings.
 - `CR-235` — ready for pre-publication scheduling after core acceptance:
   remove L’ura and Season 1 runtime, service, deployment, asset, storage, test,
