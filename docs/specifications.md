@@ -732,6 +732,14 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - Runtime pause blocks new movement and combat actions and freezes active cast
   progress. Camera look may remain available while paused, but an encounter
   snapshot may not mask the resulting player-facing update.
+- Beginning pause, entering a pull countdown, losing focus, hiding the document,
+  retrying, or exiting clears every held keyboard and mouse movement command.
+  A full-fight retry resets its simulation and repeats the locked three-second
+  pull countdown before actions or movement can resume.
+- WebGL initialization or context loss presents an in-arena recovery card,
+  clears input, and pauses the authoritative simulation. Retrying rebuilds only
+  the renderer from the current snapshot; the player explicitly resumes after
+  the view is restored or exits through the persistent runtime status control.
 - The contract lab exercises these production contracts in both modes. Its 2D
   room uses the shared projectile/effect projection and its 3D dummy world
   markers use the reviewed subtle wobble without moving their world anchors.

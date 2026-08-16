@@ -222,8 +222,10 @@ test('launches the single Entombed Sentinels full fight in separate 2D and 3D ar
 test('moves independently in all four Learn 2D directions and clears input on blur', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
-  await expect(page.getByLabel('Controlled character with 1 green and 3 red toxins')).toBeVisible()
-  const player = page.getByLabel('Controlled character with 1 green and 3 red toxins')
+  await page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' }).getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
+  const player = page.getByLabel(/Controlled .* player/)
+  await expect(player).toBeVisible()
   const position = async () => ({ x: Number(await player.getAttribute('data-position-x')), y: Number(await player.getAttribute('data-position-y')) })
   let before = await position()
   await page.keyboard.down('a'); await page.waitForTimeout(260); await page.keyboard.up('a')

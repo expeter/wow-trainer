@@ -12,6 +12,7 @@ import ThreeWorldRenderer from '../../../platform/train3d/ThreeWorldRenderer'
 import { FIXED_STEP_SECONDS } from '../../../platform/train3d/simulation'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from '../../../platform/train3d/types'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
+import { useRuntimeInputClear } from '../../../platform/useRuntimeInputClear'
 import { activeSentinelsPrompt, createSentinelsState, dispelSentinels, nextSentinelsTimer, prepareSentinelsSlot, sentinelsPlayerRole, sentinelsSnapshot, startSentinelsMainCast, stepSentinelsState, turnSentinelsPlayer } from '../simulation'
 
 export default function SentinelsFullFight3D({ trainingDifficulty, keyBindings, actions, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
@@ -24,11 +25,12 @@ export default function SentinelsFullFight3D({ trainingDifficulty, keyBindings, 
   const mouseForwardRef = useRef(false)
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
+  useRuntimeInputClear(() => { commandsRef.current = { ...IDLE_PLAYER_COMMANDS }; keyboardForwardRef.current = false; mouseForwardRef.current = false })
   const selected = contractSelectedMember(gate.selectedSlotId)
 
   function publish() { renderSnapshotRef.current = sentinelsSnapshot(stateRef.current); setView(stateRef.current); setSnapshot(renderSnapshotRef.current) }
   function chooseSlot(slotId: string) { gate.setSelectedSlotId(slotId); stateRef.current = prepareSentinelsSlot(stateRef.current, slotId); publish() }
-  function retry() { stateRef.current = createSentinelsState(gate.selectedSlotId, trainingDifficulty); publish() }
+  function retry() { pause.reset(); gate.restart(); stateRef.current = createSentinelsState(gate.selectedSlotId, trainingDifficulty); publish() }
   function dispel() { stateRef.current = dispelSentinels(stateRef.current); publish() }
   function mainAbility() { stateRef.current = startSentinelsMainCast(stateRef.current) }
   useEncounterActionInput({ actions, role: selected.role, mode: 'train3d', enabled: gate.phase === 'active', paused: pause.paused, handlers: {

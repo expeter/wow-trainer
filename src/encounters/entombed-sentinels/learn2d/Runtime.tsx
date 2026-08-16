@@ -6,6 +6,7 @@ import RuntimeFeedback, { type RuntimeFailure } from '../../../platform/RuntimeF
 import RuntimeOutcomeOverlay from '../../../platform/RuntimeOutcomeOverlay'
 import { keyLabel } from '../../../platform/trainingSettings'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
+import { useRuntimeInputClear } from '../../../platform/useRuntimeInputClear'
 import ToxinIcons from '../ToxinIcons'
 import { learn2dScenarios } from './scenarios'
 import FullFightRuntime from './FullFightRuntime'
@@ -32,6 +33,7 @@ function HelicalLearn2D({ scenarioId, keyBindings, onExit }: EncounterRuntimePro
   const [attempt, setAttempt] = useState(0)
   const [failures, setFailures] = useState<RuntimeFailure[]>([])
   const pause = useRuntimePause(keyBindings.pause)
+  useRuntimeInputClear(() => pressedRef.current.clear())
 
   useEffect(() => {
     const codes: Record<Direction, string> = {
@@ -103,6 +105,7 @@ function HelicalLearn2D({ scenarioId, keyBindings, onExit }: EncounterRuntimePro
   }
 
   function restart() {
+    pause.reset()
     playerRef.current = { ...startPosition }
     pressedRef.current.clear()
     elapsedRef.current = 0

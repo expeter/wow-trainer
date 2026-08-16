@@ -11,6 +11,7 @@ import { keyLabel } from '../../../platform/trainingSettings'
 import type { PlayerCommandState } from '../../../platform/train3d/types'
 import { IDLE_PLAYER_COMMANDS } from '../../../platform/train3d/types'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
+import { useRuntimeInputClear } from '../../../platform/useRuntimeInputClear'
 import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, isNekzaliPlayerRendTarget, nekzaliRendRemaining, nekzaliSnapshot, nextNekzaliTimer, prepareNekzaliSlot, startNekzaliMainCast, stepNekzaliDiagramState, tauntNekzali } from '../simulation'
 
 const RAID_PLAN = new URL('../../../../inbox/INBOX-20260815-124454-f3a9e1.png', import.meta.url).href
@@ -23,10 +24,11 @@ export default function NekzaliLearn2D({ trainingDifficulty, keyBindings, action
   const [view, setView] = useState(stateRef.current)
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
+  useRuntimeInputClear(() => { commandsRef.current = { ...IDLE_PLAYER_COMMANDS } })
   const selected = contractSelectedMember(gate.selectedSlotId)
 
   function chooseSlot(slotId: string) { gate.setSelectedSlotId(slotId); stateRef.current = prepareNekzaliSlot(stateRef.current, slotId); setView(stateRef.current) }
-  function retry() { stateRef.current = createNekzaliState(gate.selectedSlotId, trainingDifficulty); setView(stateRef.current) }
+  function retry() { pause.reset(); gate.restart(); stateRef.current = createNekzaliState(gate.selectedSlotId, trainingDifficulty); setView(stateRef.current) }
   useEncounterActionInput({ actions, role: selected.role, mode: 'learn2d', enabled: gate.phase === 'active', paused: pause.paused, handlers: {
     mainAbility: () => { stateRef.current = startNekzaliMainCast(stateRef.current) },
     taunt: () => { stateRef.current = tauntNekzali(stateRef.current) },

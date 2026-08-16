@@ -8,6 +8,7 @@ import { ArenaTrainingHud } from '../TrainingHud'
 import { keyLabel } from '../trainingSettings'
 import { useContractActions } from '../useContractActions'
 import { useRuntimePause } from '../useRuntimePause'
+import { useRuntimeInputClear } from '../useRuntimeInputClear'
 import { FIXED_STEP_SECONDS } from './simulation'
 import { classProjectileEffects } from './cosmeticCombat'
 import ThreeWorldRenderer from './ThreeWorldRenderer'
@@ -26,6 +27,7 @@ export default function ContractRoom({ keyBindings, actions: actionRegistry, hud
   const [performanceSample, setPerformanceSample] = useState({ fps: 0, p95Ms: 0 })
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
+  useRuntimeInputClear(() => { commandsRef.current = { ...IDLE_PLAYER_COMMANDS }; keyboardForwardRef.current = false; mouseForwardRef.current = false })
   const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, mode: 'train3d', eventIndex: summary.eventIndex, actions: actionRegistry, onAction: action => {
     stateRef.current = { ...stateRef.current, timeline: beginEncounterAction(stateRef.current.timeline, { id: 'controlled-player', kind: 'controlled-player' }, action, action === 'mainAbility' ? 1 : 0, 'spell-dummy') }
   } })

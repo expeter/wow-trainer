@@ -5,6 +5,7 @@ import RuntimeStatusBar from '../../../platform/RuntimeStatusBar'
 import RuntimeFeedback, { type RuntimeFailure } from '../../../platform/RuntimeFeedback'
 import RuntimeOutcomeOverlay from '../../../platform/RuntimeOutcomeOverlay'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
+import { useRuntimeInputClear } from '../../../platform/useRuntimeInputClear'
 import { FIXED_STEP_SECONDS } from '../../../platform/train3d/simulation'
 import ThreeWorldRenderer from '../../../platform/train3d/ThreeWorldRenderer'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from '../../../platform/train3d/types'
@@ -25,6 +26,7 @@ function HelicalTrain3D({ scenarioId, keyBindings, hudSettings, cameraSettings, 
   const [attempt, setAttempt] = useState(0)
   const [failures, setFailures] = useState<RuntimeFailure[]>([])
   const pause = useRuntimePause(keyBindings.pause)
+  useRuntimeInputClear(() => { commandsRef.current = { ...IDLE_PLAYER_COMMANDS }; keyboardForwardRef.current = false; mouseForwardRef.current = false })
 
   useEffect(() => {
     let frame = 0
@@ -109,6 +111,7 @@ function HelicalTrain3D({ scenarioId, keyBindings, hudSettings, cameraSettings, 
   }, [attempt, outcome])
 
   function restart() {
+    pause.reset()
     stateRef.current = createHelicalState()
     renderSnapshotRef.current = helicalSnapshot(stateRef.current)
     commandsRef.current = { ...IDLE_PLAYER_COMMANDS }

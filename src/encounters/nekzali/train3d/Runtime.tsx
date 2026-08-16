@@ -12,6 +12,7 @@ import ThreeWorldRenderer from '../../../platform/train3d/ThreeWorldRenderer'
 import { FIXED_STEP_SECONDS } from '../../../platform/train3d/simulation'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from '../../../platform/train3d/types'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
+import { useRuntimeInputClear } from '../../../platform/useRuntimeInputClear'
 import { activeNekzaliPrompt, createNekzaliState, interruptNekzali, isNekzaliPlayerRendTarget, nekzaliRendRemaining, nekzaliSnapshot, nextNekzaliTimer, prepareNekzaliSlot, startNekzaliMainCast, stepNekzaliState, tauntNekzali, turnNekzaliPlayer } from '../simulation'
 
 export default function NekzaliTrain3D({ trainingDifficulty, keyBindings, actions, hudSettings, cameraSettings, onCameraSettingsChange, onExit }: EncounterRuntimeProps) {
@@ -24,6 +25,7 @@ export default function NekzaliTrain3D({ trainingDifficulty, keyBindings, action
   const mouseForwardRef = useRef(false)
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
+  useRuntimeInputClear(() => { commandsRef.current = { ...IDLE_PLAYER_COMMANDS }; keyboardForwardRef.current = false; mouseForwardRef.current = false })
   const selected = contractSelectedMember(gate.selectedSlotId)
 
   function chooseSlot(slotId: string) {
@@ -34,6 +36,7 @@ export default function NekzaliTrain3D({ trainingDifficulty, keyBindings, action
   }
 
   function retry() {
+    pause.reset(); gate.restart()
     stateRef.current = createNekzaliState(gate.selectedSlotId, trainingDifficulty)
     renderSnapshotRef.current = nekzaliSnapshot(stateRef.current)
     setView(stateRef.current); setSnapshot(renderSnapshotRef.current)

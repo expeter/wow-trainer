@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Completed the shared training lifecycle: pause, pull countdowns, focus loss,
+  retries, exits, and unmounts now clear held input consistently; full-fight
+  retries repeat the locked countdown; and WebGL startup/context failures pause
+  simulation behind an in-arena renderer retry without discarding fight state.
 - Added a shared simulation-owned entity timeline to every lab and active
   encounter. Controlled players, raid NPCs, enemies, and arena systems now use
   independent deterministic tracks on one encounter clock, with package and

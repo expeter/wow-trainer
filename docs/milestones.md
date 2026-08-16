@@ -19,10 +19,10 @@ encounter development into an independently deployed Season 2 repository.
 
 ### Core completion gate
 
-`FR-077` dynamic actions, `CR-283` shared entity timelines, and `FR-088` ambient
-NPC activity are now complete. The active execution order continues with
-`FR-076` lifecycle closure and final `FR-072` platform acceptance. `FR-087`
-audits the frozen trainer before acceptance and brings any newly discovered reusable
+`FR-077` dynamic actions, `CR-283` shared entity timelines, `FR-088` ambient
+NPC activity, and `FR-076` lifecycle recovery are now complete. The active
+execution order continues with the `FR-087` frozen-trainer audit and final
+`FR-072` platform acceptance. The audit brings any newly discovered reusable
 capability back for explicit keep/drop discussion before `FR-072` closes.
 
 Nek'zali, Entombed Sentinels, and both contract rooms are the acceptance
@@ -115,8 +115,9 @@ remain outside the gate and do not interrupt it.
 - `FR-088` — completed under `CR-283`: reusable seeded ambient NPC movement and
   class-cast timeline activity now serve both labs and active encounters while
   yielding to mechanic-owned positions and assignments.
-- `FR-076` — in progress under `FR-072`: finish shared countdown, pause, failure,
-  restart/exit, input-clear, and renderer-recovery lifecycle behavior.
+- `FR-076` — completed under `FR-072`: shared countdown, pause, failure,
+  restart/exit, held-input clearing, and WebGL renderer-recovery lifecycle now
+  serves labs, focused drills, and both full fights.
 - `FR-087` — planned core audit under `SPEC-019`: revisit the frozen trainer and
   place any missing reusable capability in the backlog for explicit discussion.
 - `FR-078` — planned under `FR-072`: independent persisted audio services.

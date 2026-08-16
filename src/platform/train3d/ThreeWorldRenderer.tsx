@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import type { TrainingCameraSettings } from '../trainingSettings'
 import type { ActorSnapshot, EffectSnapshot, Train3DSnapshot, WorldMarkerSnapshot } from './types'
+import { RUNTIME_PAUSE_REQUEST_EVENT } from '../useRuntimePause'
 
 interface ThreeWorldRendererProps {
   snapshot: Train3DSnapshot
@@ -11,6 +12,7 @@ interface ThreeWorldRendererProps {
   onPlayerLook: (yawDelta: number) => void
   onBothButtonsForward: (active: boolean) => void
   onPerformanceSample?: (sample: { fps: number; p95Ms: number }) => void
+  rendererFactory?: (canvas: HTMLCanvasElement) => THREE.WebGLRenderer
 }
 
 const auraColors = { beneficial: 0x72e5c0, poison: 0x70dc87, danger: 0xe96f80, spectral: 0x9d83f2 } as const
@@ -204,8 +206,10 @@ function markerObject(marker: WorldMarkerSnapshot) {
   return group
 }
 
-export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSettings, onCameraSettingsChange, onPlayerLook, onBothButtonsForward, onPerformanceSample }: ThreeWorldRendererProps) {
+export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSettings, onCameraSettingsChange, onPlayerLook, onBothButtonsForward, onPerformanceSample, rendererFactory }: ThreeWorldRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [rendererFailure, setRendererFailure] = useState<string>()
+  const [recoveryKey, setRecoveryKey] = useState(0)
   const snapshotRef = useRef(snapshot)
   const settingsRef = useRef(cameraSettings)
   const settingsCallbackRef = useRef(onCameraSettingsChange)
@@ -225,7 +229,15 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     const canvas = canvasRef.current
     if (!canvas) return
     const renderCanvas: HTMLCanvasElement = canvas
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
+    let renderer: THREE.WebGLRenderer
+    try {
+      renderer = rendererFactory ? rendererFactory(canvas) : new THREE.WebGLRenderer({ canvas, antialias: true })
+    } catch {
+      bothButtonsCallbackRef.current(false)
+      window.dispatchEvent(new Event(RUNTIME_PAUSE_REQUEST_EVENT))
+      setRendererFailure('The 3D renderer could not start. Your attempt is paused visually; retry the renderer or return to setup.')
+      return
+    }
     if (import.meta.env.DEV) canvas.dataset.playerMarker = 'humanoid-chevron'
     renderer.setPixelRatio(1)
     const arena = snapshotRef.current.arena
@@ -364,6 +376,12 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
       dragging = false
       bothButtonsCallbackRef.current(false)
     }
+    const onContextLost = (event: Event) => {
+      event.preventDefault()
+      clearPointerState()
+      window.dispatchEvent(new Event(RUNTIME_PAUSE_REQUEST_EVENT))
+      setRendererFailure('The 3D renderer lost its graphics context. Retry the renderer to continue from the current simulation state.')
+    }
     canvas.addEventListener('pointerdown', onPointerDown)
     canvas.addEventListener('pointerup', onPointerUp)
     canvas.addEventListener('pointercancel', onPointerUp)
@@ -371,6 +389,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     canvas.addEventListener('wheel', onWheel, { passive: false })
     canvas.addEventListener('contextmenu', onContextMenu)
     window.addEventListener('blur', clearPointerState)
+    canvas.addEventListener('webglcontextlost', onContextLost)
 
     function resize() {
       const activeCanvas = canvasRef.current
@@ -557,10 +576,14 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
       canvas.removeEventListener('wheel', onWheel)
       canvas.removeEventListener('contextmenu', onContextMenu)
       window.removeEventListener('blur', clearPointerState)
+      canvas.removeEventListener('webglcontextlost', onContextLost)
       disposeObject(scene)
       renderer.dispose()
     }
-  }, [])
+  }, [recoveryKey, rendererFactory])
 
+  if (rendererFailure) return <section className="train3d-renderer-failure" role="alert" aria-label="3D renderer recovery">
+    <strong>3D view unavailable</strong><p>{rendererFailure}</p><button type="button" onClick={() => { setRendererFailure(undefined); setRecoveryKey(value => value + 1) }}>Retry renderer</button>
+  </section>
   return <canvas ref={canvasRef} tabIndex={0} aria-label="Third-person 3D training arena" />
 }

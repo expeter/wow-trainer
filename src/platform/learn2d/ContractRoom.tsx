@@ -11,6 +11,7 @@ import { classProjectileEffects, cosmeticClassProjectiles } from '../train3d/cos
 import type { ActorSnapshot } from '../train3d/types'
 import { useContractActions } from '../useContractActions'
 import { useRuntimePause } from '../useRuntimePause'
+import { useRuntimeInputClear } from '../useRuntimeInputClear'
 import { activeContractEvent2D, contractGroundSlots2D, contractRaidPosition2D, createContractRoom2DState, prepareContractRoom2DSlot, stepContractRoom2D } from './contractRoomSimulation'
 import type { DiagramDirection } from './movement'
 import SnapshotEffects from './SnapshotEffects'
@@ -24,6 +25,7 @@ export default function ContractRoom2D({ keyBindings, actions: actionRegistry, h
   const [view, setView] = useState(stateRef.current)
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
+  useRuntimeInputClear(() => pressedRef.current.clear())
   const actions = useContractActions({ enabled: gate.phase === 'active', paused: pause.paused, role: gate.role, mode: 'learn2d', eventIndex: view.eventIndex, actions: actionRegistry, onAction: action => {
     stateRef.current = { ...stateRef.current, timeline: beginEncounterAction(stateRef.current.timeline, { id: 'controlled-player', kind: 'controlled-player' }, action, action === 'mainAbility' ? 1 : 0, 'spell-dummy') }
   } })

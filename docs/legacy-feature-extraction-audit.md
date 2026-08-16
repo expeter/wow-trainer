@@ -18,14 +18,14 @@ import of L’ura encounter code.
 | Deterministic fixed-step Train 3D simulation and renderer boundary | Extracted | `BUG-157`, `BUG-162` |
 | Reviewed in-arena HUD frames, cast bar and action position | Extracted; mandatory mechanic/timer and display-rate cast progress retained | `CR-245`, `BUG-164`, `BUG-167`, `CR-254` |
 | Class-specific combat projectile scheduler, travel, and impact vocabulary | Extracted for shared Season 2 snapshots and the Three.js renderer | `CR-256`, `CR-264`, `BUG-176` |
-| Pull countdown, pause/resume, restart, failure lifecycle | Partial: lab countdown, pause, and centered dismissible drill outcomes extracted; renderer recovery remains | `FR-076`, `BUG-169` |
+| Pull countdown, pause/resume, restart, failure lifecycle | Extracted with shared held-input clearing, countdown-gated retries, centered outcomes, and state-preserving WebGL recovery | `FR-076`, `BUG-169` |
 | Dynamic encounter action declarations and bindings | Extracted and validated across both labs and active encounters | `FR-077` |
 | Drop-in player/NPC/enemy/arena entities on one deterministic encounter clock | Extracted across both labs and active encounters; actions and snapshots share the simulation-owned timeline | `CR-283` |
 | Reusable bounded NPC ambient movement that yields to mechanics | Extracted with seeded motion, independent class-cast tracks, and mechanic overrides | `FR-088` |
 | Independent music, encounter SFX and raid-lead/TTS channels | Active gap | `FR-078` |
 | Draggable/group tactical planning with validation and sharing | Active gap | `FR-079` |
 | Stable failure review, recap and offline share/result identity | Partial: live corners and detailed terminal drill card extracted; recap/share pending | `CR-249`, `BUG-169`, `FR-080` |
-| Namespaced, schema-versioned local persistence | Partial: training settings only | `FR-076`, `FR-078`, `FR-079` |
+| Namespaced, schema-versioned local persistence | Partial: training settings only | `FR-078`, `FR-079` |
 | Unit/component/focused browser/build delivery gates | Extracted and evolving | `CR-231`, `FR-072` |
 | Dedicated Pages workflow and production monitoring | Deliberately deferred | `FR-074` |
 | Online identity, public activity, achievements and rankings | Deliberately deferred to isolated `/v2` | `FR-073` |

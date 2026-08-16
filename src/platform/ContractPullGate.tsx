@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CONTRACT_DEFAULT_PLAYER_SLOT, contractRaidRoster, contractSelectedMember, contractSlotLabel } from './contractRoom'
+import { RUNTIME_INPUT_CLEAR_EVENT } from './useRuntimePause'
 
 export type ContractPullPhase = 'setup' | 'countdown' | 'active'
 
@@ -25,8 +26,8 @@ export function useContractPullGate() {
     return () => window.clearInterval(timer)
   }, [phase])
 
-  const start = () => { setSeconds(3); phaseRef.current = 'countdown'; setPhase('countdown') }
-  return { selectedSlotId, setSelectedSlotId, role: contractSelectedMember(selectedSlotId).role, phase, phaseRef, seconds, start }
+  const start = () => { window.dispatchEvent(new Event(RUNTIME_INPUT_CLEAR_EVENT)); setSeconds(3); phaseRef.current = 'countdown'; setPhase('countdown') }
+  return { selectedSlotId, setSelectedSlotId, role: contractSelectedMember(selectedSlotId).role, phase, phaseRef, seconds, start, restart: start }
 }
 
 export function ContractPullOverlay({ selectedSlotId, onSlotChange, phase, seconds, onStart, mode, title = 'Choose your raid position', description = 'Select one of the 20 abstract raid-plan slots. Its role and temporary class are locked for this lab pull.', assignmentNotice, dialogLabel = 'Contract room entrance', bossLabel = 'Boss' }: {

@@ -11,6 +11,7 @@ import { ActorMainCastBar } from '../../../platform/TrainingHud'
 import { keyLabel } from '../../../platform/trainingSettings'
 import { IDLE_PLAYER_COMMANDS, type PlayerCommandState } from '../../../platform/train3d/types'
 import { useRuntimePause } from '../../../platform/useRuntimePause'
+import { useRuntimeInputClear } from '../../../platform/useRuntimeInputClear'
 import ToxinIcons from '../ToxinIcons'
 import { activeSentinelsPrompt, createSentinelsState, dispelSentinels, nextSentinelsTimer, prepareSentinelsSlot, sentinelsPlayerRole, sentinelsSnapshot, startSentinelsMainCast, stepSentinelsDiagramState } from '../simulation'
 import { sentinelsArena } from '../train3d/arenas'
@@ -26,10 +27,11 @@ export default function SentinelsFullFight2D({ trainingDifficulty, keyBindings, 
   const [view, setView] = useState(stateRef.current)
   const gate = useContractPullGate()
   const pause = useRuntimePause(keyBindings.pause)
+  useRuntimeInputClear(() => { commandsRef.current = { ...IDLE_PLAYER_COMMANDS } })
   const selected = contractSelectedMember(gate.selectedSlotId)
 
   function chooseSlot(slotId: string) { gate.setSelectedSlotId(slotId); stateRef.current = prepareSentinelsSlot(stateRef.current, slotId); setView(stateRef.current) }
-  function retry() { stateRef.current = createSentinelsState(gate.selectedSlotId, trainingDifficulty); setView(stateRef.current) }
+  function retry() { pause.reset(); gate.restart(); stateRef.current = createSentinelsState(gate.selectedSlotId, trainingDifficulty); setView(stateRef.current) }
   function dispel() { stateRef.current = dispelSentinels(stateRef.current); setView(stateRef.current) }
   useEncounterActionInput({ actions, role: selected.role, mode: 'learn2d', enabled: gate.phase === 'active', paused: pause.paused, handlers: {
     mainAbility: () => { stateRef.current = startSentinelsMainCast(stateRef.current) },
