@@ -8,9 +8,9 @@ source archaeology, not part of this roadmap.
 
 ## Current release boundary
 
-- `v0.10.0` is the first standalone public release candidate. Its isolated
-  Pages workflow is pushed; public repository visibility, Pages activation,
-  DNS, and custom-domain verification remain external publication gates.
+- `v0.10.0` is the first standalone public release at
+  `https://midnight.asgard.website`. Its isolated Pages workflow, custom domain,
+  approved TLS certificate, and first production response are verified.
 - The repository uses the tagged L’ura v0.9.1 source solely as an immutable
   extraction reference.
 - The inherited L’ura leaderboard remains `season-1` and belongs to the legacy
@@ -79,10 +79,10 @@ slices are ready:
    tests, and branding while preserving the baseline tag and lineage.
 2. `CR-236` — complete: applied the restrained token-driven forest, venom,
    spirit, stone, and bone identity plus procedural encounter floors.
-3. `FR-074` — in progress: dedicated GitHub Pages workflow and
-   `midnight.asgard.website` are pushed with explicit legacy-domain safety
-   checks; repository visibility, Pages activation, DNS, HTTPS, and first-live
-   response remain external gates.
+3. `FR-074` — complete: the dedicated GitHub Pages workflow publishes
+   `midnight.asgard.website` with explicit legacy-domain safety checks; the
+   public repository, Pages deployment, approved certificate, HTTPS response,
+   and deployed version artifact are verified.
 
 Publication does not authorize API `/v2`, rankings, achievements, or a
 leaderboard-season change.

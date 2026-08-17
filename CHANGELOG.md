@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.10.0 · 2026-08-17
+
 - Fixed first-deployment reproducibility by pinning every formerly floating
   `latest` declaration to its exact sec-helper-audited lockfile version.
 - Aligned the GitHub Actions Chromium installation path with the focused
