@@ -4,6 +4,8 @@
 
 - Fixed first-deployment reproducibility by pinning every formerly floating
   `latest` declaration to its exact sec-helper-audited lockfile version.
+- Aligned the GitHub Actions Chromium installation path with the focused
+  Playwright wrapper's repository-local browser path.
 - Prepared the first public Season 2 release candidate at
   `midnight.asgard.website`: the isolated Pages workflow verifies unit tests,
   focused browser behavior, and the static build before deploying through the

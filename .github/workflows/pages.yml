@@ -44,6 +44,8 @@ jobs:
         run: npm ci
       - name: Install browser for UI tests
         run: npx playwright install --with-deps chromium
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.tmp/ms-playwright
       - name: Run focused Season 2 shell regression
         run: ./scripts/test-e2e-focused.sh season2-shell
       - name: Upload failed UI test report
