@@ -711,13 +711,19 @@ export function nextNekzaliTimer(state: NekzaliState) {
     return { label: 'Outward spirits', seconds: 10 - age % 10 }
   }
   if (state.rendStartedAt !== undefined) return { label: 'Rend', seconds: nekzaliRendRemaining(state) }
-  if (state.phase === 'phase-1') return state.time < timing.phaseOneRendStarts[0] ? { label: 'Rend in', seconds: timing.phaseOneRendStarts[0] - state.time } : state.time < timing.phaseOneRendStarts[1] ? { label: 'Rend in', seconds: timing.phaseOneRendStarts[1] - state.time } : state.time < 38 ? { label: 'Barrage in', seconds: 38 - state.time } : state.time < 60 ? { label: 'Adds in', seconds: 60 - state.time } : { label: 'Intermission in', seconds: timing.phaseOneSeconds - state.time }
+  const phaseAge = state.time - state.phaseStartedAt
+  const ignitionStarts = state.phase === 'phase-1' ? timing.phaseOneIgnitionStarts : state.phase === 'phase-2' ? timing.phaseTwoIgnitionStarts : []
+  const activeIgnition = ignitionStarts.find(start => phaseAge >= start && phaseAge < start + 4)
+  if (activeIgnition !== undefined) return { label: 'Soulcoil Ignition', seconds: activeIgnition + 4 - phaseAge }
+  const nextIgnition = ignitionStarts.find(start => start > phaseAge)
+  if (nextIgnition !== undefined && nextIgnition - phaseAge <= 8) return { label: 'Soulcoil Ignition in', seconds: nextIgnition - phaseAge }
+  if (state.phase === 'phase-1') return state.time < timing.phaseOneRendStarts[0] ? { label: 'Rend in', seconds: timing.phaseOneRendStarts[0] - state.time } : state.time < timing.phaseOneRendStarts[1] ? { label: 'Rend in', seconds: timing.phaseOneRendStarts[1] - state.time } : state.time < 38 ? { label: 'Barrage in', seconds: 38 - state.time } : state.time < 42 ? { label: 'Adds in', seconds: 42 - state.time } : { label: 'Intermission in', seconds: timing.phaseOneSeconds - state.time }
   if (state.phase === 'echo-1' || state.phase === 'echo-2') {
     const age = state.time - state.phaseStartedAt
     if (age < SOUL_TRANSFER_SECONDS) return { label: 'Soul Transfer', seconds: SOUL_TRANSFER_SECONDS - age }
     return { label: state.cleanupDuty ? 'Slithering Flame' : 'Hungering Pyre', seconds: timing.pyreSeconds - (age - SOUL_TRANSFER_SECONDS) }
   }
-  const age = state.time - state.phaseStartedAt
+  const age = phaseAge
   for (const start of timing.invokeStarts.map(value => value - 5)) if (age >= start && age < start + 5) return { label: 'Invoke cast', seconds: start + 5 - age }
   const nextInvoke = timing.invokeStarts.map(value => value - 5).find(value => value > age) ?? 65
   return { label: 'Invoke in', seconds: nextInvoke - age }

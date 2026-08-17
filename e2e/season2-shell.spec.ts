@@ -38,6 +38,8 @@ test("discovers all raid panels and launches Nek'zali in separate 2D and 3D aren
   await setup2d.getByRole('button', { name: 'Start', exact: true }).click()
   await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
   const player = page.getByLabel('Controlled warrior tank player')
+  await expect(page.locator('.runtime-status-bar')).toContainText('Soulcoil Ignition')
+  expect(await player.locator('.character-body').evaluate(element => getComputedStyle(element, '::after').content)).toBe('none')
   const before = Number(await player.getAttribute('data-position-y'))
   await page.keyboard.down('w'); await page.waitForTimeout(300); await page.keyboard.up('w')
   expect(Number(await player.getAttribute('data-position-y'))).toBeLessThan(before)

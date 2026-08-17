@@ -69,6 +69,10 @@ from individually accepted encounter evidence and tickets.
   entity-attached effect lifecycles.
 - `BUG-197` — completed under `SPEC-025`: correct the accepted Nek'zali and
   Sentinels sequencing/feedback issues from the 2026-08-16 playtest batch.
+- `BUG-198` — completed: announce Nek'zali's opening Soulcoil Ignition before and
+  during its Anguished Echo pulses so the ground circles are not unexplained.
+- `CR-289` — completed: simplify the shared Learn 2D controlled-player marker to
+  class color, outline, and glow without a decorative weapon or role accessory.
 
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),

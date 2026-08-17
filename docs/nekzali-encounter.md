@@ -70,6 +70,10 @@ projections, never with Test/Easy/Normal/Hard.
 
 - Soulcoil Ignition is a four-second channel. Its one-second pulses create
   Anguished Echo impact circles and advance the Well's Rite state.
+- The primary encounter timer announces the opening and later Ignition casts
+  before their first pulse, then names the active four-second channel while the
+  Anguished Echo circles are visible; they must never appear as unexplained
+  ambient ground effects.
 - Each Rite adds five energy and a 44-second Ritual Burn application. The
   simulation tracks applications independently; they tick every two seconds.
 - One hundred energy begins Uncoiled Rage and fails the attempt after its

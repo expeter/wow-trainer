@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { IDLE_PLAYER_COMMANDS } from '../../platform/train3d/types'
 import { contractRaidRoster } from '../../platform/contractRoom'
-import { createNekzaliState, dispelNekzali, interruptNekzali, NEKZALI_TIMING, nekzaliRendRemaining, nekzaliSnapshot, startNekzaliMainCast, stepNekzaliDiagramState, stepNekzaliState, type NekzaliState } from './simulation'
+import { createNekzaliState, dispelNekzali, interruptNekzali, NEKZALI_TIMING, nekzaliRendRemaining, nekzaliSnapshot, nextNekzaliTimer, startNekzaliMainCast, stepNekzaliDiagramState, stepNekzaliState, type NekzaliState } from './simulation'
 
 const idle = IDLE_PLAYER_COMMANDS
 
@@ -68,6 +68,12 @@ describe("Nek'zali reconciled encounter contract", () => {
     expect(state.bossEnergy).toBeGreaterThan(0)
     expect(state.ritualBurnApplications.length).toBeGreaterThan(0)
     expect(nekzaliSnapshot(state).effects.some(effect => effect.id.startsWith('anguished-'))).toBe(true)
+  })
+
+  it('announces Soulcoil Ignition before and throughout its visible opening pulses', () => {
+    const initial = createNekzaliState('player', 'test', 'learn2d')
+    expect(nextNekzaliTimer(initial)).toEqual({ label: 'Soulcoil Ignition in', seconds: 7 })
+    expect(nextNekzaliTimer({ ...initial, time: 7.5 })).toEqual({ label: 'Soulcoil Ignition', seconds: 3.5 })
   })
 
   it('tracks independently expiring Hollowing Strikes on the active controlled tank', () => {

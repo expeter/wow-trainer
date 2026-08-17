@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Made Nek'zali's Soulcoil Ignition timer announce the opening and active
+  Anguished Echo pulses instead of letting their circles appear unexplained.
+  Simplified the shared Learn 2D player silhouette to class color, outline, and
+  glow by removing its decorative staff and role accessory.
+
 - Completed the entity-owned mechanic and locomotion correction across the
   contract rooms, Nek'zali, and Entombed Sentinels. Shared actors retain class
   color, role silhouette, auras, timers, and attached effects; NPCs now travel

@@ -800,6 +800,9 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   role silhouette, aura icons, attached timers, and mechanic intent remain
   consistent across the contract room and every encounter; projection-specific
   renderers may change scale and dimensional presentation only.
+- The shared Learn 2D controlled-player silhouette uses the selected class
+  color, light outline, and glow for identity. It does not invent a staff,
+  shield, weapon, or class-fantasy hat that is not part of encounter state.
 - World effects remain detached arena entities: persistent ground zones,
   launched projectiles, impact waves, corpses/objectives, and explicit realm
   geometry. Their lifecycle is never inferred from renderer coordinates.

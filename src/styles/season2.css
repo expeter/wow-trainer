@@ -227,10 +227,6 @@
 .learn2d-character.player .character-body { border-color: #fff0a5; background: #b49430; box-shadow: 0 0 0 4px rgba(242, 211, 107, .16), 0 0 20px rgba(242, 211, 107, .42); }
 .learn2d-character.player[data-player-class] .character-body { inset: 10px 13px 7px; border-radius: 42% 42% 34% 34%; background: var(--player-class-color); }
 .learn2d-character.player[data-player-class] .character-body::before { content: ''; position: absolute; left: 50%; top: -9px; width: 14px; height: 14px; transform: translateX(-50%); border: 2px solid rgba(255,255,255,.78); border-radius: 50%; background: #d6ad8d; box-shadow: -11px 8px 0 -4px var(--player-class-color), 11px 8px 0 -4px var(--player-class-color); }
-.learn2d-character.player[data-player-class] .character-body::after { content: ''; position: absolute; right: -8px; top: 5px; width: 4px; height: 22px; transform: rotate(-24deg); border-radius: 3px; background: #d8c9a5; box-shadow: 0 0 0 1px rgba(0,0,0,.42); }
-.learn2d-character.player[data-player-class='warrior'] .character-body::after,
-.learn2d-character.player[data-player-class='paladin'] .character-body::after,
-.learn2d-character.player[data-player-class='death-knight'] .character-body::after { right: auto; left: -9px; top: 7px; width: 13px; height: 17px; transform: none; border: 2px solid rgba(255,255,255,.55); border-radius: 50% 50% 6px 6px; background: var(--player-class-color); }
 .toxin-icons { position: absolute; z-index: 3; left: 50%; bottom: calc(100% - 4px); transform: translateX(-50%); display: flex; gap: 2px; min-width: max-content; padding: 2px 3px; border-radius: 4px; background: rgba(5, 9, 13, .78); }
 .toxin-icon { width: 8px; height: 8px; display: block; border: 1px solid rgba(255, 255, 255, .52); border-radius: 2px; transform: rotate(45deg); }
 .toxin-icon.green { background: #6ce58d; box-shadow: 0 0 5px rgba(108, 229, 141, .7); }
