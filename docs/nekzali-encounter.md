@@ -1,6 +1,7 @@
 # Nek'zali the Soulcoiler encounter specification
 
-Tickets: `SPEC-022`, `SPEC-024`, `SPEC-025`, `FR-082`, `FR-083`, `CR-286`, `BUG-195`–`BUG-200`
+Tickets: `SPEC-022`, `SPEC-024`, `SPEC-025`, `FR-082`, `FR-083`, `CR-286`,
+`CR-290`, `BUG-195`–`BUG-207`
 
 This is the canonical, iterative trainer definition for Nek'zali. The supplied
 2026-08-16 research is source evidence, not a second implementation contract.
@@ -142,6 +143,10 @@ projections, never with Test/Easy/Normal/Hard.
 - NPC realm participants move to the Well, transfer realms explicitly, and
   later return; the transition is not an ordinary position jump. Outer-realm
   actors continue bounded locomotion around the lethal Well.
+- Inside-realm NPCs retain persistent positions and roam at bounded speed. They
+  select destinations clear of the orbiting and outward spirit hazards and
+  actively leave a hazard that reaches them instead of standing in a fixed
+  renderer-owned circle.
 - Inside, Main kills the Drowned Echo in 20 hits. The player must interrupt its
   ten-second assigned cast while avoiding orbiting and outward spirits.
 - Nek'zali's three-second disruption cancels a Main cast if it completes during
@@ -158,8 +163,9 @@ projections, never with Test/Easy/Normal/Hard.
 - Grasping Depths does not occur during this trainer intermission.
 - Two Echoes activate sequentially. Soul Transfer is a 15-second line hazard
   from Nek'zali to the active Echo.
-- Nek'zali is visibly unavailable while the raid moves at bounded speed toward
-  the active Echo; mechanic carriers never acquire replacement coordinates.
+- Nek'zali is visibly unavailable while the complete raid moves at bounded
+  speed around the lethal Well and reaches and surrounds the active Echo before
+  its soak; mechanic carriers never acquire replacement coordinates.
 - The main raid receives Hungering Pyre and soaks the 7.5-yard split. Assigned
   cleanup players stay out, receive Slithering Flame, spread, and place their
   four-yard Cremation explosions on visible Vessels.
@@ -173,9 +179,10 @@ projections, never with Test/Easy/Normal/Hard.
   proxy.
 - Invoke is a five-second cast and advances the Rite state. In the accepted
   trainer contract every persistent Latent Cultist instead orbits continuously
-  and slowly throughout Phase 2 while retaining its drop radius. Deterministic
-  varied speeds and clockwise/counter-clockwise directions prevent a memorized
-  gap without teleporting; later Rend remains join the same field.
+  and slowly throughout Phase 2 while retaining its drop radius. Every Cultist
+  begins clockwise at a varied deterministic speed, so their order changes
+  gradually without teleporting or frequently changing paths; later Rend
+  remains join the same field.
 - A player caught casting is silenced for three seconds. Later Rend removals
   join the persistent field and move on subsequent Invokes.
 - One hundred Well energy is terminal; zero boss health completes the lesson.
@@ -183,8 +190,10 @@ projections, never with Test/Easy/Normal/Hard.
 ## Validation
 
 Coverage must prove both schedules, debuff/removal state, edge auto-dispel,
-healer dispel assignment, exactly one persistent remain, continuous bounded
-Phase 2 orbits, three-second Cremation fire, complete realm return, Pyre/cleanup
-assignments, 10-second interrupt, persistent NPC and arena timelines,
-shield-before-health Amani damage without NPC killing blows, Barrage evacuation,
-tank swap, and identical mechanics across trainer difficulty.
+healer dispel assignment, exactly one persistent remain, rendered continuous
+clockwise Phase 2 orbits, three-second Cremation fire, complete realm return,
+Pyre/cleanup assignments, full-roster arrival around each Echo, 10-second
+interrupt, persistent and hazard-aware Well NPC movement, persistent NPC and
+arena timelines, shield-before-health Amani damage without NPC killing blows,
+full-roster Barrage evacuation, tolerated-failure progression, tank swap, and
+identical mechanics across trainer difficulty.

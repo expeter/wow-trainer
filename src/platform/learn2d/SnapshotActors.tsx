@@ -11,10 +11,13 @@ interface SnapshotActorsProps {
 }
 
 export function SnapshotActorAuras({ actor, time }: { actor: ActorSnapshot; time: number }) {
-  const tones = actor.auras.flatMap(aura => Array.from({ length: aura.stacks }, () => aura.tone))
+  const compactStacks = new Set(['acid-mark', 'blood-mark', 'empowering-slam', 'bloodvenom-injection'])
+  const entries = actor.auras.flatMap(aura => compactStacks.has(aura.id)
+    ? [{ tone: aura.tone, stacks: aura.stacks }]
+    : Array.from({ length: aura.stacks }, () => ({ tone: aura.tone })))
   const timer = actor.auras.find(aura => aura.expiresAt !== undefined && aura.expiresAt > time)
   return <>
-    {tones.length > 0 && <AuraIcons tones={tones} label={actor.auras.map(aura => `${aura.stacks} ${aura.id}`).join(', ')} />}
+    {entries.length > 0 && <AuraIcons entries={entries} label={actor.auras.map(aura => `${aura.stacks} ${aura.id}`).join(', ')} />}
     {timer && <i className="attached-aura-timer">{timer.label ?? timer.id} {Math.max(0, timer.expiresAt! - time).toFixed(1)}s</i>}
   </>
 }
@@ -28,6 +31,8 @@ export default function SnapshotActors({ actors, xPercent, zPercent, time, kinds
       data-actor-id={actor.id}
       data-actor-role={actor.role}
       data-player-class={actor.playerClass}
+      data-position-x={actor.position.x.toFixed(3)}
+      data-position-y={actor.position.z.toFixed(3)}
       style={{ left: `${xPercent(actor.position.x)}%`, top: `${zPercent(actor.position.z)}%`, '--actor-color': actor.color } as CSSProperties}
       aria-label={`${actor.role ?? actor.kind} NPC`}
     >

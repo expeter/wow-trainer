@@ -77,22 +77,33 @@ from individually accepted encounter evidence and tickets.
   after-images into raid-targeted telegraphs that resolve once and disappear.
 - `BUG-200` — implemented corrective regression: removed Essence Rend's obsolete
   forced movement and reserved inward Well movement for Grasping Depths.
-- `CR-290` — completed: replaced abrupt fixed-angle Invoke jumps with continuous,
-  deterministic slow Phase 2 Cultist orbits.
+- `CR-290` — completed after reopening: rendered browser samples prove visibly
+  continuous clockwise Phase 2 Cultist movement with varied speeds and no jumps.
 - `BUG-201` — completed: enforce persistent Cultist, three-second Cremation fire,
   and complete Well return lifecycles.
-- `BUG-202` — completed: keep intermission mechanics attached to bounded NPCs,
-  move the raid toward each active Echo, and show Nek'zali as unavailable.
+- `BUG-202` — completed after reopening: the full intermission raid visibly
+  reaches and surrounds each active Echo before its soak while retaining
+  bounded travel, attached Cremation, and Nek'zali's unavailable state.
 - `BUG-203` — completed: clarify the five-second Well return, failed interrupt,
   and non-failure cast-disruption feedback.
 - `BUG-204` — completed: prevent NPCs from killing the player's marked Amani and
   restore credible add pressure toward the Well.
 - `FR-093` — backlog: review a reusable Death Knight grip assignment/action
   without silently adding a new player CC binding.
-- `BUG-205` — completed: correct NPC Barrage evacuation and improve tank,
-  projectile, countdown, and assisted impact-area presentation.
-- `BUG-206` — completed: restore the yellow current/next raid-lead telegraph in
-  Learn 2D while retaining configured HUD placement in Train 3D.
+- `BUG-205` — completed after reopening: full-roster simulation and rendered
+  carrier checks prove every non-target NPC evacuates Barrage before resolution.
+- `BUG-206` — completed with visibility correction: use a conspicuous yellow
+  current/next raid-lead panel in every Learn 2D arena and the configured
+  mechanic-HUD position in Train 3D; browser coverage verifies its rendered
+  colors and top-left 2D placement rather than DOM presence alone.
+- `BUG-207` — completed: Well-realm NPCs use persistent bounded movement and
+  spirit-aware roaming instead of a fixed renderer-owned circle.
+- `BUG-208` — completed: Sentinels side marks use one attached icon and numeric
+  stack while preserving four-icon Helical reading.
+- `BUG-209` — completed: the player's Protovenom partner remains safely
+  reachable and all Sentinels NPC paths avoid poison edges and pools.
+- `CR-291` — completed: Keys & Mouse uses distinct Learn 2D, Train 3D,
+  mouse-camera, and shared-action sections with aligned readable controls.
 
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),

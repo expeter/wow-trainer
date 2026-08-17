@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Split Keys & Mouse into dedicated Learn 2D, Train 3D, mouse-camera, and
+  shared-action sections. Binding labels no longer truncate, and their readable
+  value buttons align to a consistent height.
+- Corrected the raid-lead telegraph that was technically present but visually
+  looked like another dark HUD panel. Every Learn 2D arena now exposes the same
+  conspicuous yellow current/next display in its top-left corner, while Train
+  3D applies that treatment at the configured mechanic-HUD position.
+- Corrected the fresh Entombed Sentinels feedback: accumulating side marks now
+  use one icon per mark type with a numeric stack, the controlled player's
+  Protovenom partner remains safely reachable, and NPC locomotion stays inside
+  the playable floor while evacuating and routing around poison pools.
+- Strengthened Nek'zali's rendered full-fight behavior: Well NPCs roam and
+  dodge spirits, the full raid reaches each Echo, every Barrage bystander
+  evacuates, and Phase 2 Cultists move continuously clockwise at varied speeds.
+  Assisted profiles also advance after a tolerated mechanic failure instead of
+  becoming stuck at zero seconds.
 - Corrected the fresh Nek'zali full-fight regression pass. Phase 2 Latent
   Cultists now orbit continuously at varied deterministic slow speeds instead
   of jumping; persistent hazards survive realm transitions while three-second

@@ -40,7 +40,18 @@ test("discovers all raid panels and launches Nek'zali in separate 2D and 3D aren
   const player = page.getByLabel('Controlled warrior tank player')
   const raidLead = page.getByLabel('Raid lead mechanic telegraph')
   await expect(raidLead).toBeVisible()
+  await expect(raidLead).toContainText('Now')
   await expect(raidLead).toContainText('Soulcoil Ignition')
+  const raidLeadStyle = await raidLead.evaluate(element => ({
+    background: getComputedStyle(element).backgroundColor,
+    color: getComputedStyle(element).color,
+    left: element.getBoundingClientRect().left - element.parentElement!.getBoundingClientRect().left,
+    top: element.getBoundingClientRect().top - element.parentElement!.getBoundingClientRect().top,
+  }))
+  expect(raidLeadStyle.background).toBe('rgba(243, 216, 113, 0.96)')
+  expect(raidLeadStyle.color).toBe('rgb(23, 18, 8)')
+  expect(raidLeadStyle.left).toBeGreaterThanOrEqual(12)
+  expect(raidLeadStyle.top).toBeGreaterThanOrEqual(12)
   await expect(page.locator('.runtime-status-bar')).toContainText('Soulcoil Ignition')
   expect(await player.locator('.character-body').evaluate(element => getComputedStyle(element, '::after').content)).toBe('none')
   const before = Number(await player.getAttribute('data-position-y'))
@@ -134,7 +145,50 @@ test("keeps Nek'zali mechanic coaching compact and assignment-neutral before sel
   await expect(mechanic.getByLabel('Action state')).toHaveCount(0)
   await expect(mechanic).not.toContainText(/Take Essence Rend|assigned adds|soak group/)
   await expect(mechanic).toContainText(/Soulcoil Ignition in ~\d+s/)
+  await expect(mechanic).toHaveCSS('background-color', 'rgba(243, 216, 113, 0.96)')
+  await expect(mechanic).toHaveCSS('color', 'rgb(23, 18, 8)')
   expect((await mechanic.boundingBox())!.width).toBeLessThanOrEqual(270)
+})
+
+test("renders Nek'zali Phase 2 Cultists as continuous clockwise motion", async ({ page }) => {
+  test.setTimeout(90_000)
+  await page.clock.install()
+  await page.goto('/')
+  await page.getByRole('group', { name: 'Trainer difficulty' }).getByRole('button', { name: 'Test' }).click()
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()
+  const setup = page.getByRole('dialog', { name: "Nek'zali encounter setup" })
+  await setup.getByRole('button', { name: /Ranged 1, mage/ }).click()
+  await setup.getByRole('button', { name: 'Start' }).click()
+  await page.clock.runFor(3_100)
+  await page.clock.runFor(44_800)
+  const barrageCarrier = page.locator('.contract-raid-member').filter({ has: page.locator('.platform-aura-icons[aria-label*="possession-barrage"]') })
+  await expect(barrageCarrier).toHaveCount(1)
+  const carrierPosition = { x: Number(await barrageCarrier.getAttribute('data-position-x')), y: Number(await barrageCarrier.getAttribute('data-position-y')) }
+  const bystanderPositions = await page.locator('.contract-raid-member').evaluateAll((elements, carrierId) => elements.filter(element => element.getAttribute('data-actor-id') !== carrierId).map(element => ({ x: Number(element.getAttribute('data-position-x')), y: Number(element.getAttribute('data-position-y')) })), await barrageCarrier.getAttribute('data-actor-id'))
+  expect(bystanderPositions.every(position => Math.hypot(position.x - carrierPosition.x, position.y - carrierPosition.y) > 11)).toBe(true)
+
+  await page.clock.runFor(51_200)
+  await expect(page.locator('.runtime-status-bar')).toContainText('INTERMISSION')
+  const echoRaid = await page.locator('.contract-raid-member').evaluateAll(elements => elements.map(element => ({ x: Number(element.getAttribute('data-position-x')), y: Number(element.getAttribute('data-position-y')) })))
+  expect(echoRaid.filter(position => Math.hypot(position.x, position.y + 34) <= 14).length).toBeGreaterThanOrEqual(15)
+
+  await page.clock.runFor(44_000)
+  await expect(page.locator('.runtime-status-bar')).toContainText('P2')
+  const cultists = page.locator('[data-effect-id^="rend-"]')
+  await expect(cultists).toHaveCount(2)
+  const first = cultists.first()
+  const samples: { x: number; y: number }[] = []
+  for (let index = 0; index < 4; index += 1) {
+    samples.push({ x: Number(await first.getAttribute('data-position-x')), y: Number(await first.getAttribute('data-position-y')) })
+    await page.clock.runFor(250)
+  }
+  for (let index = 1; index < samples.length; index += 1) {
+    const displacement = Math.hypot(samples[index].x - samples[index - 1].x, samples[index].y - samples[index - 1].y)
+    expect(displacement).toBeGreaterThan(.1)
+    expect(displacement).toBeLessThan(1)
+  }
+  const cross = samples[0].x * samples.at(-1)!.y - samples[0].y * samples.at(-1)!.x
+  expect(cross).toBeGreaterThan(0)
 })
 
 test("makes Nek'zali Anguished Echo a resolving danger telegraph", async ({ page }) => {
@@ -234,6 +288,21 @@ test('launches the single Entombed Sentinels full fight in separate 2D and 3D ar
   await page.keyboard.press('f')
   await expect(page.locator('.arena-hud-castbar')).toBeVisible()
   await expect.poll(async () => Number(await canvas.getAttribute('data-player-main-effect-count')), { timeout: 2500 }).toBeGreaterThan(0)
+})
+
+test('keeps Sentinels marks compact and its Learn 2D raid telegraph conspicuous', async ({ page }) => {
+  await page.clock.install()
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
+  await page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' }).getByRole('button', { name: 'Start' }).click()
+  await page.clock.runFor(3_100)
+  const raidLead = page.getByLabel('Raid lead mechanic telegraph')
+  await expect(raidLead).toBeVisible()
+  await expect(raidLead).toHaveCSS('background-color', 'rgba(243, 216, 113, 0.96)')
+  await page.clock.runFor(10_200)
+  const playerAuras = page.getByLabel(/Controlled .* player/).locator('.platform-aura-icons')
+  await expect(playerAuras.locator('.platform-aura-icon.poison')).toHaveCount(1)
+  await expect(playerAuras.locator('.platform-aura-icon.poison b')).toHaveText('2')
 })
 
 test('moves independently in all four Learn 2D directions and clears input on blur', async ({ page }) => {
@@ -379,7 +448,16 @@ test('uses independently rebound movement keys, shared HUD settings, and paused 
   await page.getByRole('button', { name: 'Keys & Mouse' }).click()
   const inputPanel = page.getByRole('group', { name: 'Input bindings' })
   await expect(inputPanel).toBeVisible()
-  expect((await inputPanel.boundingBox())!.height).toBeLessThan(420)
+  expect((await inputPanel.boundingBox())!.height).toBeLessThan(520)
+  const learnBindings = inputPanel.getByRole('region', { name: 'Learn 2D movement' })
+  const trainBindings = inputPanel.getByRole('region', { name: 'Train 3D movement' })
+  const mouseBindings = inputPanel.getByRole('region', { name: 'Mouse camera' })
+  const [learnBox, trainBox, mouseBox] = await Promise.all([learnBindings.boundingBox(), trainBindings.boundingBox(), mouseBindings.boundingBox()])
+  expect(learnBox?.y).toBeCloseTo(trainBox!.y, 0)
+  expect(trainBox?.y).toBeCloseTo(mouseBox!.y, 0)
+  const movementButtons = inputPanel.getByRole('button', { name: /Rebind (Learn 2D|Train 3D) movement/ })
+  expect(await movementButtons.first().evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(12)
+  expect((await movementButtons.first().boundingBox())?.height).toBe((await movementButtons.nth(1).boundingBox())?.height)
   await page.getByRole('button', { name: 'Rebind Train 3D movement forward, current W' }).click()
   await page.keyboard.press('ArrowUp')
   await page.reload()

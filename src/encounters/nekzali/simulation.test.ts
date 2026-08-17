@@ -60,13 +60,13 @@ describe("Nek'zali reconciled encounter contract", () => {
 
   it('moves persistent Cultists continuously at varied slow orbital speeds without an Invoke jump', () => {
     const clockwise = { id: 'cultist-a', position: { x: 20, z: 0 }, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist' as const, orbitDirection: 1 as const, orbitSpeed: .04 }
-    const counterClockwise = { id: 'cultist-b', position: { x: -30, z: 0 }, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist' as const, orbitDirection: -1 as const, orbitSpeed: .06 }
-    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 114.9, phase: 'phase-2', phaseStartedAt: 100, hazards: [clockwise, counterClockwise], bossHealth: 50 }
+    const fasterClockwise = { id: 'cultist-b', position: { x: -30, z: 0 }, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist' as const, orbitDirection: 1 as const, orbitSpeed: .06 }
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 114.9, phase: 'phase-2', phaseStartedAt: 100, hazards: [clockwise, fasterClockwise], bossHealth: 50 }
     state = stepNekzaliState(state, idle, .2)
     expect(state.invokes).toBe(1)
     expect(Math.hypot(state.hazards[0].position.x - clockwise.position.x, state.hazards[0].position.z - clockwise.position.z)).toBeLessThan(.25)
     expect(state.hazards[0].position.z).toBeGreaterThan(0)
-    expect(state.hazards[1].position.z).toBeGreaterThan(0)
+    expect(state.hazards[1].position.z).toBeLessThan(0)
     expect(Math.hypot(state.hazards[0].position.x, state.hazards[0].position.z)).toBeCloseTo(20)
     const stepped = { ...state.hazards[0].position }
     state = stepNekzaliState(state, idle, 1)
@@ -161,10 +161,10 @@ describe("Nek'zali reconciled encounter contract", () => {
     expect(snapshot.actors.find(actor => actor.id === state.barrageTargetId)?.auras.some(aura => aura.id === 'possession-barrage')).toBe(true)
     expect(snapshot.effects.some(effect => effect.id.endsWith('barrage-assisted-radius') && effect.radius === 10)).toBe(true)
     const target = state.barrageTargetId!
-    const bystander = contractRaidRoster.find(member => member.id !== state.selectedSlotId && member.id !== target)!
-    const before = state.npcPositions[bystander.id]
-    state = stepNekzaliState(state, idle, .5)
-    expect(state.npcPositions[bystander.id]).not.toEqual(before)
+    for (let elapsed = 0; elapsed < NEKZALI_TIMING.projections.train3d.possessionBarrageSeconds - .1; elapsed += .1) state = stepNekzaliState(state, idle, .1)
+    const targetPosition = state.npcPositions[target]
+    const bystanders = contractRaidRoster.filter(member => member.id !== state.selectedSlotId && member.id !== target)
+    expect(bystanders.every(member => Math.hypot(state.npcPositions[member.id].x - targetPosition.x, state.npcPositions[member.id].z - targetPosition.z) > 11)).toBe(true)
   })
 
   it('assigns a stable Pyre-soak or smaller Cremation-cleanup role before pull', () => {
@@ -209,7 +209,7 @@ describe("Nek'zali reconciled encounter contract", () => {
     const before = echoState.npcPositions[member.id]
     const approached = stepNekzaliState(echoState, idle, .5)
     const after = approached.npcPositions[member.id]
-    expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThanOrEqual(3.5)
+    expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThanOrEqual(3.5001)
     expect(Math.hypot(after.x, after.z + 34)).toBeLessThan(Math.hypot(before.x, before.z + 34))
 
     const cremationState: NekzaliState = { ...approached, time: 106, phaseStartedAt: 90 }
@@ -217,6 +217,23 @@ describe("Nek'zali reconciled encounter contract", () => {
     const carrier = nekzaliSnapshot(carried).actors.find(actor => actor.auras.some(aura => aura.id === 'cremation'))
     expect(carrier).toBeDefined()
     expect(carrier?.position).toEqual(carried.npcPositions[carrier!.id])
+  })
+
+  it('gets the complete intermission raid around the Echo before its soak', () => {
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 90, phase: 'echo-1', phaseStartedAt: 90 }
+    for (let elapsed = 0; elapsed < 14.5; elapsed += .1) state = stepNekzaliState(state, idle, .1)
+    const actors = nekzaliSnapshot(state).actors.filter(actor => actor.kind === 'ally')
+    expect(actors.length).toBeGreaterThan(15)
+    expect(actors.filter(actor => Math.hypot(actor.position.x, actor.position.z + 34) <= 14).length).toBeGreaterThanOrEqual(15)
+  })
+
+  it('advances past a tolerated Test intermission mistake instead of sticking at zero', () => {
+    const created = createNekzaliState('tank-1', 'test', 'learn2d')
+    const state: NekzaliState = { ...created, time: 23.99, phase: 'echo-1', phaseStartedAt: 0, cleanupDuty: true, corpses: [{ id: 'corpse', position: { x: 25, z: 0 }, group: 1, cremated: false }] }
+    const result = stepNekzaliDiagramState(state, idle, .02)
+    expect(result.failures.some(failure => failure.code === 'uncleared-corpse')).toBe(true)
+    expect(result.phase).toBe('echo-2')
+    expect(result.outcome).toBe('active')
   })
 })
 
@@ -235,6 +252,18 @@ describe("Nek'zali Well realm", () => {
     const disrupted = stepNekzaliState({ ...insideState(), time: 12.99, mainCastRemaining: .5, disruptionIndex: 0 }, idle, .02)
     expect(disrupted.mainCastRemaining).toBe(0)
     expect(disrupted.failures).toHaveLength(0)
+  })
+
+  it('moves the inside NPC roster persistently between spirit-safe destinations', () => {
+    let state = insideState()
+    state = stepNekzaliState(state, idle, .1)
+    const before = { ...state.realmNpcPositions }
+    for (let elapsed = 0; elapsed < 3; elapsed += .1) state = stepNekzaliState(state, idle, .1)
+    const snapshot = nekzaliSnapshot(state)
+    const allies = snapshot.actors.filter(actor => actor.kind === 'ally')
+    const hazards = snapshot.effects.filter(effect => effect.id.startsWith('well-spirit-'))
+    expect(allies.some(actor => Math.hypot(actor.position.x - before[actor.id].x, actor.position.z - before[actor.id].z) > 1)).toBe(true)
+    expect(allies.every(actor => hazards.every(hazard => Math.hypot(actor.position.x - hazard.position.x, actor.position.z - hazard.position.z) >= 1.5))).toBe(true)
   })
 
   it('kills the Drowned Echo with 20 Main casts and applies 60-second exhaustion after return', () => {

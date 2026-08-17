@@ -15,6 +15,7 @@ import { activeContractEvent2D, contractGroundSlots2D, contractRaidPosition2D, c
 import type { DiagramDirection } from './movement'
 import SnapshotEffects from './SnapshotEffects'
 import SnapshotActors, { SnapshotActorAuras } from './SnapshotActors'
+import RaidLeadTelegraph from './RaidLeadTelegraph'
 import { beginEncounterAction } from '../encounters/timeline'
 import { ambientNpcPosition } from '../encounters/ambientNpc'
 
@@ -97,6 +98,7 @@ export default function ContractRoom2D({ keyBindings, actions: actionRegistry, h
     <section className="training-runtime-layout arena-only">
       <div className="learn2d-stage">
         <div className="learn2d-arena-frame"><div className="learn2d-board contract-2d-board" aria-label="Top-down contract training arena" data-raid-size={contractRaidRoster.length}>
+          <RaidLeadTelegraph current={`Match the ${event.tone} rune`} nextLabel="Resolve" nextSeconds={Math.max(0, CONTRACT_LANDING_SECONDS - age)} />
           <div className="contract-2d-boss" aria-label="Training boss"><span>BOSS</span><i className="actor-health"><b style={{ width: '100%' }} /></i></div>
           <SnapshotEffects effects={combatEffects} actors={combatActors} width={100} depth={60} />
           {event.groundObjects.map(object => {

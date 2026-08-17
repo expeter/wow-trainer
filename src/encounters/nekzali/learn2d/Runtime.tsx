@@ -5,6 +5,7 @@ import { encounterActionLegend, useEncounterActionInput, type EncounterRuntimePr
 import RuntimeFeedback from '../../../platform/RuntimeFeedback'
 import RuntimeOutcomeOverlay from '../../../platform/RuntimeOutcomeOverlay'
 import RuntimeStatusBar from '../../../platform/RuntimeStatusBar'
+import RaidLeadTelegraph from '../../../platform/learn2d/RaidLeadTelegraph'
 import SnapshotEffects from '../../../platform/learn2d/SnapshotEffects'
 import SnapshotActors, { SnapshotActorAuras } from '../../../platform/learn2d/SnapshotActors'
 import { ActorMainCastBar, EncounterCastBars } from '../../../platform/TrainingHud'
@@ -68,7 +69,7 @@ export default function NekzaliLearn2D({ trainingDifficulty, keyBindings, action
   return <main className="training-shell nekzali-runtime">
     <RuntimeStatusBar meta={`NEK'ZALI · FULL FIGHT · ${trainingDifficulty.toUpperCase()} · ${selected.role.toUpperCase()} · REALM GROUP ${view.wellGroup}`} title="Nek'zali tactical full fight" status={`${inRealm ? 'WELL REALM' : phaseLabel} · ${activeNekzaliPrompt(view)} · ${timer.label} ${Math.max(0, Math.ceil(timer.seconds))}s`} paused={pause.paused} pauseKey={keyBindings.pause} onTogglePause={pause.toggle} onExit={onExit} />
     <section className="training-runtime-layout arena-only"><div className="learn2d-stage"><div className="learn2d-arena-frame"><div className={`learn2d-board nekzali-2d-board${inRealm ? ' realm-active' : ''}`} aria-label="Nek'zali raid-plan training arena" style={{ '--nekzali-plan': `url(${RAID_PLAN})` } as CSSProperties}>
-      <div className="learn2d-raidlead-telegraph" aria-label="Raid lead mechanic telegraph"><small>Raid lead</small><strong>{activeNekzaliPrompt(view)}</strong><span>Next · {timer.label} {Math.max(0, Math.ceil(timer.seconds))}s</span></div>
+      <RaidLeadTelegraph current={activeNekzaliPrompt(view)} nextLabel={timer.label} nextSeconds={timer.seconds} />
       <SnapshotEffects effects={snapshot.effects} actors={snapshot.actors} width={90} depth={90} />
       {view.corpses.filter(corpse => !corpse.cremated).map(corpse => <div key={corpse.id} className="nekzali-2d-corpse" aria-label="Amani remains" style={{ left: `${percent(corpse.position.x)}%`, top: `${percent(corpse.position.z)}%` }}>☠</div>)}
       {snapshot.actors.filter(actor => actor.kind === 'boss' || actor.kind === 'enemy').map(actor => <div key={actor.id} className={`nekzali-2d-enemy ${actor.kind}${actor.id === 'nekzali-boss' ? actor.auras.some(aura => aura.id === 'unavailable') ? ' unavailable' : ownsAggro ? ' owned' : ' hostile' : ''}`} style={{ left: `${percent(actor.position.x)}%`, top: `${percent(actor.position.z)}%`, '--enemy-color': actor.color } as CSSProperties} aria-label={actor.id === 'nekzali-boss' ? `Nek'zali · ${actor.auras.some(aura => aura.id === 'unavailable') ? 'unavailable' : ownsAggro ? 'your aggro' : 'no aggro'}` : actor.id}><span>{actor.id === 'nekzali-boss' ? 'N' : actor.id.startsWith('echo') ? 'E' : 'A'}</span><i className="actor-health"><b style={{ width: `${actor.health ?? 100}%` }} /></i></div>)}

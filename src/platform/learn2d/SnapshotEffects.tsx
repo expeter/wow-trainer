@@ -27,6 +27,8 @@ export default function SnapshotEffects({ effects, width, depth, actors = [] }: 
       data-effect-id={effect.id}
       data-effect-kind={effect.kind}
       data-effect-owner={effect.ownerId}
+      data-position-x={rendered.x.toFixed(3)}
+      data-position-y={rendered.z.toFixed(3)}
       data-effect-intent={effect.kind === 'ground-soak' ? 'soak' : effect.kind === 'ground-harmful' || effect.kind === 'ground-spread' || effect.kind === 'lane' ? 'avoid' : effect.kind === 'ground-objective' ? 'objective' : undefined}
       data-projectile-shape={effect.projectileShape}
       className={`nekzali-2d-effect ${effectClass(effect.kind)}${effect.filled === false ? ' outline' : ''}`}

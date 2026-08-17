@@ -56,6 +56,7 @@ export interface SentinelsState {
   protovenomActive: boolean
   protovenomResolved: boolean
   protovenomCarrierIds: readonly string[]
+  protovenomPartnerPosition?: WorldPoint
   helicalResolved: boolean
   helicalResolvedAt?: number
   coagulationHealth: number
@@ -295,7 +296,8 @@ function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds
     const others = contractRosterForSlot(next.selectedSlotId).filter(candidate => !candidate.controlled)
     const carriers = [next.selectedSlotId, ...others.filter((_candidate, index) => (index + next.cycle) % 4 === 0).slice(0, 5).map(candidate => candidate.id)]
     const timeline = carriers.reduce((current, carrierId) => applyEncounterMechanic(current, { id: carrierId === next.selectedSlotId ? 'controlled-player' : carrierId, kind: carrierId === next.selectedSlotId ? 'controlled-player' : 'raid-npc' }, { id: `protovenom-${next.cycle}`, kind: 'paired-proximity', sourceId: 'blood-of-ulatek', stacks: 1 }), next.timeline)
-    next = { ...next, timeline, protovenomActive: true, protovenomCarrierIds: carriers }
+    const partnerId = carriers.find(id => id !== next.selectedSlotId)
+    next = { ...next, timeline, protovenomActive: true, protovenomCarrierIds: carriers, protovenomPartnerPosition: partnerId ? next.npcPositions[partnerId] : undefined }
   }
   if (next.protovenomActive && !next.protovenomResolved) {
     const nearby = contractRosterForSlot(next.selectedSlotId).filter(candidate => !candidate.controlled).map(candidate => ({ candidate, position: memberPosition(candidate, next) })).find(entry => distance(player, entry.position) < 2.5)
@@ -345,7 +347,7 @@ function stepStasis(state: SentinelsState, commands: PlayerCommandState, seconds
       bloodBoss: next.bloodBoss,
       acidMarks: activeApplications(next.acidMarkApplications, next.time).length, bloodMarks: activeApplications(next.bloodMarkApplications, next.time).length, lastMarkAt: next.time, droplets: [], dropletsSpawned: false, dropletsSpawnedAt: undefined,
       miasmaResolved: false, puddleDropAt: undefined, npcPoolsDropped: false, blightedActive: false, blightedResolved: false, blightedAppliedAt: undefined, blightedTargetId: undefined,
-      protovenomActive: false, protovenomResolved: false, protovenomCarrierIds: [], helicalResolved: false,
+      protovenomActive: false, protovenomResolved: false, protovenomCarrierIds: [], protovenomPartnerPosition: undefined, helicalResolved: false,
       helicalResolvedAt: undefined, coagulationHealth: 100, coagulationFailed: false, empoweringSlamStacks: 0, bloodvenomInjectionStacks: 0,
     }
   }
@@ -423,10 +425,12 @@ function memberDestination(member: ContractRaidMember, state: SentinelsState): W
     return target
   }
   if (state.protovenomActive) {
+    const playerPartnerId = state.protovenomCarrierIds.find(id => id !== state.selectedSlotId)
+    if (member.id === playerPartnerId) return state.protovenomPartnerPosition ?? formationPosition(member, state)
     const spreadIndex = Math.max(0, contractRaidRoster.findIndex(candidate => candidate.id === member.id))
     const angle = spreadIndex / contractRaidRoster.length * Math.PI * 2
     const centre = homeForSide(side, state.cycle)
-    return { x: centre.x + Math.cos(angle) * 22, z: centre.z + Math.sin(angle) * 22 }
+    return { x: centre.x + Math.cos(angle) * 14, z: centre.z + Math.sin(angle) * 14 }
   }
   if (state.dropletsSpawned) {
     const npcDroplets = state.droplets.filter(droplet => droplet.side === side && !droplet.soaked && (!droplet.assignedToPlayer || state.assignedSide !== side))
@@ -461,7 +465,8 @@ function advanceSentinelsNpcMotion(state: SentinelsState, seconds: number): Sent
   const destinations = Object.fromEntries(roster.map(member => [member.id, memberDestination(member, state)]))
   const positions = advanceEntityMotions(state.npcPositions, destinations, seconds, id => ({
     speed: id.startsWith('tank-') ? 7 : 6.6,
-    bounds: { halfWidth: sentinelsArena.width / 2 - 4, halfDepth: sentinelsArena.depth / 2 - 4 },
+    bounds: { halfWidth: sentinelsArena.width / 2 - 16, halfDepth: sentinelsArena.depth / 2 - 5 },
+    exclusions: state.pools.map(pool => ({ centre: pool.position, radius: 6 })),
   }))
   const timeline = roster.reduce((current, member) => setEncounterMovementIntent(current, member.id, destinations[member.id], member.role === 'tank' ? 7 : 6.6), state.timeline)
   return {

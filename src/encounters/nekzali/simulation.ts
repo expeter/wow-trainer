@@ -10,7 +10,7 @@ import { nekzaliArena } from './train3d/arenas'
 import { applyEncounterMechanic, beginEncounterAction, coreEncounterEntities, createEncounterTimeline, removeEncounterMechanic, setEncounterMovementIntent, type EncounterTimelineState } from '../../platform/encounters/timeline'
 import { advanceAmbientNpcTimeline, ambientNpcPosition } from '../../platform/encounters/ambientNpc'
 import { activeApplications, rotateAround, type EncounterProjection, type TimedApplication } from '../../platform/encounters/mechanicState'
-import { advanceEntityMotions } from '../../platform/encounters/entityState'
+import { advanceEntityMotion, advanceEntityMotions } from '../../platform/encounters/entityState'
 import { nekzaliTiming } from './timing/projections'
 
 export type NekzaliPhase = 'phase-1' | 'echo-1' | 'echo-2' | 'phase-2'
@@ -29,6 +29,7 @@ export interface NekzaliState {
   phaseStartedAt: number
   player: { x: number; z: number; facing: number }
   npcPositions: Readonly<Record<string, WorldPoint>>
+  realmNpcPositions: Readonly<Record<string, WorldPoint>>
   boss: WorldPoint
   bossHealth: number
   bossEnergy: number
@@ -146,7 +147,7 @@ function removeEssenceRend(state: NekzaliState, reason: 'auto-dispel' | 'healer-
   const age = state.time - state.rendStartedAt
   const position = state.rendTargetId === state.selectedSlotId ? { x: state.player.x, z: state.player.z } : state.npcPositions[state.rendTargetId] ?? rendNpcPositionAt(state.rendTargetId, age)
   const ordinal = state.rendEventIndex
-  const hazard: NekzaliHazard = { id: `rend-${ordinal}`, position, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist', createdAt: state.time, orbitDirection: ordinal % 2 ? -1 : 1, orbitSpeed: .035 + ordinal % 3 * .012 }
+  const hazard: NekzaliHazard = { id: `rend-${ordinal}`, position, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist', createdAt: state.time, orbitDirection: 1, orbitSpeed: .035 + ordinal % 3 * .012 }
   const targetEntityId = state.rendTargetId === state.selectedSlotId ? 'controlled-player' : state.rendTargetId
   let next: NekzaliState = { ...state, timeline: removeEncounterMechanic(state.timeline, targetEntityId, 'essence-rend', reason), hazards: [...state.hazards, hazard], rendTargetId: undefined, rendStartedAt: undefined, rendDrops: 1 }
   if (reason === 'expiry' && Math.hypot(position.x, position.z) < 34) next = addFailure(next, 'rend-inside', 'Essence Rend created a Latent Cultist inside the raid', 'Reach a clear edge lane before the Magic debuff is removed.', true)
@@ -195,7 +196,7 @@ export function createNekzaliState(selectedSlotId = 'player', trainingDifficulty
   const start = nekzaliMemberPosition(member)
   const timeline = createEncounterTimeline(coreEncounterEntities('controlled-player', contractRaidRoster.filter(candidate => candidate.id !== selectedSlotId).map(candidate => candidate.id), ['nekzali-boss'], nekzaliArena.id))
   const npcPositions = Object.fromEntries(contractRaidRoster.filter(candidate => candidate.id !== selectedSlotId).map(candidate => [candidate.id, nekzaliMemberPosition(candidate)]))
-  return { time: 0, timeline, phase: 'phase-1', phaseStartedAt: 0, player: { ...start, facing: 0 }, npcPositions, boss: { ...bossHome }, bossHealth: 100, bossEnergy: 0, ritualBurnApplications: [], soulcoilPulseIds: [], anguishedImpacts: [], hollowingApplications: [], hollowingHitIds: [],
+  return { time: 0, timeline, phase: 'phase-1', phaseStartedAt: 0, player: { ...start, facing: 0 }, npcPositions, realmNpcPositions: {}, boss: { ...bossHome }, bossHealth: 100, bossEnergy: 0, ritualBurnApplications: [], soulcoilPulseIds: [], anguishedImpacts: [], hollowingApplications: [], hollowingHitIds: [],
     selectedSlotId, projection, soakGroup: groupForSlot(selectedSlotId), cleanupDuty: cleanupForSlot(selectedSlotId), aggroOwner: member.role === 'tank' ? selectedSlotId : 'tank-1', addsSpawned: false, adds: [], corpses: [], hazards: [], rendEventIndex: 0, rendDrops: 0,
     barrageStarted: false, barrageResolved: false, playerAddKills: 0, mainCastRemaining: 0, mainProjectileOrdinal: 0, invokes: 0, outcome: 'active', mistakes: 0, failures: [], trainingDifficulty,
     wellGroup: groupForSlot(selectedSlotId), wellEventIndex: 0, realmStage: 'none', realmStartedAt: 0, realmAddHits: 0, innerCastInterrupted: false, disruptionIndex: 0, soulExhausted: false }
@@ -471,15 +472,22 @@ function resolveEcho(state: NekzaliState, echo: 1 | 2): NekzaliState {
   const echoPosition = echoPositions[echo]
   let next = state
   if (playerSoaks && distance(state.player, echoPosition) > 7.5) {
-    return addFailure(next, 'missed-pyre', `Missed soak group ${echo}`, 'Move into the large filled Hungering Pyre circle assigned before pull.', true)
+    next = addFailure(next, 'missed-pyre', `Missed soak group ${echo}`, 'Move into the large filled Hungering Pyre circle assigned before pull.', true)
+    if (next.outcome !== 'active') return next
   }
   const spreadGroup = echo
   const groupCorpses = next.corpses.filter(corpse => corpse.group === spreadGroup && !corpse.cremated)
   if (!playerSoaks) {
     const contacted = groupCorpses.find(corpse => distance(next.player, corpse.position) <= 4)
-    if (groupCorpses.length && !contacted) return addFailure(next, 'uncleared-corpse', 'Amani corpse survived Cremation', 'Place your spread circle over any remaining corpse before Slithering Flame expires.', true)
+    if (groupCorpses.length && !contacted) {
+      next = addFailure(next, 'uncleared-corpse', 'Amani corpse survived Cremation', 'Place your spread circle over any remaining corpse before Slithering Flame expires.', true)
+      if (next.outcome !== 'active') return next
+    }
     const spreadPlayers = contractRosterForSlot(next.selectedSlotId).filter(member => !member.controlled && groupForSlot(member.id) === spreadGroup)
-    if (spreadPlayers.some((member, index) => distance(next.player, npcPosition(member, next, index)) < 6)) return addFailure(next, 'spread-overlap', 'Slithering Flame hit another player', 'Find an unoccupied corpse lane before the red circle expires.', true)
+    if (spreadPlayers.some((member, index) => distance(next.player, npcPosition(member, next, index)) < 6)) {
+      next = addFailure(next, 'spread-overlap', 'Slithering Flame hit another player', 'Find an unoccupied corpse lane before the red circle expires.', true)
+      if (next.outcome !== 'active') return next
+    }
   }
   const corpses = next.corpses.map(corpse => corpse.group === spreadGroup ? { ...corpse, cremated: true } : corpse)
   const burning = groupCorpses.map((corpse, index) => ({ id: `burn-${echo}-${index}`, position: corpse.position, radius: 4, direction: { x: 0, z: 0 }, kind: 'burning' as const, createdAt: next.time }))
@@ -602,7 +610,12 @@ function npcDestination(member: ContractRaidMember, state: NekzaliState, index: 
     const echo = state.phase === 'echo-1' ? 1 : 2
     if (state.time - state.phaseStartedAt < SOUL_TRANSFER_SECONDS) {
       const angle = index * Math.PI * 2 / 19
-      return { x: echoPositions[echo].x + Math.cos(angle) * (10 + index % 3), z: echoPositions[echo].z + Math.sin(angle) * (10 + index % 3) }
+      const echoTarget = { x: echoPositions[echo].x + Math.cos(angle) * (10 + index % 3), z: echoPositions[echo].z + Math.sin(angle) * (10 + index % 3) }
+      const position = state.npcPositions[member.id] ?? nekzaliMemberPosition(member)
+      const reachedEchoSide = echo === 1 ? position.z <= -2.8 : position.z >= 2.8
+      if (reachedEchoSide) return echoTarget
+      const laneSide = index % 2 ? 1 : -1
+      return { x: laneSide * (WELL_RADIUS + 4), z: echo === 1 ? -3 : 3 }
     }
     const activeSoak = !cleanupForSlot(member.id)
     if (activeSoak) { const angle = index * .61; return { x: echoPositions[echo].x + Math.cos(angle) * 5.5, z: echoPositions[echo].z + Math.sin(angle) * 5.5 } }
@@ -665,10 +678,36 @@ function advanceNekzaliNpcMotion(state: NekzaliState, seconds: number): NekzaliS
     exclusions: [{ centre: { x: 0, z: 0 }, radius: WELL_RADIUS + 1.2 }],
   }))
   const timeline = roster.reduce((current, member) => setEncounterMovementIntent(current, member.id, destinations[member.id], member.role === 'tank' ? 7 : 6.6, state.npcRealmGroup !== undefined && groupForSlot(member.id) === state.npcRealmGroup ? 'realm-transfer' : 'move'), state.timeline)
+  const realmRoster = state.realmStage === 'inside' || state.realmStage === 'returning'
+    ? roster.filter(member => groupForSlot(member.id) === state.wellGroup)
+    : []
+  const realmAge = state.time - state.realmStartedAt
+  const hazards = state.realmStage === 'inside' ? realmHazards(realmAge) : []
+  const realmNpcPositions = Object.fromEntries(realmRoster.map((member, index) => {
+    const initialAngle = index / Math.max(1, realmRoster.length) * Math.PI * 2
+    const initial = state.realmNpcPositions[member.id] ?? { x: Math.cos(initialAngle) * (8 + index % 3), z: Math.sin(initialAngle) * (8 + index % 3) }
+    const direction = index % 2 ? -1 : 1
+    let targetAngle = initialAngle + direction * (Math.floor(realmAge / 2.8) + 1) * .38
+    const targetRadius = 7.5 + index % 4 * 2.2
+    let target = { x: Math.cos(targetAngle) * targetRadius, z: Math.sin(targetAngle) * targetRadius }
+    for (let attempt = 0; attempt < 6 && hazards.some(hazard => distance(target, hazard) < 3); attempt += 1) {
+      targetAngle += direction * .46
+      target = { x: Math.cos(targetAngle) * targetRadius, z: Math.sin(targetAngle) * targetRadius }
+    }
+    const nearbyHazard = hazards.find(hazard => distance(initial, hazard) < 4)
+    if (nearbyHazard) {
+      const dx = initial.x - nearbyHazard.x
+      const dz = initial.z - nearbyHazard.z
+      const length = Math.max(.1, Math.hypot(dx, dz))
+      target = { x: initial.x + dx / length * 6, z: initial.z + dz / length * 6 }
+    }
+    return [member.id, advanceEntityMotion(initial, target, seconds, { speed: 5.8, bounds: { halfWidth: REALM_RADIUS - 1, halfDepth: REALM_RADIUS - 1 } })]
+  }))
   return {
     ...state,
     timeline,
     npcPositions: positions,
+    realmNpcPositions,
   }
 }
 
@@ -739,7 +778,8 @@ function realmSnapshot(state: NekzaliState, playerHealth: number): Train3DSnapsh
   const age = state.time - state.realmStartedAt
   const allyActors: ActorSnapshot[] = inside ? roster.filter(member => !member.controlled && groupForSlot(member.id) === state.wellGroup).map((member, index) => {
     const angle = index / 9 * Math.PI * 2
-    return { id: member.id, kind: 'ally', role: member.role, playerClass: member.playerClass, position: { x: Math.cos(angle) * 8.5, z: Math.sin(angle) * 8.5 }, facing: angle + Math.PI, color: trainingClassColors[member.playerClass], auras: [], health: 100 }
+    const position = state.realmNpcPositions[member.id] ?? { x: Math.cos(angle) * 8.5, z: Math.sin(angle) * 8.5 }
+    return { id: member.id, kind: 'ally', role: member.role, playerClass: member.playerClass, position, facing: Math.atan2(-position.x, position.z), color: trainingClassColors[member.playerClass], auras: [], health: 100 }
   }) : []
   const effects: EffectSnapshot[] = [{ id: 'well-realm-dome', kind: 'dome', position: { x: 0, z: 0 }, radius: REALM_RADIUS, color: '#72d8db', progress: 0 }]
   if (state.realmStage === 'inside') {

@@ -606,12 +606,14 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   without a second report-style HUD summary above it. Dragging tracks the
   pointer without animated positional lag, persists once on release, and keeps
   grid snapping plus keyboard nudging.
-- Keys & Mouse retains the complete autosaved binding and camera contract in a
-  dense keyboard grid beside compact mouse-camera controls; individual actions
-  must not expand into oversized full-width cards. Learn 2D and Train 3D own
-  independent movement maps, while pause and encounter actions remain shared.
-  A previously stored flat Season 2 map initializes both movement maps so an
-  existing customization is not lost during migration.
+- Keys & Mouse retains the complete autosaved binding and camera contract in
+  separate Learn 2D, Train 3D, and mouse-camera panels. Shared actions occupy a
+  distinct full-width row. Binding controls align to common label/button rows,
+  keep readable untruncated text, and do not expand into oversized full-width
+  cards. Learn 2D and Train 3D own independent movement maps, while pause and
+  encounter actions remain shared. A previously stored flat Season 2 map
+  initializes both movement maps so an existing customization is not lost
+  during migration.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.
@@ -666,6 +668,10 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   event order, geometry, and timings remain identical within the selected
   runtime projection. `SPEC-024` permits an encounter to declare different 2D
   and 3D schedules; trainer difficulty may not alter either schedule.
+- A tolerated mistake is non-terminal, not a pause in encounter sequencing.
+  After recording it, the active event must still resolve and advance to the
+  next event; no assisted profile may become trapped on an expired zero-second
+  mechanic.
 - A package has one full-fight scenario per supported mode. Focused scenarios
   are optional and may be added only by an explicit accepted ticket; they are
   not generated as default catalogue placeholders.
@@ -721,9 +727,10 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - Shared HUD capability means common state and action semantics, not identical
   screen geometry. Train 3D uses its configurable WoW-like frames; Learn 2D
   keeps actor-attached health, cast, aura, and mechanic visuals appropriate to
-  its tactical projection plus a fixed top-left yellow raid-lead telegraph for
-  the active mechanic and next event. Spell and debuff state must remain
-  visibly readable in both modes.
+  its tactical projection plus a conspicuous high-contrast yellow raid-lead
+  telegraph fixed to the arena's top-left. Train 3D uses that same treatment at
+  the configured mechanic-HUD anchor. Both show the active mechanic and next
+  event; DOM presence without visually recognizable presentation is not enough.
 - Soak, avoid, spread, assignment, and occupancy visuals retain the existing
   shared behavior: filled shapes request player/NPC entry, satisfied shapes
   become outlines, harmful shapes remain visibly hazardous, and guidance may
@@ -795,8 +802,9 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   expiry transition, using the entity's authoritative position at that moment.
 - NPC mechanics assign destinations and route constraints rather than replacing
   positions. The simulation advances actors at bounded speeds, routes around
-  declared lethal arena regions, and permits discontinuous movement only for a
-  named realm-transfer event.
+  declared lethal arena regions, evacuates an actor already inside a newly
+  created exclusion, rejects destinations inside exclusions, and permits
+  discontinuous movement only for a named realm-transfer event.
 - Learn 2D and Train 3D share one actor/effect projection contract. Class color,
   role silhouette, aura icons, attached timers, and mechanic intent remain
   consistent across the contract room and every encounter; projection-specific

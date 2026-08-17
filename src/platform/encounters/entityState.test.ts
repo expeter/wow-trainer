@@ -13,6 +13,14 @@ describe('entity-owned mechanics', () => {
     expect(moved.z).not.toBe(0)
   })
 
+  it('evacuates an actor already inside an exclusion and rejects a destination inside one', () => {
+    const exclusion = [{ centre: { x: 0, z: 0 }, radius: 6 }]
+    const escaped = advanceEntityMotion({ x: 2, z: 0 }, { x: 12, z: 0 }, 1, { speed: 7, exclusions: exclusion })
+    expect(Math.hypot(escaped.x, escaped.z)).toBeGreaterThan(6)
+    const redirected = advanceEntityMotion({ x: 12, z: 0 }, { x: 2, z: 0 }, 1, { speed: 7, exclusions: exclusion })
+    expect(Math.hypot(redirected.x, redirected.z)).toBeGreaterThan(6)
+  })
+
   it('keeps an attached visual on its live owner', () => {
     const effect = resolveAttachedEffect({ id: 'spread', kind: 'ground-spread', ownerId: 'npc', position: { x: 0, z: 0 }, radius: 4, color: '#f00', progress: .5 }, [
       { id: 'npc', kind: 'ally', position: { x: 12, z: -4 }, facing: 0, color: '#fff', auras: [] },

@@ -42,7 +42,19 @@ function routeTarget(position: WorldPoint, destination: WorldPoint, exclusions: 
   for (const exclusion of exclusions) {
     const startRadius = Math.hypot(position.x - exclusion.centre.x, position.z - exclusion.centre.z)
     const endRadius = Math.hypot(destination.x - exclusion.centre.x, destination.z - exclusion.centre.z)
-    if (startRadius <= exclusion.radius || endRadius <= exclusion.radius || segmentDistance(exclusion.centre, position, destination) >= exclusion.radius) continue
+    if (startRadius <= exclusion.radius) {
+      const angle = startRadius > .01
+        ? Math.atan2(position.z - exclusion.centre.z, position.x - exclusion.centre.x)
+        : Math.atan2(destination.z - exclusion.centre.z, destination.x - exclusion.centre.x) + Math.PI
+      return { x: exclusion.centre.x + Math.cos(angle) * (exclusion.radius + 1.5), z: exclusion.centre.z + Math.sin(angle) * (exclusion.radius + 1.5) }
+    }
+    if (endRadius <= exclusion.radius) {
+      const angle = endRadius > .01
+        ? Math.atan2(destination.z - exclusion.centre.z, destination.x - exclusion.centre.x)
+        : Math.atan2(position.z - exclusion.centre.z, position.x - exclusion.centre.x)
+      return { x: exclusion.centre.x + Math.cos(angle) * (exclusion.radius + 1.5), z: exclusion.centre.z + Math.sin(angle) * (exclusion.radius + 1.5) }
+    }
+    if (segmentDistance(exclusion.centre, position, destination) >= exclusion.radius) continue
     const angle = Math.atan2(position.z - exclusion.centre.z, position.x - exclusion.centre.x)
     const destinationAngle = Math.atan2(destination.z - exclusion.centre.z, destination.x - exclusion.centre.x)
     const direction = Math.sin(destinationAngle - angle) >= 0 ? 1 : -1

@@ -109,6 +109,20 @@ describe('Entombed Sentinels reconciled encounter contract', () => {
     expect(snapshot.actors.filter(actor => actor.auras.some(aura => aura.id === 'protovenom')).length).toBeGreaterThan(2)
   })
 
+  it('keeps the player Protovenom partner reachable and every NPC off poison edges and pools', () => {
+    let state = stepSentinelsState({ ...createSentinelsState('player', 'test'), time: 39.99, player: { x: 0, z: 30, facing: 0 }, miasmaResolved: true, npcPoolsDropped: true }, idle, .02)
+    const partnerId = state.protovenomCarrierIds.find(id => id !== state.selectedSlotId)!
+    const partnerStart = state.npcPositions[partnerId]
+    for (let elapsed = 0; elapsed < 3; elapsed += .1) state = stepSentinelsState(state, idle, .1)
+    const partner = state.npcPositions[partnerId]
+    expect(state.protovenomActive).toBe(true)
+    expect(Math.hypot(partner.x - partnerStart.x, partner.z - partnerStart.z)).toBeLessThan(3)
+    state = { ...state, pools: [{ id: 'test-pool', position: state.npcPositions['ranged-2'], createdAt: state.time }] }
+    for (let elapsed = 0; elapsed < 3; elapsed += .1) state = stepSentinelsState(state, idle, .1)
+    expect(Object.values(state.npcPositions).every(position => Math.abs(position.x) <= 74 && Math.abs(position.z) <= 30)).toBe(true)
+    expect(Object.entries(state.npcPositions).filter(([, position]) => Math.hypot(position.x - state.pools[0].position.x, position.z - state.pools[0].position.z) <= 6).map(([id]) => id)).toEqual([])
+  })
+
   it('uses a 30-second Stasis and 28-second Helical window', () => {
     const initial = createSentinelsState('player', 'test')
     const stasis: SentinelsState = { ...initial, phase: 'stasis', phaseStartedAt: 0, time: 2, helicalResolved: false }

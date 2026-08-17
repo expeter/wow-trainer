@@ -58,6 +58,16 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.getByRole('button', { name: 'Rebind Train 3D movement forward, current W' })).toHaveTextContent('W')
   })
 
+  it('separates both movement layouts, shared actions, and mouse camera settings', () => {
+    render(<Season2App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Keys & Mouse' }))
+    const bindings = screen.getByRole('group', { name: 'Input bindings' })
+    expect(within(bindings).getByRole('region', { name: 'Learn 2D movement' })).toBeVisible()
+    expect(within(bindings).getByRole('region', { name: 'Train 3D movement' })).toBeVisible()
+    expect(within(bindings).getByRole('region', { name: 'Mouse camera' })).toBeVisible()
+    expect(within(bindings).getByRole('region', { name: 'Shared actions' })).toBeVisible()
+  })
+
   it('keeps build provenance on setup and uses scoring-ready runtime corners', async () => {
     render(<Season2App />)
     expect(screen.getByLabelText('Build information')).toBeVisible()

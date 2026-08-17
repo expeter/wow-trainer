@@ -1,6 +1,7 @@
 # Entombed Sentinels encounter specification
 
-Tickets: `SPEC-022`, `SPEC-024`, `SPEC-025`, `FR-084`, `CR-287`, `BUG-195`–`BUG-197`
+Tickets: `SPEC-022`, `SPEC-024`, `SPEC-025`, `FR-084`, `CR-287`,
+`BUG-195`–`BUG-197`, `BUG-208`, `BUG-209`
 
 This is the canonical, iterative trainer definition for Entombed Sentinels.
 The 2026-08-16 synthesis remains source evidence. Learn 2D and Train 3D share
@@ -51,7 +52,9 @@ mechanics and failure rules but declare separate pacing profiles.
 ## Active phases
 
 - Each side receives its own boss aura mark every five seconds while inside
-  40 yards. Every application expires independently after 40 seconds.
+  40 yards. Every application expires independently after 40 seconds. The
+  actor projection compacts each mark type into one attached icon with a
+  numeric stack count; it does not grow a row of duplicate diamonds.
 - Crossing below 40 yards records Dominance failure. The tactical default keeps
   the bosses near their 100-yard homes.
 - Both bosses share the trainer health proxy. Energy rises on the encounter
@@ -98,6 +101,11 @@ mechanics and failure rules but declare separate pacing profiles.
   collision rule. They wait long enough not to reveal the player's answer, then
   resolve before Stasis. An unresolved player assignment at Stasis fails
   according to trainer tolerance.
+- The controlled player's deterministic NPC partner remains reachable at a
+  stable safe-floor position rather than joining the generic spread motion.
+  Other NPCs avoid that pair, remain inside the playable arena, and route out
+  of or around persistent poison pools; simulated NPCs may not fail those
+  environmental hazards.
 
 ## Vitriolic Stasis and Helical Toxins
 
@@ -116,9 +124,10 @@ mechanics and failure rules but declare separate pacing profiles.
 
 ## Validation
 
-Coverage must prove both schedules, independent mark expiry, 100/40-yard
-geometry, both-side Droplets, Droplet fuse independent of add death, one-to-one
-four-second return lanes, persistent Blood pools, dispel-at-edge consequences,
-random carrier validity and eruption knockback, 30-second Stasis, 28-second
-Helical resolution, shared health as a documented abstraction, side swap, and
-identical mechanics across trainer difficulty.
+Coverage must prove both schedules, independent mark expiry with compact
+numeric actor presentation, 100/40-yard geometry, both-side Droplets, Droplet
+fuse independent of add death, one-to-one four-second return lanes, persistent
+Blood pools, safe NPC floor/pool routing, a stable reachable Protovenom partner,
+dispel-at-edge consequences, random carrier validity and eruption knockback,
+30-second Stasis, 28-second Helical resolution, shared health as a documented
+abstraction, side swap, and identical mechanics across trainer difficulty.
