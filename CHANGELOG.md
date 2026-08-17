@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Restored the L’ura-derived setup selection pattern: all eight discovered
+  bosses live in one compact selector, only the selected encounter expands into
+  its Learn 2D/Train 3D launch panel, and trainer difficulty is a compact
+  independent two-by-two control.
+- Corrected the tactical planner to select one encounter and important phase at
+  a time and drag the actual package-declared 20-player raid, bosses, and adds.
+  Positions persist independently per phase in checked V2 plans, with safe V1
+  migration plus retained assignments, validation, reset, and JSON exchange.
+- Added and indexed the five supplied future-boss encounter specifications for
+  agent handoff without starting their runtime implementations.
+
 ## 0.10.0 · 2026-08-17
 
 - Fixed first-deployment reproducibility by pinning every formerly floating

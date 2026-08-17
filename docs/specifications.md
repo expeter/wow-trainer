@@ -825,3 +825,26 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - Validation rejects duplicate controlled-player identities and missing effect
   owners. Tests prove bounded displacement, attachment following, drop-at-final-
   position, player/NPC mechanic parity, and cross-arena actor presentation.
+
+## SPEC-026 · Setup selection and tactical planning
+
+- Game settings presents the automatically discovered boss catalogue as one
+  compact selector followed by one selected-encounter summary. It does not
+  expand every encounter into a full launch card or require a long page scroll.
+- The selected encounter summary owns its Learn 2D and Train 3D launch actions,
+  readiness, and concise encounter description. Planned encounters stay
+  selectable and clearly unavailable without pretending that a runtime exists.
+- Trainer difficulty is a separate compact two-by-two Test, Easy, Normal, Hard
+  control. It changes assistance and failure tolerance only, never encounter
+  mechanics, and does not span the complete catalogue as a large banner.
+- Tactical plan selects one encounter and one package-declared important phase
+  or map at a time. Switching either selection must not display every other
+  boss or phase below it.
+- Each planner map contains the actual package-declared raid players, bosses,
+  and relevant encounter actors. These markers use stable IDs and draggable
+  percentage positions; assignment-field labels are editor controls, not fake
+  arena actors.
+- Planner positions persist independently by encounter and phase. Save, reset,
+  validation, and checked JSON import/export cover both assignments and phase
+  layouts, reject cross-encounter/schema data, and retain a safe migration from
+  the first Season 2 tactic format.

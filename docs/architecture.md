@@ -22,6 +22,7 @@ keys from `App.tsx`, `GameScene.tsx`, or the L'ura `/v1` client.
 | --- | --- | --- |
 | Product shell | Navigation, product identity, preferences, accessibility, encounter/scenario selection, shared terms | Boss mechanics or runtime geometry |
 | `EncounterPackageV1` | Encounter identity, shared vocabulary, mechanic timeline/content, assignments, runtime capability declarations and lazy runtime loaders | DOM state, Three.js objects, API clients, global registry switches |
+| Tactical planner | One selected encounter/important-phase map, package-declared raid/boss actors, assignment editing, versioned local layouts and checked exchange | Runtime actor state, fake assignment-label arena markers, or another encounter's plan |
 | Learn 2D runtime | Diagrams, explanations, timeline study, 2D planner projection | Train 3D world coordinates or physics |
 | Train 3D runtime | Movement simulation, camera, collision, 3D arena projection | Learn 2D canvas state or diagram layout |
 | Encounter directory | One boss package, its assets, fixtures, runtime adapters, and focused tests | Other bosses or central registration edits |

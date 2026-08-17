@@ -3,7 +3,7 @@ import type { TacticPreset } from '../../../platform/encounters'
 export const defaultTactic = {
   id: 'sentinels_default',
   name: 'PTR split-side baseline',
-  schemaVersion: 1,
+  schemaVersion: 2,
   assignments: {
     acid_tank: 'Tank 1',
     blood_tank: 'Tank 2',

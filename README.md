@@ -15,7 +15,7 @@ The public v0.10.0 release loads all eight isolated encounter packages through
 `EncounterPackageV1`. Nek'zali and Entombed Sentinels are playable full fights
 in Learn 2D and Train 3D; the remaining packages stay visibly planned. The
 shared shell now includes independent controls, draggable HUD setup, a versioned
-local tactical planner, opt-in audio channels, and the public boss journey.
+local tactical planner, opt-in audio channels, and the compact public boss selector.
 
 - Product ID: `midnight-season-2`
 - Short ID: `midnight-s2`

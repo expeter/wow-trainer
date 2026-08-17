@@ -92,8 +92,12 @@ leaderboard-season change.
 Goal: restore the reusable planning workflow against versioned Season 2
 encounter data rather than imported L’ura encounter state.
 
-`FR-079` supplies the versioned package-owned tactic editor, draggable markers,
-required-field validation, local save/load, reset, and checked JSON exchange.
+`FR-079` supplies the versioned package-owned tactic editor, required-field
+validation, local save/load, reset, and checked JSON exchange. `BUG-222` closes
+the first implementation's regression by restoring selectable important-phase
+maps with actual package-declared 20-player raid and boss/add actors instead of
+dragging assignment labels. Phase positions persist independently and V1 plans
+migrate into the checked V2 layout format.
 
 ### M4 · Sounds and music — complete
 
@@ -108,9 +112,10 @@ setup previews, runtime toggles, and pause-aware browser-generated cues.
 Goal: refine the public-facing journey and setup hierarchy after the encounter
 catalogue and core workflows are established.
 
-`CR-281` removes extraction banners. `CR-282` presents the automatically
-discovered eight-boss journey with compact per-boss actions, ready/planned
-hierarchy, responsive stacking, and code-native identity marks.
+`CR-281` removes extraction banners. `CR-282` introduced the discovered boss
+journey; `CR-295` corrects its over-expanded first presentation into the
+reviewed compact boss selector plus one selected encounter launch panel and a
+separate compact two-by-two trainer-difficulty control.
 
 The publication-gate theme work is intentionally not duplicated here: it
 provides the minimum coherent public identity, while M5 owns the later

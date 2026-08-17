@@ -102,6 +102,22 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
   const arenaIds = ids(pkg.train3dArenas)
   const tacticFieldIds = ids(pkg.tacticSchema.fields)
 
+  const planner = pkg.tacticSchema.planner
+  if (planner) {
+    checkIds('Planner actor', planner.actors, errors)
+    checkIds('Planner map', planner.maps, errors)
+    const plannerActorIds = ids(planner.actors)
+    const diagramArenaIds = new Set(pkg.learn2d.map(scenario => scenario.arena.id))
+    for (const map of planner.maps) {
+      if (!diagramArenaIds.has(map.arenaId)) errors.push(`Planner map "${map.id}" references unknown 2D arena "${map.arenaId}".`)
+      checkReferences(`Planner map "${map.id}"`, map.actorIds, plannerActorIds, 'actor', errors)
+      for (const actorId of map.actorIds) {
+        const point = map.placements[actorId]
+        if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) errors.push(`Planner map "${map.id}" is missing a valid placement for "${actorId}".`)
+      }
+    }
+  }
+
   for (const phase of pkg.phases) checkReferences(`Phase "${phase.id}"`, phase.abilityIds, abilityIds, 'ability', errors)
   for (const role of pkg.roles) checkReferences(`Role "${role.id}"`, role.actionIds, actionIds, 'action', errors)
   for (const profile of pkg.timingProfiles) {

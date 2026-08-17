@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ComponentType, type CSSProperties, type SetStateAction } from 'react'
+import { useCallback, useEffect, useState, type ComponentType, type SetStateAction } from 'react'
 import BuildStatus from './platform/BuildStatus'
 import CreatorCard from './platform/CreatorCard'
 import { contractRoomActions } from './platform/contractActions'
@@ -70,8 +70,8 @@ const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string
   },
   'Tactical plan': {
     eyebrow: 'TACTICAL PLANNER',
-    title: 'One encounter package, two arena projections',
-    body: 'Edit, position, validate, save, import, and export package-owned assignments without mixing encounter state.',
+    title: 'One boss, one important phase',
+    body: 'Choose the encounter and phase, then position its raid and boss actors. Save or exchange the complete package-owned plan.',
   },
   Audio: {
     eyebrow: 'AUDIO CHANNELS',
@@ -97,10 +97,12 @@ export default function Season2App() {
   const [rebinding, setRebinding] = useState<Rebinding>()
   const [runtimeLoading, setRuntimeLoading] = useState<EncounterMode>()
   const [runtime, setRuntime] = useState<{ mode: EncounterMode; scenarioId: string; actions: readonly EncounterActionDefinition[]; Component: ComponentType<EncounterRuntimeProps> }>()
+  const [selectedEncounterId, setSelectedEncounterId] = useState('')
   const [plannerEncounterId, setPlannerEncounterId] = useState('')
   const [audio, setAudio] = useTrainerAudioSettings()
   const panel = panelCopy[activeTab]
   const encounter = catalogue?.packages.find(item => item.manifest.id === plannerEncounterId) ?? catalogue?.packages.find(item => item.tactics.length > 0)
+  const selectedEncounter = catalogue?.packages.find(item => item.manifest.id === selectedEncounterId) ?? catalogue?.packages[0]
   const catalogueFailed = catalogue && !encounter
 
   useEffect(() => {
@@ -195,30 +197,37 @@ export default function Season2App() {
         <h2>{panel.title}</h2>
         <p className="hint">{panel.body}</p>
       </div>
-      {activeTab === 'Game settings' && <div className="season2-catalogue-grid season2-boss-journey" aria-label="Encounter catalogue">
-        <fieldset className="season2-training-difficulty"><legend>Trainer difficulty</legend><p>Encounter mechanics stay fixed. This changes guidance and failure tolerance only.</p><div>{(['test', 'easy', 'normal', 'hard'] as const).map(value => <button type="button" key={value} className={settings.difficulty === value ? 'selected' : ''} aria-pressed={settings.difficulty === value} onClick={() => updateSettings(current => ({ ...current, difficulty: value }))}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></fieldset>
+      {activeTab === 'Game settings' && <div className="season2-game-settings" aria-label="Encounter catalogue">
         {!catalogue && <article className="season2-encounter-card loading"><p>Discovering encounter packages…</p></article>}
         {catalogueFailed && <article className="season2-encounter-card unavailable"><h3>No conforming encounter package</h3><p>Check development diagnostics before continuing.</p></article>}
-        {catalogue?.packages.map((selectedEncounter, index) => <article className={`season2-encounter-card journey-step ${selectedEncounter.learn2d.some(item => item.status === 'ready') ? 'ready' : 'planned'}`} style={{ '--journey-order': index + 1 } as CSSProperties} key={selectedEncounter.manifest.id}>
-          <header><EncounterIcon name={selectedEncounter.manifest.name} /><h3>{selectedEncounter.manifest.name}</h3></header>
-          <p>{selectedEncounter.manifest.summary}</p>
-          <div className="season2-encounter-actions">
-            {(['learn2d', 'train3d'] as EncounterMode[]).map(mode => {
-              const modeLabel = mode === 'learn2d' ? 'Learn 2D' : 'Train 3D'
-              const scenarios = mode === 'learn2d' ? selectedEncounter.learn2d : selectedEncounter.train3d
-              const readyScenario = scenarios.find(candidate => candidate.status === 'ready')
-              const scenario = readyScenario ?? scenarios[0]
-              const ready = Boolean(readyScenario)
-              return <button
-                type="button"
-                key={mode}
-                disabled={!ready || Boolean(runtimeLoading)}
-                aria-label={ready ? `Launch ${selectedEncounter.manifest.name} ${modeLabel}` : `${selectedEncounter.manifest.name} ${scenario?.name ?? 'full fight'} coming soon in ${modeLabel}`}
-                onClick={() => ready && void launch(selectedEncounter, mode, scenario.id)}
-              ><span>{modeLabel}</span>{ready ? runtimeLoading === mode ? <small>Loading…</small> : null : <small>Coming soon</small>}</button>
-            })}
-          </div>
-        </article>)}
+        {catalogue && <nav className="season2-boss-selector" aria-label="Boss fight selector">
+          {catalogue.packages.map((candidate, index) => {
+            const ready = candidate.learn2d.some(item => item.status === 'ready') || candidate.train3d.some(item => item.status === 'ready')
+            const selected = candidate.manifest.id === selectedEncounter?.manifest.id
+            return <button type="button" key={candidate.manifest.id} className={`${selected ? 'selected' : ''} ${ready ? 'ready' : 'planned'}`} aria-pressed={selected} onClick={() => setSelectedEncounterId(candidate.manifest.id)}>
+              <span>{index + 1}</span><EncounterIcon name={candidate.manifest.name} /><strong>{candidate.manifest.name}</strong><small>{ready ? 'Playable' : 'Planned'}</small>
+            </button>
+          })}
+        </nav>}
+        {selectedEncounter && <div className="season2-selected-setup">
+          <article className={`season2-selected-encounter ${selectedEncounter.learn2d.some(item => item.status === 'ready') ? 'ready' : 'planned'}`}>
+            <header><EncounterIcon name={selectedEncounter.manifest.name} /><div><span>{selectedEncounter.manifest.raid}</span><h3>{selectedEncounter.manifest.name}</h3></div></header>
+            <p>{selectedEncounter.manifest.summary}</p>
+            <div className="season2-encounter-actions">
+              {(['learn2d', 'train3d'] as EncounterMode[]).map(mode => {
+                const modeLabel = mode === 'learn2d' ? 'Learn 2D' : 'Train 3D'
+                const scenarios = mode === 'learn2d' ? selectedEncounter.learn2d : selectedEncounter.train3d
+                const readyScenario = scenarios.find(candidate => candidate.status === 'ready')
+                const scenario = readyScenario ?? scenarios[0]
+                const ready = Boolean(readyScenario)
+                return <button type="button" key={mode} disabled={!ready || Boolean(runtimeLoading)} aria-label={ready ? `Launch ${selectedEncounter.manifest.name} ${modeLabel}` : `${selectedEncounter.manifest.name} ${scenario?.name ?? 'full fight'} coming soon in ${modeLabel}`} onClick={() => ready && void launch(selectedEncounter, mode, scenario.id)}>
+                  <span>{modeLabel}</span><small>{ready ? runtimeLoading === mode ? 'Loading…' : 'Full fight' : 'Coming soon'}</small>
+                </button>
+              })}
+            </div>
+          </article>
+          <fieldset className="season2-training-difficulty"><legend>Trainer difficulty</legend><div>{(['test', 'easy', 'normal', 'hard'] as const).map(value => <button type="button" key={value} className={settings.difficulty === value ? 'selected' : ''} aria-pressed={settings.difficulty === value} onClick={() => updateSettings(current => ({ ...current, difficulty: value }))}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div><p>Encounter mechanics stay fixed. Only guidance and tolerated mistakes change.</p></fieldset>
+        </div>}
         {import.meta.env.DEV && <article className="season2-contract-room-card">
           <span>DEV</span>
           <h3>Contract room</h3>

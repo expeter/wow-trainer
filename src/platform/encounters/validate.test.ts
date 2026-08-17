@@ -63,4 +63,25 @@ describe('EncounterPackageV1 conformance', () => {
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.errors).toContain('Action binding "mainAbility" is declared more than once.')
   })
+
+  it('rejects planner maps with unknown actors or missing phase placements', () => {
+    const planner = sentinels.tacticSchema.planner
+    const malformed = {
+      ...sentinels,
+      tacticSchema: {
+        ...sentinels.tacticSchema,
+        planner: {
+          ...planner,
+          maps: [{ ...planner.maps[0], actorIds: [...planner.maps[0].actorIds, 'missing-player'], placements: {} }, ...planner.maps.slice(1)],
+        },
+      },
+    }
+    const result = validateEncounterPackage(malformed)
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.errors).toContain('Planner map "sentinels_active_cycle" references unknown actor "missing-player".')
+      expect(result.errors).toContain('Planner map "sentinels_active_cycle" is missing a valid placement for "tank-1".')
+    }
+  })
 })

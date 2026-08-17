@@ -1,11 +1,16 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
+
+async function selectBoss(page: Page, name: string) {
+  await page.getByRole('navigation', { name: 'Boss fight selector' }).getByRole('button', { name: new RegExp(name) }).click()
+}
 
 test('boots the standalone Season 2 shell with the first package runtimes ready', async ({ page }) => {
   await page.goto('/')
 
   await expect(page).toHaveTitle('Midnight Season 2 Trainer')
   await expect(page.getByRole('heading', { name: 'Midnight Season 2 Trainer' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Entombed Sentinels' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: "Nek'zali the Soulcoiler" })).toBeVisible()
+  await selectBoss(page, 'Entombed Sentinels')
   await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toContainText('Learn 2D')
   await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toContainText('Train 3D')
   await expect(page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toBeEnabled()
@@ -13,7 +18,7 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   const trainerDifficulty = page.getByRole('group', { name: 'Trainer difficulty' })
   for (const profile of ['Test', 'Easy', 'Normal', 'Hard']) await expect(trainerDifficulty.getByRole('button', { name: profile })).toBeVisible()
   await expect(page.getByLabel('Encounter catalogue')).not.toContainText(/Heroic|Mythic/)
-  await expect(page.getByLabel('Encounter catalogue').getByText('Coming soon').first()).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Boss fight selector' }).getByText('Planned').first()).toBeVisible()
   await expect(page.locator('.season2-encounter')).toHaveCount(0)
   await expect(page.getByLabel('Build information')).toContainText(/v\d+\.\d+\.\d+ · [a-z0-9]+ ·/)
   await expect(page.getByRole('link', { name: 'Changelog ↗' })).toBeVisible()
@@ -25,13 +30,32 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
 test('persists a versioned tactic and independent audio channels locally', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Tactical plan' }).click()
-  await expect(page.getByLabel(/draggable tactic board/)).toBeVisible()
-  await expect(page.locator('.tactical-marker')).not.toHaveCount(0)
+  await expect(page.getByLabel(/draggable raid plan/)).toBeVisible()
+  await expect(page.locator('.tactical-actor.player')).toHaveCount(20)
+  await expect(page.locator('.tactical-actor.boss')).not.toHaveCount(0)
+  const phaseOneTank = page.getByRole('button', { name: 'Move T1 in Phase 1' })
+  const board = page.getByLabel(/Phase 1 draggable raid plan/)
+  await phaseOneTank.scrollIntoViewIfNeeded()
+  const [tankBefore, boardBox] = await Promise.all([phaseOneTank.boundingBox(), board.boundingBox()])
+  if (!tankBefore || !boardBox) throw new Error('Planner actor or board has no bounds')
+  const tankLeftBefore = Number.parseFloat(await phaseOneTank.evaluate(element => (element as HTMLElement).style.left))
+  await page.mouse.move(tankBefore.x + tankBefore.width / 2, tankBefore.y + tankBefore.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(boardBox.x + boardBox.width * .18, boardBox.y + boardBox.height * .72, { steps: 5 })
+  await page.mouse.up()
+  const movedTankLeft = Number.parseFloat(await phaseOneTank.evaluate(element => (element as HTMLElement).style.left))
+  expect(Math.abs(movedTankLeft - tankLeftBefore)).toBeGreaterThan(20)
+  await page.getByRole('button', { name: 'Echo intermission' }).click()
+  const intermissionTankLeft = Number.parseFloat(await page.getByRole('button', { name: 'Move T1 in Echo intermission' }).evaluate(element => (element as HTMLElement).style.left))
+  expect(Math.abs(intermissionTankLeft - movedTankLeft)).toBeGreaterThan(20)
+  await page.getByRole('button', { name: 'Phase 1', exact: true }).click()
   await page.getByLabel('Plan name').fill('Travel playtest plan')
   await page.getByRole('button', { name: 'Save', exact: true }).click()
-  await expect(page.getByRole('status')).toContainText('Saved in this browser')
-  const tactic = await page.evaluate(() => JSON.parse(localStorage.getItem('midnight-s2:tactic:v1:nekzali') ?? 'null'))
-  expect(tactic).toMatchObject({ format: 'midnight-season-2-tactic', version: 1, encounterId: 'nekzali', tactic: { name: 'Travel playtest plan', schemaVersion: 1 } })
+  await expect(page.getByRole('status')).toContainText('phase positions saved in this browser')
+  const tactic = await page.evaluate(() => JSON.parse(localStorage.getItem('midnight-s2:tactic:v2:nekzali') ?? 'null'))
+  expect(tactic).toMatchObject({ format: 'midnight-season-2-tactic', version: 2, encounterId: 'nekzali', tactic: { name: 'Travel playtest plan', schemaVersion: 2 } })
+  expect(Object.keys(tactic.layouts)).toEqual(['nekzali_phase_1', 'nekzali_intermission', 'nekzali_phase_2', 'nekzali_well_realm'])
+  expect(tactic.layouts.nekzali_phase_1['tank-1']).not.toEqual(tactic.layouts.nekzali_intermission['tank-1'])
 
   await page.getByRole('button', { name: 'Audio' }).click()
   await page.getByLabel('Enable encounter sounds').check()
@@ -40,11 +64,11 @@ test('persists a versioned tactic and independent audio channels locally', async
   await expect(page.getByLabel('Enable encounter sounds')).toBeChecked()
 })
 
-test("discovers all raid panels and launches Nek'zali in separate 2D and 3D arenas", async ({ page }) => {
+test("discovers all raid bosses and launches Nek'zali in separate 2D and 3D arenas", async ({ page }) => {
   await page.goto('/')
-  const catalogue = page.getByLabel('Encounter catalogue')
+  const catalogue = page.getByRole('navigation', { name: 'Boss fight selector' })
   for (const boss of ["Nek'zali the Soulcoiler", 'Entombed Sentinels', 'Vashnik the Malignant', 'The Lost Explorers', 'Sszorak', 'The Twin Fangs', 'The Coiled Altar', "Ula'tek"]) {
-    await expect(catalogue.getByRole('heading', { name: boss, exact: true })).toBeVisible()
+    await expect(catalogue.getByRole('button', { name: new RegExp(boss) })).toBeVisible()
   }
   await expect(page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" })).toBeEnabled()
   await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()
@@ -116,19 +140,22 @@ test("discovers all raid panels and launches Nek'zali in separate 2D and 3D aren
 test('keeps all eight encounters in a compact four-column desktop selector', async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 1000 })
   await page.goto('/')
-  const cards = page.locator('.season2-encounter-card')
+  const cards = page.locator('.season2-boss-selector > button')
   await expect(cards).toHaveCount(8)
   const firstTop = (await cards.nth(0).boundingBox())?.y
   const fourthTop = (await cards.nth(3).boundingBox())?.y
   const fifthTop = (await cards.nth(4).boundingBox())?.y
   expect(firstTop).toBeDefined()
   expect(Math.abs((fourthTop ?? 0) - (firstTop ?? 0))).toBeLessThan(3)
-  expect(fifthTop).toBeGreaterThan((firstTop ?? 0) + 100)
-  await page.locator('.season2-training-difficulty').evaluate(element => element.scrollIntoView())
+  expect(fifthTop).toBeGreaterThan((firstTop ?? 0) + 50)
+  await page.locator('.season2-boss-selector').evaluate(element => element.scrollIntoView())
   await expect(cards.first()).toBeInViewport()
   await expect(cards.nth(7)).toBeInViewport()
   await expect(cards.first().locator('.encounter-icon')).toBeVisible()
-  await expect(cards.first().getByRole('button')).toHaveCount(2)
+  await expect(page.locator('.season2-selected-encounter')).toHaveCount(1)
+  const selectorWidth = (await page.locator('.season2-boss-selector').boundingBox())!.width
+  const difficultyWidth = (await page.locator('.season2-training-difficulty').boundingBox())!.width
+  expect(difficultyWidth).toBeLessThan(selectorWidth * .4)
 })
 
 test("keeps Nek'zali Well mechanics and interrupt controls in its single full fight", async ({ page }) => {
@@ -261,6 +288,7 @@ test("keeps Nek'zali Learn 2D circular, undistorted, and movable left and right"
 
 test('launches the single Entombed Sentinels full fight in separate 2D and 3D arenas', async ({ page }) => {
   await page.goto('/')
+  await selectBoss(page, 'Entombed Sentinels')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
   const setup2d = page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' })
   await expect(setup2d).toContainText('full fight')
@@ -313,6 +341,7 @@ test('launches the single Entombed Sentinels full fight in separate 2D and 3D ar
 test('removes passive Sentinels mark diamonds and keeps its Learn 2D raid telegraph conspicuous', async ({ page }) => {
   await page.clock.install()
   await page.goto('/')
+  await selectBoss(page, 'Entombed Sentinels')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
   await page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' }).getByRole('button', { name: 'Start' }).click()
   await page.clock.runFor(3_100)
@@ -326,6 +355,7 @@ test('removes passive Sentinels mark diamonds and keeps its Learn 2D raid telegr
 
 test('moves independently in all four Learn 2D directions and clears input on blur', async ({ page }) => {
   await page.goto('/')
+  await selectBoss(page, 'Entombed Sentinels')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
   await page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' }).getByRole('button', { name: 'Start' }).click()
   await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
@@ -357,6 +387,7 @@ test('moves independently in all four Learn 2D directions and clears input on bl
 test('keeps the wide runtime header in one line and preserves the 2D arena aspect', async ({ page }) => {
   await page.setViewportSize({ width: 2048, height: 900 })
   await page.goto('/')
+  await selectBoss(page, 'Entombed Sentinels')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
   await page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' }).getByRole('button', { name: 'Start' }).click()
   await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
@@ -492,6 +523,7 @@ test('uses independently rebound movement keys, shared HUD settings, and paused 
   await expect(page.getByRole('checkbox', { name: 'Show timer' })).toHaveCount(0)
   await expect(page.getByRole('checkbox', { name: 'Show position' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Game settings' }).click()
+  await selectBoss(page, 'Entombed Sentinels')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()
 
   await expect(page.getByRole('heading', { name: 'Entombed Sentinels full fight' })).toBeVisible()
@@ -557,6 +589,7 @@ test('Season 2 shell HUD boxes follow the pointer and persist on release', async
 
 test('keeps left orbit independent, aligns on right press, and moves with both mouse buttons', async ({ page }) => {
   await page.goto('/')
+  await selectBoss(page, 'Entombed Sentinels')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()
   await page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' }).getByRole('button', { name: 'Start' }).click()
   await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })

@@ -104,9 +104,33 @@ export interface TacticFieldDefinition {
   required: boolean
 }
 
+export interface PlannerActorDefinition {
+  id: string
+  label: string
+  kind: 'player' | 'boss' | 'add'
+  role?: EncounterPlayerRole
+  color: string
+}
+
+export interface PlannerMapDefinition {
+  id: string
+  label: string
+  arenaId: string
+  backgroundImage?: string
+  shape?: 'rectangle' | 'circle'
+  actorIds: readonly string[]
+  placements: Readonly<Record<string, { x: number; y: number }>>
+}
+
+export interface TacticPlannerDefinition {
+  actors: readonly PlannerActorDefinition[]
+  maps: readonly PlannerMapDefinition[]
+}
+
 export interface TacticSchema {
   version: number
   fields: readonly TacticFieldDefinition[]
+  planner?: TacticPlannerDefinition
 }
 
 export interface TacticPreset {

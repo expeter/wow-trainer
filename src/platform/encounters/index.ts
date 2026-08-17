@@ -1,4 +1,5 @@
 export { loadEncounterCatalogue } from './discovery'
 export { validateEncounterPackage } from './validate'
 export * from './actions'
+export * from './planner'
 export type * from './types'
