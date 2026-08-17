@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Styled Season 2 text fields and select controls to match the shell instead of
+  falling back to browser-default form chrome.
+- Promoted all five remaining-boss research specifications from the transient
+  inbox into the canonical documentation tree for clean-checkout handoff.
 - Restored the L’ura-derived setup selection pattern: all eight discovered
   bosses live in one compact selector, only the selected encounter expands into
   its Learn 2D/Train 3D launch panel, and trainer difficulty is a compact

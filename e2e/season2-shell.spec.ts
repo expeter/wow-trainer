@@ -158,6 +158,23 @@ test('keeps all eight encounters in a compact four-column desktop selector', asy
   expect(difficultyWidth).toBeLessThan(selectorWidth * .4)
 })
 
+test('uses Season 2 chrome for planner selects and text fields', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Tactical plan' }).click()
+  const encounterSelect = page.getByLabel('Encounter')
+  const planName = page.getByLabel('Plan name')
+  const styles = await Promise.all([encounterSelect, planName].map(control => control.evaluate(element => {
+    const computed = getComputedStyle(element)
+    return { appearance: computed.appearance, background: computed.backgroundColor, borderRadius: computed.borderRadius, font: computed.fontFamily }
+  })))
+  expect(styles[0].appearance).toBe('none')
+  for (const style of styles) {
+    expect(style.background).not.toBe('rgb(255, 255, 255)')
+    expect(Number.parseFloat(style.borderRadius)).toBeGreaterThan(0)
+    expect(style.font.toLowerCase()).toContain('mono')
+  }
+})
+
 test("keeps Nek'zali Well mechanics and interrupt controls in its single full fight", async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()

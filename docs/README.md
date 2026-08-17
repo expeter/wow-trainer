@@ -20,11 +20,11 @@ contracts.
 Research handoff specifications for the remaining catalogue encounters are
 tracked without authorizing runtime implementation:
 
-- [`Vashnik the Malignant`](../inbox/vashnik-the-malignant-wow-trainer-spec.md)
-- [`The Lost Explorers`](../inbox/the-lost-explorers-wow-trainer-spec.md)
-- [`Sszorak`](../inbox/sszorak-wow-trainer-spec.md)
-- [`The Twin Fangs`](../inbox/the-twin-fangs-wow-trainer-spec.md)
-- [`The Coiled Altar`](../inbox/coiled-altar-wow-trainer-spec.md)
+- [`Vashnik the Malignant`](encounter-specs/vashnik-the-malignant-wow-trainer-spec.md)
+- [`The Lost Explorers`](encounter-specs/the-lost-explorers-wow-trainer-spec.md)
+- [`Sszorak`](encounter-specs/sszorak-wow-trainer-spec.md)
+- [`The Twin Fangs`](encounter-specs/the-twin-fangs-wow-trainer-spec.md)
+- [`The Coiled Altar`](encounter-specs/coiled-altar-wow-trainer-spec.md)
 
 ## Request convention
 
@@ -124,6 +124,8 @@ Expected: only the active T/X/O pair resolves; other contacts are ignored.
 | `CR-295` | Implemented under M5 correction | Replaced the eight expanded start-page cards with a compact automatically discovered boss selector and one selected encounter panel, and returned Trainer difficulty to a compact two-by-two card. Ready/planned status and Learn 2D/Train 3D launch behavior are preserved. Covered by component structure and desktop browser geometry regressions. |
 | `BUG-222` | Implemented under M3 correction | Replaced the generic assignment-label markers in Tactical plan with the L’ura-derived interaction model: select one boss, select one important phase, and drag the actual package-declared bosses and 20 raid players on that phase map. Positions persist independently per encounter and phase; V1 plans migrate safely while assignment fields and checked V2 import/export remain. Package validation rejects unknown actors, arenas, and missing placements. Covered by planner, conformance, shell, build, and focused browser regressions. |
 | `CR-296` | Implemented under M2 documentation | Tracked and indexed the five supplied future-boss trainer specification files so a new encounter agent receives the research handoff without implicitly authorizing implementation. The files contain encounter research rather than named survey responses or secrets. |
+| `CR-297` | Implemented under M5 correction | Replaced browser-default text fields and selects throughout the Season 2 shell with the product's dark nature/void surface, border, typography, focus ring, and custom select indicator. The native semantic controls and keyboard behavior remain intact. |
+| `CR-298` | Implemented under M2 documentation | Promoted the five future-boss research specifications from transient inbox captures into `docs/encounter-specs/`, updated the documentation index, and retained the provisional iterative contracts separately. This makes the complete handoff available from a clean repository checkout without treating research as implemented runtime behavior. |
 | `CR-237` | Implemented historically; collapsed by `CR-261` | Replaced the initial Helical Toxins click-choice prototype with movement-driven package runtimes and established attached toxin-icon vocabulary. `CR-261` later made Sentinels one full-fight mechanics contract and removed the focused scenario declaration; `FR-072` final acceptance retires the now-unreachable prototype runtimes while the full fight retains movement and attached toxin visuals. |
 | `BUG-157` | Implemented | Correct the Train 3D prototype to match the accepted WoW-like control and architecture contract: third-person player-follow camera, facing-relative WASD forward/back/strafe, Q/E keyboard turning, right-button player look, left-button camera orbit, wheel zoom, both-buttons-forward, configurable inversion, and persistent camera preferences. Mechanic/collision decisions now run in a deterministic headless 60 Hz simulation; the general Three.js renderer consumes immutable snapshots and displays character-attached toxin icons. Covered by pure movement/mechanic tests, production build, and focused browser movement/HUD/zoom regression. |
 | `CR-238` | Implemented | Add a development-only abstract Train 3D contract room on the reusable fixed-step simulation and snapshot renderer. Its deterministic seeded event stream changes attached buff/debuff icons, issues six-second reaction prompts, animates pulse/projectile spell primitives, and checks movement into named positions. The room validates platform eventing, timing, movement, positioning, camera/input, HUD, and rendering contracts without becoming another encounter package or entering the production bundle. Covered by seeded event/snapshot tests and focused browser launch regression. |
