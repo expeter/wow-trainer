@@ -8,6 +8,8 @@
   Playwright wrapper's repository-local browser path.
 - Calibrated the focused browser pacing assertion for GitHub's software
   renderer while retaining the stricter local 30 FPS / 50 ms acceptance gate.
+- Gave the performance-heavy contract-room browser regression a CI-only
+  60-second execution budget without adding retries or removing assertions.
 - Prepared the first public Season 2 release candidate at
   `midnight.asgard.website`: the isolated Pages workflow verifies unit tests,
   focused browser behavior, and the static build before deploying through the

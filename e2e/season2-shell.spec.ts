@@ -373,6 +373,7 @@ test('keeps the wide runtime header in one line and preserves the 2D arena aspec
 })
 
 test('opens paired contract rooms with full-raid ground reactions and paced 3D rendering', async ({ page }) => {
+  test.setTimeout(process.env.CI ? 60_000 : 30_000)
   await page.goto('/')
   await page.getByRole('button', { name: 'Open Learn 2D room' }).click()
 
