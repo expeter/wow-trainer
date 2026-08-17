@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed first-deployment reproducibility by pinning every formerly floating
+  `latest` declaration to its exact sec-helper-audited lockfile version.
 - Prepared the first public Season 2 release candidate at
   `midnight.asgard.website`: the isolated Pages workflow verifies unit tests,
   focused browser behavior, and the static build before deploying through the
