@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Corrected the fresh Nek'zali full-fight regression pass. Phase 2 Latent
+  Cultists now orbit continuously at varied deterministic slow speeds instead
+  of jumping; persistent hazards survive realm transitions while three-second
+  Cremation fire expires correctly. Well return and kick feedback, intermission
+  raid movement/boss availability, player-owned Amani kills, Barrage evacuation
+  and carrier telegraphs, one-second Rend-drop grace, and the fixed yellow Learn
+  2D current/next mechanic panel now match the accepted encounter contract.
 - Removed Nek'zali Essence Rend's obsolete inward pull and outward knockback.
   Rend now leaves player movement fully under input control, lasts only for its
   projection-specific Magic-debuff duration, and leaves Grasping Depths as the
@@ -31,7 +38,7 @@
   dispel another edge-positioned target. Soulcoil Rite/Burn, Anguished Echo,
   shield-before-health Amani with NPC crowd control, Soul Transfer, explicit
   Pyre-versus-Cremation assignments, ten-second Well interrupt, Hollowing
-  Strikes, timed Soul Exhaustion, and discrete clockwise Invoke steps now use
+  Strikes, timed Soul Exhaustion, and continuous Phase 2 Cultist orbits now use
   the canonical encounter contract.
 - Reconciled Entombed Sentinels with its supplied research while retaining the
   approved linked-health/time-driven Stasis simplification. Marks expire per

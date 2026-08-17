@@ -307,6 +307,11 @@
 .contract-lab-drawer p { margin: 0 0 9px; color: var(--s2-color-muted); font-size: 11px; line-height: 1.5; }
 .contract-lab-drawer p:last-child { margin-bottom: 0; color: var(--s2-color-accent); font: 9px var(--s2-font-mono); }
 .arena-training-hud { position: absolute; z-index: 12; inset: 0; overflow: hidden; pointer-events: none; }
+.learn2d-raidlead-telegraph { position: absolute; z-index: 20; left: 12px; top: 12px; display: grid; max-width: min(250px, 38%); padding: 7px 9px; border: 1px solid rgba(211, 181, 75, .72); border-radius: 6px; color: var(--s2-color-text); background: rgba(28, 23, 8, .9); box-shadow: 0 4px 18px rgba(0, 0, 0, .48); pointer-events: none; }
+.learn2d-raidlead-telegraph small { color: var(--s2-color-accent); font: 7px var(--s2-font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.learn2d-raidlead-telegraph strong { margin-top: 2px; font-size: 10px; line-height: 1.25; }
+.learn2d-raidlead-telegraph span { margin-top: 3px; color: #f3d871; font: 8px var(--s2-font-mono); }
+.nekzali-2d-enemy.unavailable { filter: grayscale(.7); opacity: .62; outline: 2px double #9bb4c2; outline-offset: 4px; }
 .arena-training-hud > div { position: absolute; transform: translate(-50%, -50%); color: var(--s2-color-text); background: rgba(5, 9, 14, .9); box-shadow: 0 3px 14px rgba(0, 0, 0, .48); }
 .arena-hud-mechanic { display: grid; justify-items: center; width: min(380px, 44%); padding: 8px 12px; border: 1px solid rgba(211, 181, 75, .56); border-radius: 7px; text-align: center; }
 .arena-hud-mechanic.compact { width: auto; max-width: min(260px, 34%); padding: 5px 9px; }

@@ -58,16 +58,41 @@ describe("Nek'zali reconciled encounter contract", () => {
     expect(result.outcome).toBe('active')
   })
 
-  it('moves every persistent Cultist once clockwise when Invoke completes', () => {
-    const hazard = { id: 'cultist', position: { x: 20, z: 0 }, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist' as const }
-    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 114.9, phase: 'phase-2', phaseStartedAt: 100, hazards: [hazard], bossHealth: 50 }
+  it('moves persistent Cultists continuously at varied slow orbital speeds without an Invoke jump', () => {
+    const clockwise = { id: 'cultist-a', position: { x: 20, z: 0 }, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist' as const, orbitDirection: 1 as const, orbitSpeed: .04 }
+    const counterClockwise = { id: 'cultist-b', position: { x: -30, z: 0 }, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist' as const, orbitDirection: -1 as const, orbitSpeed: .06 }
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 114.9, phase: 'phase-2', phaseStartedAt: 100, hazards: [clockwise, counterClockwise], bossHealth: 50 }
     state = stepNekzaliState(state, idle, .2)
     expect(state.invokes).toBe(1)
-    expect(state.hazards[0].position.x).toBeCloseTo(Math.cos(Math.PI / 6) * 20)
-    expect(state.hazards[0].position.z).toBeCloseTo(Math.sin(Math.PI / 6) * 20)
-    const stepped = state.hazards[0].position
+    expect(Math.hypot(state.hazards[0].position.x - clockwise.position.x, state.hazards[0].position.z - clockwise.position.z)).toBeLessThan(.25)
+    expect(state.hazards[0].position.z).toBeGreaterThan(0)
+    expect(state.hazards[1].position.z).toBeGreaterThan(0)
+    expect(Math.hypot(state.hazards[0].position.x, state.hazards[0].position.z)).toBeCloseTo(20)
+    const stepped = { ...state.hazards[0].position }
     state = stepNekzaliState(state, idle, 1)
-    expect(state.hazards[0].position).toEqual(stepped)
+    expect(state.hazards[0].position).not.toEqual(stepped)
+    expect(Math.hypot(state.hazards[0].position.x - stepped.x, state.hazards[0].position.z - stepped.z)).toBeLessThan(1)
+  })
+
+  it('expires Cremation fire after three seconds while preserving Cultists across a realm return', () => {
+    const cultist = { id: 'cultist', position: { x: 30, z: 0 }, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist' as const, createdAt: 1 }
+    const burning = { id: 'burning', position: { x: -30, z: 0 }, radius: 4, direction: { x: 0, z: 0 }, kind: 'burning' as const, createdAt: 18 }
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 20, phase: 'phase-2', phaseStartedAt: 10, realmStage: 'returning', realmStartedAt: 18, hazards: [cultist, burning] }
+    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras[0]).toMatchObject({ id: 'realm-return', expiresAt: 23 })
+    state = stepNekzaliState(state, idle, 3.01)
+    expect(state.realmStage).toBe('none')
+    expect(state.hazards.map(hazard => hazard.id)).toEqual(['cultist'])
+    expect(nekzaliSnapshot(state).effects.some(effect => effect.id === 'cultist')).toBe(true)
+    expect(nekzaliSnapshot(state).actors.length).toBeGreaterThan(15)
+  })
+
+  it('gives a full second to leave a newly dropped Rend remain', () => {
+    const hazard = { id: 'cultist', position: { x: 20, z: 0 }, radius: 6, direction: { x: 0, z: 0 }, kind: 'cultist' as const, createdAt: 1 }
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 1, phase: 'phase-2', phaseStartedAt: 1, hazards: [hazard], player: { x: 20, z: 0, facing: 0 } }
+    state = stepNekzaliState(state, idle, .99)
+    expect(state.failures.some(failure => failure.code === 'cultist-contact')).toBe(false)
+    state = stepNekzaliState(state, idle, .02)
+    expect(state.failures[0]?.code).toBe('cultist-contact')
   })
 
   it('tracks Soulcoil Rite energy and independently expiring Ritual Burn applications', () => {
@@ -118,6 +143,30 @@ describe("Nek'zali reconciled encounter contract", () => {
     expect(damaged.crowdControlled).toBe(true)
   })
 
+  it('never lets NPC damage finish the player-assigned Amani', () => {
+    const assigned = { id: 'amani-player', position: { x: 30, z: 0 }, health: 40, shield: 0, crowdControlled: true, assignedToPlayer: true, playerDamage: 0, corpseGroup: 1 as const }
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 50, addsSpawned: true, adds: [assigned], wellEventIndex: 1, rendEventIndex: 2, barrageStarted: true, barrageResolved: true }
+    state = stepNekzaliState(state, idle, 1)
+    expect(state.adds[0].health).toBe(40)
+    expect(Math.hypot(state.adds[0].position.x, state.adds[0].position.z)).toBeLessThan(30)
+    state = stepNekzaliState(startNekzaliMainCast(state), idle, 1.01)
+    expect(state.adds[0].health).toBe(0)
+    expect(state.playerAddKills).toBe(1)
+  })
+
+  it('marks the Barrage carrier, evacuates other NPCs, and exposes the assisted impact area', () => {
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 37.99 }
+    state = stepNekzaliState(state, idle, .02)
+    const snapshot = nekzaliSnapshot(state)
+    expect(snapshot.actors.find(actor => actor.id === state.barrageTargetId)?.auras.some(aura => aura.id === 'possession-barrage')).toBe(true)
+    expect(snapshot.effects.some(effect => effect.id.endsWith('barrage-assisted-radius') && effect.radius === 10)).toBe(true)
+    const target = state.barrageTargetId!
+    const bystander = contractRaidRoster.find(member => member.id !== state.selectedSlotId && member.id !== target)!
+    const before = state.npcPositions[bystander.id]
+    state = stepNekzaliState(state, idle, .5)
+    expect(state.npcPositions[bystander.id]).not.toEqual(before)
+  })
+
   it('assigns a stable Pyre-soak or smaller Cremation-cleanup role before pull', () => {
     const duties = contractRaidRoster.map(member => createNekzaliState(member.id, 'test').cleanupDuty)
     expect(duties.some(Boolean)).toBe(true)
@@ -150,6 +199,24 @@ describe("Nek'zali reconciled encounter contract", () => {
     const dutyState = { ...state, time: 105.1 }
     expect(nekzaliSnapshot(dutyState).effects.some(effect => effect.id === 'pyre-1' || effect.id === 'spread-1')).toBe(true)
     expect(startNekzaliMainCast(state)).toMatchObject({ mainCastRemaining: 1, mainTargetId: 'echo-1' })
+    expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'nekzali-boss')?.auras).toContainEqual({ id: 'unavailable', label: 'Unavailable', tone: 'spectral', stacks: 1 })
+  })
+
+  it('moves intermission NPCs toward the active Echo without detaching Cremation', () => {
+    const created = createNekzaliState('player', 'test')
+    const member = contractRaidRoster.find(candidate => candidate.id !== 'player')!
+    const echoState: NekzaliState = { ...created, time: 90, phase: 'echo-1', phaseStartedAt: 90 }
+    const before = echoState.npcPositions[member.id]
+    const approached = stepNekzaliState(echoState, idle, .5)
+    const after = approached.npcPositions[member.id]
+    expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThanOrEqual(3.5)
+    expect(Math.hypot(after.x, after.z + 34)).toBeLessThan(Math.hypot(before.x, before.z + 34))
+
+    const cremationState: NekzaliState = { ...approached, time: 106, phaseStartedAt: 90 }
+    const carried = stepNekzaliState(cremationState, idle, .5)
+    const carrier = nekzaliSnapshot(carried).actors.find(actor => actor.auras.some(aura => aura.id === 'cremation'))
+    expect(carrier).toBeDefined()
+    expect(carrier?.position).toEqual(carried.npcPositions[carrier!.id])
   })
 })
 
@@ -161,6 +228,13 @@ describe("Nek'zali Well realm", () => {
     expect(interruptNekzali(interruptible).innerCastInterrupted).toBe(true)
     const missed = stepNekzaliState({ ...interruptible, time: 13.99 }, idle, .02)
     expect(missed.failures[0]?.code).toBe('missed-well-interrupt')
+    expect(missed.failures[0]?.label).toBe('Failed to kick the Drowned Echo')
+  })
+
+  it('cancels a Main cast during disruption without recording a mechanic failure', () => {
+    const disrupted = stepNekzaliState({ ...insideState(), time: 12.99, mainCastRemaining: .5, disruptionIndex: 0 }, idle, .02)
+    expect(disrupted.mainCastRemaining).toBe(0)
+    expect(disrupted.failures).toHaveLength(0)
   })
 
   it('kills the Drowned Echo with 20 Main casts and applies 60-second exhaustion after return', () => {

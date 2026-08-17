@@ -77,6 +77,22 @@ from individually accepted encounter evidence and tickets.
   after-images into raid-targeted telegraphs that resolve once and disappear.
 - `BUG-200` — implemented corrective regression: removed Essence Rend's obsolete
   forced movement and reserved inward Well movement for Grasping Depths.
+- `CR-290` — completed: replaced abrupt fixed-angle Invoke jumps with continuous,
+  deterministic slow Phase 2 Cultist orbits.
+- `BUG-201` — completed: enforce persistent Cultist, three-second Cremation fire,
+  and complete Well return lifecycles.
+- `BUG-202` — completed: keep intermission mechanics attached to bounded NPCs,
+  move the raid toward each active Echo, and show Nek'zali as unavailable.
+- `BUG-203` — completed: clarify the five-second Well return, failed interrupt,
+  and non-failure cast-disruption feedback.
+- `BUG-204` — completed: prevent NPCs from killing the player's marked Amani and
+  restore credible add pressure toward the Well.
+- `FR-093` — backlog: review a reusable Death Knight grip assignment/action
+  without silently adding a new player CC binding.
+- `BUG-205` — completed: correct NPC Barrage evacuation and improve tank,
+  projectile, countdown, and assisted impact-area presentation.
+- `BUG-206` — completed: restore the yellow current/next raid-lead telegraph in
+  Learn 2D while retaining configured HUD placement in Train 3D.
 
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),

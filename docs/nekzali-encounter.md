@@ -45,7 +45,10 @@ projections, never with Test/Easy/Normal/Hard.
   Realm Group 2; that assignment is prominent pre-pull and remains visible in
   the runtime HUD.
 - The active tank owns aggro. Possession Barrage swaps aggro immediately; NPC
-  tanks carry it to a far clear edge lane. Player tanks use Taunt when assigned.
+  tanks carry it alone to a far clear edge lane while the remaining NPC raid
+  evacuates the lane and impact area. The carrier shows its remaining spirits;
+  Test/Easy also previews the approximately 20-yard-diameter explosion area.
+  Player tanks use Taunt when assigned.
 - Main damages priority adds before Nek'zali. NPCs use the same target/action
   vocabulary and own crowd control; there is no player CC keybind.
 
@@ -104,6 +107,8 @@ projections, never with Test/Easy/Normal/Hard.
 
 - Six-second distance-scaled spirit barrage from boss to target tank. The tank
   travels to the far edge and other players leave the lane and impact zones.
+  Spirits use a distinct spectral projectile and the carrier owns the attached
+  countdown/remaining-spirit state.
 - Hollowing Strikes is a reusable 15-second independently expiring tank stack;
   each stack reduces healing/absorb received by five percent. The trainer shows
   stack state and swaps according to assignment rather than inventing an exact
@@ -115,8 +120,10 @@ projections, never with Test/Easy/Normal/Hard.
   25%-maximum-health Magic absorb; NPC crowd control becomes effective only
   after it breaks.
 - Main prefers the closest living Amani. The player is responsible for three
-  marked targets; NPCs handle the rest, including while the player is in the
-  Well realm. A leak remains a trainer wipe condition.
+  marked targets before unassigned adds; NPCs may break their shields and
+  control them but cannot deal the killing blow. NPCs handle the rest,
+  including while the player is in the Well realm. Adds retain credible inward
+  pressure in both projections and a leak remains a trainer wipe condition.
 - Every death leaves a Vessel of Awakening at that exact location.
 - In the deterministic trainer cadence the first wave begins before the Phase 1
   Realm Group call, so the adds remain a visible independent responsibility
@@ -138,8 +145,11 @@ projections, never with Test/Easy/Normal/Hard.
 - Inside, Main kills the Drowned Echo in 20 hits. The player must interrupt its
   ten-second assigned cast while avoiding orbiting and outward spirits.
 - Nek'zali's three-second disruption cancels a Main cast if it completes during
-  that cast; it is a performance record until scoring is approved.
-- Death begins a five-second return and applies 60-second Soul Exhaustion.
+  that cast, but does not enter the failure log until scoring is approved. A
+  missed Drowned Echo interrupt is the separate `Failed to kick` failure.
+- Death begins a visible five-second return state/countdown. The full outer raid
+  and persistent hazard field reappear when it completes, and the player gains
+  60-second Soul Exhaustion.
 
 ## Intermission
 
@@ -148,28 +158,33 @@ projections, never with Test/Easy/Normal/Hard.
 - Grasping Depths does not occur during this trainer intermission.
 - Two Echoes activate sequentially. Soul Transfer is a 15-second line hazard
   from Nek'zali to the active Echo.
+- Nek'zali is visibly unavailable while the raid moves at bounded speed toward
+  the active Echo; mechanic carriers never acquire replacement coordinates.
 - The main raid receives Hungering Pyre and soaks the 7.5-yard split. Assigned
   cleanup players stay out, receive Slithering Flame, spread, and place their
   four-yard Cremation explosions on visible Vessels.
-- Cremation leaves a three-second burning zone. Every required Vessel must be
+- Cremation's attached red circle lasts until its explosion, then detaches into
+  a three-second burning zone and disappears. Every required Vessel must be
   removed before the Echo sequence ends.
 
 ## Phase 2
 
 - Phase 1 mechanics continue. Boss health drains from 50% as a trainer pacing
   proxy.
-- Invoke is a five-second cast and advances the Rite state. On completion every
-  persistent Latent Cultist makes one abrupt clockwise Entwined Step around the
-  Well while retaining its radius. Cultists do not drift continuously or bounce
-  from the wall.
+- Invoke is a five-second cast and advances the Rite state. In the accepted
+  trainer contract every persistent Latent Cultist instead orbits continuously
+  and slowly throughout Phase 2 while retaining its drop radius. Deterministic
+  varied speeds and clockwise/counter-clockwise directions prevent a memorized
+  gap without teleporting; later Rend remains join the same field.
 - A player caught casting is silenced for three seconds. Later Rend removals
   join the persistent field and move on subsequent Invokes.
 - One hundred Well energy is terminal; zero boss health completes the lesson.
 
 ## Validation
 
-Coverage must prove both schedules, pull/debuff/removal state, edge auto-dispel,
-healer dispel assignment, exactly one persistent remain, discrete clockwise
-Invoke steps, Pyre/cleanup assignments, 10-second interrupt, persistent NPC and
-arena timelines, shield-before-health Amani damage, NPC-owned CC, tank swap,
-and identical mechanics across trainer difficulty.
+Coverage must prove both schedules, debuff/removal state, edge auto-dispel,
+healer dispel assignment, exactly one persistent remain, continuous bounded
+Phase 2 orbits, three-second Cremation fire, complete realm return, Pyre/cleanup
+assignments, 10-second interrupt, persistent NPC and arena timelines,
+shield-before-health Amani damage without NPC killing blows, Barrage evacuation,
+tank swap, and identical mechanics across trainer difficulty.

@@ -721,8 +721,9 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - Shared HUD capability means common state and action semantics, not identical
   screen geometry. Train 3D uses its configurable WoW-like frames; Learn 2D
   keeps actor-attached health, cast, aura, and mechanic visuals appropriate to
-  its tactical projection. Spell and debuff state must remain visibly readable
-  in both modes.
+  its tactical projection plus a fixed top-left yellow raid-lead telegraph for
+  the active mechanic and next event. Spell and debuff state must remain
+  visibly readable in both modes.
 - Soak, avoid, spread, assignment, and occupancy visuals retain the existing
   shared behavior: filled shapes request player/NPC entry, satisfied shapes
   become outlines, harmful shapes remain visibly hazardous, and guidance may
