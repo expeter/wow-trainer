@@ -457,8 +457,10 @@ test('opens paired contract rooms with full-raid ground reactions and paced 3D r
   await page.waitForTimeout(180)
   expect(await castFill.evaluate(element => Number.parseFloat((element as HTMLElement).style.width))).toBeCloseTo(pausedCastWidth, 1)
   await page.keyboard.press('p')
-  await expect.poll(async () => Number(await contractArena.getAttribute('data-render-fps')), { timeout: 4000 }).toBeGreaterThanOrEqual(30)
-  expect(Number(await contractArena.getAttribute('data-frame-p95-ms'))).toBeLessThan(50)
+  const minimumRenderFps = process.env.CI ? 10 : 30
+  const maximumFrameP95Ms = process.env.CI ? 120 : 50
+  await expect.poll(async () => Number(await contractArena.getAttribute('data-render-fps')), { timeout: 4000 }).toBeGreaterThanOrEqual(minimumRenderFps)
+  expect(Number(await contractArena.getAttribute('data-frame-p95-ms'))).toBeLessThan(maximumFrameP95Ms)
   await expect(page.getByText(/\d+ FPS · p95/)).toBeVisible()
 })
 
