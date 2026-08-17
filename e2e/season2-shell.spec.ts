@@ -450,14 +450,12 @@ test('opens paired contract rooms with full-raid ground reactions and paced 3D r
   await mainAction.click()
   const castFill = page.locator('.arena-hud-castbar i')
   await expect(castFill).toBeVisible()
-  const castWidth = await castFill.evaluate(element => Number.parseFloat((element as HTMLElement).style.width))
-  await page.waitForTimeout(40)
-  await expect.poll(() => castFill.evaluate(element => Number.parseFloat((element as HTMLElement).style.width))).toBeGreaterThan(castWidth + 1)
   await page.keyboard.press('p')
   const pausedCastWidth = await castFill.evaluate(element => Number.parseFloat((element as HTMLElement).style.width))
   await page.waitForTimeout(180)
   expect(await castFill.evaluate(element => Number.parseFloat((element as HTMLElement).style.width))).toBeCloseTo(pausedCastWidth, 1)
   await page.keyboard.press('p')
+  await expect.poll(async () => await castFill.count() === 0 ? 100 : castFill.evaluate(element => Number.parseFloat((element as HTMLElement).style.width))).toBeGreaterThan(pausedCastWidth + 1)
   const minimumRenderFps = process.env.CI ? 10 : 30
   const maximumFrameP95Ms = process.env.CI ? 120 : 50
   await expect.poll(async () => Number(await contractArena.getAttribute('data-render-fps')), { timeout: 4000 }).toBeGreaterThanOrEqual(minimumRenderFps)

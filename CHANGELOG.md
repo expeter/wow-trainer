@@ -10,6 +10,8 @@
   renderer while retaining the stricter local 30 FPS / 50 ms acceptance gate.
 - Gave the performance-heavy contract-room browser regression a CI-only
   60-second execution budget without adding retries or removing assertions.
+- Made the cast/pause browser assertion independent of hosted-runner command
+  latency by freezing first and proving progress after resume.
 - Prepared the first public Season 2 release candidate at
   `midnight.asgard.website`: the isolated Pages workflow verifies unit tests,
   focused browser behavior, and the static build before deploying through the
