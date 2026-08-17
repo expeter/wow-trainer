@@ -2,8 +2,7 @@ import type { EncounterProjection, ProjectionProfile } from '../../../platform/e
 
 export interface NekzaliProjectionTiming {
   phaseOneSeconds: number
-  essenceRendPullSeconds: number
-  essenceRendDebuffSeconds: number
+  essenceRendDurationSeconds: number
   possessionBarrageSeconds: number
   pyreSeconds: number
   wellEntrySeconds: number
@@ -18,8 +17,7 @@ export interface NekzaliProjectionTiming {
 export const nekzaliProjectionTimings: ProjectionProfile<NekzaliProjectionTiming> = {
   learn2d: {
     phaseOneSeconds: 82,
-    essenceRendPullSeconds: 5,
-    essenceRendDebuffSeconds: 12,
+    essenceRendDurationSeconds: 12,
     possessionBarrageSeconds: 7,
     pyreSeconds: 9,
     wellEntrySeconds: 8,
@@ -32,8 +30,7 @@ export const nekzaliProjectionTimings: ProjectionProfile<NekzaliProjectionTiming
   },
   train3d: {
     phaseOneSeconds: 90,
-    essenceRendPullSeconds: 5,
-    essenceRendDebuffSeconds: 15,
+    essenceRendDurationSeconds: 15,
     possessionBarrageSeconds: 6,
     pyreSeconds: 7.5,
     wellEntrySeconds: 7,

@@ -10,8 +10,8 @@ describe("Nek'zali reconciled encounter contract", () => {
     expect(createNekzaliState('player', 'normal', 'learn2d').projection).toBe('learn2d')
     expect(NEKZALI_TIMING.projections.learn2d.phaseOneSeconds).toBe(82)
     expect(NEKZALI_TIMING.projections.train3d.phaseOneSeconds).toBe(90)
-    expect(NEKZALI_TIMING.projections.learn2d.essenceRendDebuffSeconds).toBe(12)
-    expect(NEKZALI_TIMING.projections.train3d.essenceRendDebuffSeconds).toBe(15)
+    expect(NEKZALI_TIMING.projections.learn2d.essenceRendDurationSeconds).toBe(12)
+    expect(NEKZALI_TIMING.projections.train3d.essenceRendDurationSeconds).toBe(15)
   })
 
   it('keeps Learn 2D screen-relative and Train 3D facing-relative movement', () => {
@@ -22,20 +22,28 @@ describe("Nek'zali reconciled encounter contract", () => {
     expect(forward3d.player).not.toEqual(forward2d.player)
   })
 
-  it('pulls, knocks, edge-dispels, and creates exactly one persistent Rend remain', () => {
+  it('never forces player movement, edge-dispels, and creates exactly one persistent Rend remain', () => {
+    const diagram: NekzaliState = { ...createNekzaliState('player', 'hard', 'learn2d'), time: 1, rendStartedAt: 0, rendTargetId: 'player', rendEventIndex: 1, player: { x: 31, z: 0, facing: 0 } }
+    expect(stepNekzaliDiagramState(diagram, idle, .5).player).toEqual(diagram.player)
+
     let state: NekzaliState = { ...createNekzaliState('player', 'hard'), time: 16.99, player: { x: 31, z: 0, facing: 0 } }
     state = stepNekzaliState(state, idle, .02)
     expect(state.rendTargetId).toBe('player')
-    expect(nekzaliRendRemaining(state)).toBeGreaterThan(19)
+    expect(nekzaliRendRemaining(state)).toBeGreaterThan(14)
     expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'controlled-player')?.auras[0]).toMatchObject({ id: 'essence-rend', tone: 'danger', stacks: 1, label: 'Rend' })
-    state = stepNekzaliState({ ...state, player: { x: 35, z: 0, facing: 0 } }, idle, 5.01)
+    const positionBeforeIdle = state.player
+    state = stepNekzaliState(state, idle, .5)
+    expect(state.player).toEqual(positionBeforeIdle)
+    expect(state.rendTargetId).toBe('player')
+    state = stepNekzaliState({ ...state, player: { x: 36, z: 0, facing: 0 } }, idle, .01)
     expect(state.rendTargetId).toBeUndefined()
     expect(state.hazards.filter(hazard => hazard.id.startsWith('rend-'))).toHaveLength(1)
     expect(state.hazards[0]).toMatchObject({ radius: 6, kind: 'cultist' })
   })
 
   it('lets an unaffected healer dispel an NPC Rend only after edge positioning', () => {
-    const initial: NekzaliState = { ...createNekzaliState('healer-2', 'test'), time: 10, rendStartedAt: 0, rendTargetId: 'melee-1', rendEventIndex: 1, rendKnockbackApplied: true }
+    const created = createNekzaliState('healer-2', 'test')
+    const initial: NekzaliState = { ...created, time: 10, rendStartedAt: 0, rendTargetId: 'melee-1', rendEventIndex: 1, npcPositions: { ...created.npcPositions, 'melee-1': { x: 36, z: 0 } } }
     const dispelled = dispelNekzali(initial)
     expect(dispelled.rendTargetId).toBeUndefined()
     expect(dispelled.hazards).toHaveLength(1)
@@ -43,7 +51,7 @@ describe("Nek'zali reconciled encounter contract", () => {
   })
 
   it('records expiry inside the raid and still preserves the resulting remain', () => {
-    const state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 19.99, rendStartedAt: 0, rendTargetId: 'player', rendEventIndex: 1, rendKnockbackApplied: true, player: { x: 20, z: 0, facing: 0 } }
+    const state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 14.99, rendStartedAt: 0, rendTargetId: 'player', rendEventIndex: 1, player: { x: 20, z: 0, facing: 0 } }
     const result = stepNekzaliState(state, idle, .02)
     expect(result.failures[0]?.code).toBe('rend-inside')
     expect(result.hazards).toHaveLength(1)

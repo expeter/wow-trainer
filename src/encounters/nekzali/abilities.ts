@@ -6,7 +6,7 @@ const ability = (id: string, name: string, description: string, provenance: Sour
 
 export const abilities = [
   ability('nekzali_soulcoil_well', 'Soulcoil Well', 'Consumes leaked spirits and players, causing Soulcoil Rite and boss energy.', journal, ['arena', 'lethal']),
-  ability('nekzali_essence_rend', 'Essence Rend', 'Pulls several players before a lingering essence leaves a Latent Cultist hazard.', journal, ['movement', 'ground']),
+  ability('nekzali_essence_rend', 'Essence Rend', 'Marks several players; removal at the arena edge leaves a persistent Latent Cultist hazard.', journal, ['movement', 'ground']),
   ability('nekzali_possession_barrage', 'Possession Barrage', 'Spirits travel toward the primary tank and deal less raid damage over longer distance.', journal, ['tank', 'distance']),
   ability('nekzali_hollowing_strikes', 'Hollowing Strikes', 'Primary-target attacks apply stacking healing and absorption reduction.', journal, ['tank', 'swap']),
   ability('nekzali_restless_amani', 'Restless Amani', 'Shielded adds advance from sarcophagi toward the Well and leave Vessels for intermission.', journal, ['adds', 'priority']),

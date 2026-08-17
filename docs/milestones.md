@@ -75,6 +75,8 @@ from individually accepted encounter evidence and tickets.
   class color, outline, and glow without a decorative weapon or role accessory.
 - `BUG-199` — completed: turn Anguished Echo circles from arbitrary instant-hit
   after-images into raid-targeted telegraphs that resolve once and disappear.
+- `BUG-200` — implemented corrective regression: removed Essence Rend's obsolete
+  forced movement and reserved inward Well movement for Grasping Depths.
 
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),

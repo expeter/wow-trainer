@@ -130,7 +130,7 @@ test("keeps Nek'zali mechanic coaching compact and assignment-neutral before sel
   await expect(mechanic.getByText('Mechanic', { exact: true })).toHaveCount(0)
   await expect(mechanic.getByLabel('Action state')).toHaveCount(0)
   await expect(mechanic).not.toContainText(/Take Essence Rend|assigned adds|soak group/)
-  await expect(mechanic).toContainText(/Rend(?: in)? ~\d+s/)
+  await expect(mechanic).toContainText(/Soulcoil Ignition in ~\d+s/)
   expect((await mechanic.boundingBox())!.width).toBeLessThanOrEqual(270)
 })
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Removed Nek'zali Essence Rend's obsolete inward pull and outward knockback.
+  Rend now leaves player movement fully under input control, lasts only for its
+  projection-specific Magic-debuff duration, and leaves Grasping Depths as the
+  sole mechanic that requests movement into the Well.
 - Made Nek'zali's Soulcoil Ignition timer announce the opening and active
   Anguished Echo pulses instead of letting their circles appear unexplained.
   Simplified the shared Learn 2D player silhouette to class color, outline, and
@@ -22,7 +26,7 @@
   intermission. Focused-practice selection remains cancelled.
 
 - Reconciled Nek'zali with the supplied 2026-08-16 fight research. Essence
-  Rend is now a pull, knockback, timed Magic debuff, edge dispel, and one
+  Rend is now a timed Magic debuff, edge dispel, and one
   persistent Latent Cultist instead of a three-puddle abstraction; healers can
   dispel another edge-positioned target. Soulcoil Rite/Burn, Anguished Echo,
   shield-before-health Amani with NPC crowd control, Soul Transfer, explicit

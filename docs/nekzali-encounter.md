@@ -1,6 +1,6 @@
 # Nek'zali the Soulcoiler encounter specification
 
-Tickets: `SPEC-022`, `SPEC-024`, `SPEC-025`, `FR-082`, `FR-083`, `CR-286`, `BUG-195`–`BUG-197`
+Tickets: `SPEC-022`, `SPEC-024`, `SPEC-025`, `FR-082`, `FR-083`, `CR-286`, `BUG-195`–`BUG-200`
 
 This is the canonical, iterative trainer definition for Nek'zali. The supplied
 2026-08-16 research is source evidence, not a second implementation contract.
@@ -24,7 +24,6 @@ failure conditions with separately declared schedules.
 | --- | ---: | ---: | --- |
 | Phase 1 pacing to 50% | 82s | 90s | trainer proxy |
 | Soulcoil Ignition channel | 4s | 4s | sourced |
-| Essence Rend pull | 5s | 5s | sourced |
 | Essence Rend Magic debuff | 12s | 15s | 2D projection / sourced 3D |
 | Possession Barrage | 7s | 6s | 2D movement / sourced 3D |
 | Drowned Echo interrupt | 10s | 10s | sourced |
@@ -87,12 +86,14 @@ projections, never with Test/Easy/Normal/Hard.
 
 ### Essence Rend
 
-- Rend pulls selected targets for five seconds, then knocks them outward and
-  applies a dispellable Magic debuff.
+- Rend immediately applies a dispellable Magic debuff. It does not pull or
+  knock its targets and never moves the controlled player; Grasping Depths is
+  the separate mechanic that calls an assigned group into the Well.
 - The target carries one visible icon and countdown, not text over the actor.
-- The target moves to a clear outer lane. A controlled affected player is
-  automatically dispelled once they reach a clear edge position. If they do not,
-  expiry removes the debuff at their current location and records bad placement.
+- The target moves under its own control to a clear outer lane. A controlled
+  affected player is automatically dispelled once they reach a clear edge
+  position. If they do not, expiry removes the debuff at their current location
+  and records bad placement.
 - A controlled healer who is not affected may use Dispel on the assigned NPC
   target once that NPC reaches its clear edge destination.
 - Removal by dispel or expiry creates exactly one six-yard Latent Cultist at the
