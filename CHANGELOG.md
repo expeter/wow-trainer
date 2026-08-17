@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Reorganized the Season 2 roadmap into M1 core, M2 encounters, the post-M2
+  publication gate, M3 planner, M4 audio, M5 shell, M6 online results, and a
+  post-publication optimization pass. Deferred work and frozen L’ura history
+  are now clearly separated from active Season 2 delivery.
 - Split Keys & Mouse into dedicated Learn 2D, Train 3D, mouse-camera, and
   shared-action sections. Binding labels no longer truncate, and their readable
   value buttons align to a consistent height.
