@@ -4,24 +4,23 @@ A standalone browser trainer for learning Midnight Season 2 raid encounters in
 two complementary modes: tactical study in Learn 2D and movement rehearsal in
 Train 3D.
 
-This repository begins with the reviewed L'ura Trainer v0.9.1 platform so its
+This repository began with the reviewed L'ura Trainer v0.9.1 platform so its
 shell, controls, HUD, tactical planner, audio, persistence, tests, and delivery
 lessons can be extracted incrementally. It is a new product, not a continuation
 of the L'ura encounter or its online service.
 
 ## Current status
 
-The bootstrap shell now loads a validated encounter catalogue through
-`EncounterPackageV1`. Entombed Sentinels is automatically discovered as the
-sole research package and is emitted as its own lazy production chunk. Its
-shared facts, PTR timing profile, tactic schema, and separate Learn 2D/Train 3D
-arena declarations are present, but both runtimes remain explicitly planned
-and are not playable yet.
+The public release candidate loads all eight isolated encounter packages through
+`EncounterPackageV1`. Nek'zali and Entombed Sentinels are playable full fights
+in Learn 2D and Train 3D; the remaining packages stay visibly planned. The
+shared shell now includes independent controls, draggable HUD setup, a versioned
+local tactical planner, opt-in audio channels, and the public boss journey.
 
 - Product ID: `midnight-season-2`
 - Short ID: `midnight-s2`
-- Planned hostname: `midnight.asgard.website` (not configured yet)
-- Public deployment: disabled during extraction
+- Public hostname: `midnight.asgard.website`
+- Public deployment: GitHub Pages workflow on `main`
 - Online services: API `/v2`, statistics, achievements, and rankings deferred
 
 The [request ledger](docs/README.md), [stable specifications](docs/specifications.md),
@@ -38,10 +37,10 @@ but own different simulations and arena geometry. Bosses live in isolated,
 automatically discovered encounter directories; malformed packages are
 excluded with development diagnostics instead of crashing the catalogue.
 
-The complete L'ura v0.9.1 application remains available only in a development
-server at `?reference=lura-v0.9.1`. Production builds use the Season 2 entry
-point and do not expose the reference link. The inherited `/v1` API and its
-deployment workflow are frozen.
+The retired Season 1 runtime, `/v1` API, service units, deployment workflow,
+review tooling, and bundled audio were removed before publication. The reviewed
+baseline remains recoverable from the immutable `legacy-source-v0.9.1` tag and
+the separate source repository; it is not an application route in this product.
 
 ## Project lineage
 
@@ -51,7 +50,7 @@ shell and engineering lessons could be extracted incrementally. The original
 trainer remains a separate Season 1 product with its own
 [source repository](https://github.com/expeter/wow-midnight-fall-lura-trainer).
 This acknowledgement is repository documentation only; the deployed Midnight
-shell does not link to or connect with the legacy trainer or its `/v1` API.
+shell does not link to or connect with the original trainer or its service.
 
 ## Local development
 
@@ -79,16 +78,16 @@ through `./scripts/test-e2e-focused.sh season2-shell`; use
 `npm run test:e2e:local` only for the complete browser suite. Build with
 `npm run build`.
 
-There is intentionally no deployment procedure in this bootstrap milestone.
-The inherited workflows verify the standalone shell without publishing Pages
-or the legacy API.
+Pushes to `main` run unit tests, the focused shell browser suite, and the static
+build before deploying `dist/` to the isolated `github-pages` environment. The
+artifact contains `CNAME` for `midnight.asgard.website`; repository Pages and
+DNS settings must point at this repository before the custom domain resolves.
 
 ## License and attribution
 
-The source code is released under the [MIT License](LICENSE). Bundled legacy
-audio remains subject to its documented license under
-[`sounds/pixabay/README.md`](sounds/pixabay/README.md) while the extraction
-audit determines which assets are retained.
+The source code is released under the [MIT License](LICENSE). The current audio
+bed and cues are generated with browser audio primitives, so no third-party
+music or sound pack is bundled.
 
 This is an unofficial fan-made practice tool and is not affiliated with or
 endorsed by Blizzard Entertainment. World of Warcraft and related names are

@@ -8,8 +8,9 @@ source archaeology, not part of this roadmap.
 
 ## Current release boundary
 
-- No standalone Midnight Season 2 release has been cut and no public deployment
-  is configured.
+- `v0.10.0` is the first standalone public release candidate. Its isolated
+  Pages workflow is configured; first deployment and custom-domain verification
+  remain pending the requested push.
 - The repository uses the tagged L’ura v0.9.1 source solely as an immutable
   extraction reference.
 - The inherited L’ura leaderboard remains `season-1` and belongs to the legacy
@@ -64,56 +65,50 @@ Exit gate:
   coverage.
 - No boss-specific implementation weakens the M1 architecture contract.
 
-### Publication gate · After M2
+### Parallel publication runway · M2 remains open
 
-Goal: publish an isolated static Season 2 trainer without exposing or mutating
-the legacy trainer, service, or leaderboard.
+Goal: keep encounter expansion and playtesting active while completing M3–M5,
+then publish the accepted subset as an isolated static Season 2 trainer without
+exposing or mutating the legacy trainer, service, or leaderboard. Publication
+does not require every raid boss to be implemented.
 
-Run in this order:
+Run the publication-specific gates in this order after the accepted M3–M5
+slices are ready:
 
-1. `CR-235` — remove L’ura and Season 1 runtime, service, deployment, asset,
-   storage, test, and branding residue while preserving the immutable baseline
-   tag, privacy-safe history, handover evidence, and README lineage.
-2. `CR-236` — apply the restrained token-driven troll, nature, venom, and
-   spirit-realm theme required for the initial public identity.
-3. `FR-074` — enable the dedicated GitHub Pages workflow and
+1. `CR-235` — complete: retired Season 1 runtime, service, deployment, assets,
+   tests, and branding while preserving the baseline tag and lineage.
+2. `CR-236` — complete: applied the restrained token-driven forest, venom,
+   spirit, stone, and bone identity plus procedural encounter floors.
+3. `FR-074` — in progress: dedicated GitHub Pages workflow and
    `midnight.asgard.website`, with explicit legacy-domain safety checks.
 
 Publication does not authorize API `/v2`, rankings, achievements, or a
 leaderboard-season change.
 
-### M3 · Tactical planner
+### M3 · Tactical planner — complete
 
 Goal: restore the reusable planning workflow against versioned Season 2
 encounter data rather than imported L’ura encounter state.
 
-Open ticket:
+`FR-079` supplies the versioned package-owned tactic editor, draggable markers,
+required-field validation, local save/load, reset, and checked JSON exchange.
 
-- `FR-079` — implement the versioned encounter tactic schema, draggable
-  role/assignment markers, validation, save/load/import/export, and safe
-  persistence using package-owned arena and anchor semantics.
-
-### M4 · Sounds and music
+### M4 · Sounds and music — complete
 
 Goal: restore independent, pause-aware audio services after encounter behavior
 is stable enough to own meaningful cues.
 
-Open ticket:
+`FR-078` supplies independent persisted Music, Sounds, and Raidlead channels,
+setup previews, runtime toggles, and pause-aware browser-generated cues.
 
-- `FR-078` — extract persisted music, encounter-sound, and raid-lead/TTS
-  channels with preview controls and reviewed/licensed assets only.
-
-### M5 · Front design and shell
+### M5 · Front design and shell — complete
 
 Goal: refine the public-facing journey and setup hierarchy after the encounter
 catalogue and core workflows are established.
 
-Open tickets:
-
-- `CR-281` — remove the development extraction-status banner.
-- `CR-282` — redesign the boss journey/catalogue, per-boss 2D/3D actions,
-  setup density, difficulty selector, interaction states, and contract-room
-  presentation without replacing the reviewed shell or copying supplied art.
+`CR-281` removes extraction banners. `CR-282` presents the automatically
+discovered eight-boss journey with compact per-boss actions, ready/planned
+hierarchy, responsive stacking, and code-native identity marks.
 
 The publication-gate theme work is intentionally not duplicated here: it
 provides the minimum coherent public identity, while M5 owns the later

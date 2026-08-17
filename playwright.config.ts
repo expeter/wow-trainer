@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const e2ePort = Number(process.env.MIDNIGHT_E2E_PORT || process.env.LURA_E2E_PORT || 4173)
+const e2ePort = Number(process.env.MIDNIGHT_E2E_PORT || 4173)
 const e2eOrigin = `http://127.0.0.1:${e2ePort}`
 
 export default defineConfig({
@@ -12,6 +12,6 @@ export default defineConfig({
   webServer: {
     command: `node node_modules/vite/bin/vite.js --host 127.0.0.1 --port ${e2ePort}`,
     url: e2eOrigin,
-    reuseExistingServer: !process.env.MIDNIGHT_E2E_ISOLATED && !process.env.LURA_E2E_ISOLATED,
+    reuseExistingServer: !process.env.MIDNIGHT_E2E_ISOLATED,
   },
 })

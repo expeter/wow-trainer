@@ -42,24 +42,94 @@ function disposeObject(object: THREE.Object3D) {
       const materials = Array.isArray(child.material) ? child.material : [child.material]
       materials.forEach(material => material.dispose())
     }
+    if (child instanceof THREE.Line) {
+      child.geometry.dispose()
+      const materials = Array.isArray(child.material) ? child.material : [child.material]
+      materials.forEach(material => material.dispose())
+    }
     if (child instanceof THREE.Sprite) child.material.dispose()
   })
+}
+
+function arenaFloorDetails(arena: Train3DSnapshot['arena']) {
+  const group = new THREE.Group()
+  group.name = `floor-material-${arena.theme.material ?? 'plain'}`
+  const points: THREE.Vector3[] = []
+  const seed = [...arena.id].reduce((sum, character) => sum + character.charCodeAt(0), 0)
+  const unit = (index: number) => {
+    const value = Math.sin((index + 1) * 91.733 + seed * 17.17) * 43758.5453
+    return value - Math.floor(value)
+  }
+  const count = arena.shape === 'circle' ? 54 : 76
+  for (let index = 0; index < count; index += 1) {
+    const angle = unit(index * 7) * Math.PI * 2
+    const radial = Math.sqrt(unit(index * 7 + 1))
+    const x = arena.shape === 'circle' ? Math.cos(angle) * radial * arena.width * .46 : (unit(index * 7 + 2) - .5) * arena.width * .92
+    const z = arena.shape === 'circle' ? Math.sin(angle) * radial * arena.depth * .46 : (unit(index * 7 + 3) - .5) * arena.depth * .88
+    const length = 1.8 + unit(index * 7 + 4) * 5.2
+    const direction = angle + (unit(index * 7 + 5) - .5) * 1.7
+    const bendX = x + Math.cos(direction) * length * .48 + (unit(index * 7 + 6) - .5) * 1.4
+    const bendZ = z + Math.sin(direction) * length * .48 + (unit(index * 7 + 7) - .5) * 1.4
+    const endX = x + Math.cos(direction) * length
+    const endZ = z + Math.sin(direction) * length
+    points.push(new THREE.Vector3(x, .052, z), new THREE.Vector3(bendX, .052, bendZ), new THREE.Vector3(bendX, .052, bendZ), new THREE.Vector3(endX, .052, endZ))
+  }
+  const cracks = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: arena.theme.cracks || '#60736a', transparent: true, opacity: .46 }))
+  cracks.name = 'floor-cracks'
+  group.add(cracks)
+  if (arena.theme.kind === 'sentinels') {
+    const poisonMaterial = new THREE.MeshBasicMaterial({ color: arena.theme.poison || '#76bd36', transparent: true, opacity: .28, depthWrite: false })
+    const horizontal = new THREE.PlaneGeometry(arena.width + 14, 7)
+    const vertical = new THREE.PlaneGeometry(7, arena.depth)
+    for (const z of [-arena.depth / 2 - 3.5, arena.depth / 2 + 3.5]) {
+      const strip = new THREE.Mesh(horizontal, poisonMaterial)
+      strip.rotation.x = -Math.PI / 2
+      strip.position.set(0, .045, z)
+      group.add(strip)
+    }
+    for (const x of [-arena.width / 2 - 3.5, arena.width / 2 + 3.5]) {
+      const strip = new THREE.Mesh(vertical, poisonMaterial)
+      strip.rotation.x = -Math.PI / 2
+      strip.position.set(x, .045, 0)
+      group.add(strip)
+    }
+  }
+  return group
 }
 
 function actorObject(actor: ActorSnapshot) {
   const group = new THREE.Group()
   group.name = actor.id
+  const hostile = actor.kind === 'boss' || actor.kind === 'enemy'
   const bodyGeometry = actor.kind === 'boss'
     ? new THREE.CylinderGeometry(2.7, 3.2, 5.8, 20)
+    : actor.kind === 'enemy'
+      ? new THREE.ConeGeometry(1.18, 2.9, 7)
     : actor.role === 'tank'
       ? new THREE.BoxGeometry(1.55, 2.25, 1.35)
       : new THREE.CapsuleGeometry(.72, 1.35, 5, 12)
+  const bodyColor = hostile ? new THREE.Color(actor.color).multiplyScalar(.42) : new THREE.Color(actor.color)
   const body = new THREE.Mesh(
     bodyGeometry,
-    new THREE.MeshStandardMaterial({ color: actor.color, roughness: .64, emissive: actor.color, emissiveIntensity: .12 }),
+    new THREE.MeshStandardMaterial({ color: bodyColor, roughness: hostile ? .42 : .64, emissive: actor.color, emissiveIntensity: hostile ? .42 : .12 }),
   )
   body.position.y = actor.kind === 'boss' ? 2.9 : 1.4
   group.add(body)
+  if (hostile) {
+    const crown = new THREE.Group()
+    crown.name = 'hostile-silhouette'
+    crown.position.y = actor.kind === 'boss' ? 6 : 2.9
+    for (const side of [-1, 1]) {
+      const horn = new THREE.Mesh(new THREE.ConeGeometry(actor.kind === 'boss' ? .42 : .22, actor.kind === 'boss' ? 1.7 : .9, 6), new THREE.MeshStandardMaterial({ color: 0x161119, emissive: actor.color, emissiveIntensity: .55, roughness: .35 }))
+      horn.position.x = side * (actor.kind === 'boss' ? 1.45 : .52)
+      horn.rotation.z = side * -.34
+      crown.add(horn)
+    }
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(actor.kind === 'boss' ? .3 : .2, 8, 6), new THREE.MeshBasicMaterial({ color: actor.color }))
+    eye.position.set(0, actor.kind === 'boss' ? -.55 : -.25, actor.kind === 'boss' ? -2.72 : -.62)
+    crown.add(eye)
+    group.add(crown)
+  }
   if (actor.role === 'healer' && actor.kind !== 'player') {
     const healerRing = new THREE.Mesh(new THREE.TorusGeometry(.52, .09, 7, 18), new THREE.MeshBasicMaterial({ color: actor.color }))
     healerRing.name = 'role-healer'
@@ -112,7 +182,9 @@ function refreshAuras(group: THREE.Group, actor: ActorSnapshot) {
   }
   const auraGroup = new THREE.Group()
   auraGroup.name = 'auras'
-  const icons = actor.auras.flatMap(aura => Array.from({ length: aura.stacks }, (_, index) => ({ ...aura, index })))
+  const icons = actor.auras.flatMap(aura => ['green-toxin', 'red-toxin'].includes(aura.id)
+    ? Array.from({ length: aura.stacks }, (_, index) => ({ ...aura, index }))
+    : [{ ...aura, index: 0 }])
   icons.forEach((aura, index) => {
     const icon = new THREE.Mesh(
       new THREE.OctahedronGeometry(.28, 0),
@@ -262,6 +334,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     if (import.meta.env.DEV) {
       canvas.dataset.arenaShape = arena.shape
       canvas.dataset.arenaTheme = arena.theme.kind ?? 'default'
+      canvas.dataset.floorMaterial = arena.theme.material ?? 'plain'
     }
     const floorColor = new THREE.Color(arena.theme.floor?.startsWith('#') ? arena.theme.floor : '#18221b')
     const boundaryColor = new THREE.Color(arena.theme.boundary?.startsWith('#') ? arena.theme.boundary : '#7fa98d')
@@ -281,6 +354,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     )
     floor.rotation.x = -Math.PI / 2
     scene.add(floor)
+    scene.add(arenaFloorDetails(arena))
     if (arena.shape === 'rectangle') {
       const grid = new THREE.GridHelper(Math.max(visualFloor.width, visualFloor.depth), 64, 0x405d48, 0x243329)
       grid.position.y = .03

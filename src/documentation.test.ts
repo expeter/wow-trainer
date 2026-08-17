@@ -20,10 +20,9 @@ describe('maintained project documentation', () => {
     expect(activeDocumentation).not.toContain('leaderboard-api-handoff.md')
   })
 
-  it('records the inherited source baseline without claiming a Season 2 release', () => {
-    const packageVersion = JSON.parse(read('package.json')).version
-    expect(read('docs/milestones.md')).toContain(`L'ura v${packageVersion} source`)
-    expect(read('docs/milestones.md')).toContain('No standalone Midnight Season 2 release has been cut')
+  it('separates the inherited baseline from the Season 2 release candidate', () => {
+    expect(read('docs/milestones.md')).toContain('L’ura v0.9.1 source')
+    expect(read('docs/milestones.md')).toContain('v0.10.0')
   })
 
   it('groups every open request into a delivery milestone', () => {
@@ -54,32 +53,14 @@ describe('maintained project documentation', () => {
     for (const id of ids) expect(requestLog).toContain(`\`${id}\``)
   })
 
-  it('documents every shipped API route in both API references', () => {
-    const implementation = read('api/src/app.ts')
-    const operatorReadme = read('api/README.md')
-    const apiContract = read('docs/api-highscores.md')
-    const routes = new Set([
-      ...implementation.matchAll(/url\.pathname === '(\/[^']+)'/g),
-      ...implementation.matchAll(/url\.pathname === "(\/[^"]+)"/g),
-    ].map(match => match[1]))
-
-    for (const route of routes) {
-      expect(operatorReadme, `${route} missing from api/README.md`).toContain(route)
-      expect(apiContract, `${route} missing from docs/api-highscores.md`).toContain(route)
-    }
-    for (const parameterized of [
-      '/v1/attempts/{attemptId}/complete',
-      '/v1/me/attempts/{attemptId}',
-      '/v1/profiles/{profileId}',
-    ]) {
-      expect(operatorReadme).toContain(parameterized)
-    }
-  })
-
-  it('keeps inherited deployment targets disabled during extraction', () => {
-    expect(read('.github/workflows/pages.yml')).not.toContain('actions/deploy-pages')
-    expect(read('.github/workflows/api.yml')).not.toContain('deploy-api:')
-    expect(read('.github/workflows/api.yml')).not.toContain('api.asgard.website')
+  it('keeps publication isolated from inherited services and domains', () => {
+    const workflow = read('.github/workflows/pages.yml')
+    expect(workflow).toContain('actions/deploy-pages')
+    expect(workflow).toContain('pages: write')
+    expect(workflow).not.toContain('lura.asgard.website')
+    expect(workflow).not.toContain('api.asgard.website')
+    expect(existsSync(resolve(process.cwd(), 'api'))).toBe(false)
+    expect(existsSync(resolve(process.cwd(), '.github/workflows/api.yml'))).toBe(false)
   })
 
   it('wires the global project inbox into the Season 2 ticket workflow', () => {

@@ -81,6 +81,7 @@ export interface NekzaliState {
   soulExhaustedUntil?: number
   npcRealmGroup?: 1 | 2
   npcRealmStartedAt?: number
+  transitionFieldResolved: boolean
 }
 
 const WELL_RADIUS = 6
@@ -90,9 +91,15 @@ const SOUL_TRANSFER_SECONDS = 15
 const CREMATION_FIRE_SECONDS = 3
 const REND_DROP_GRACE_SECONDS = 1
 const BARRAGE_EXPLOSION_RADIUS = 10
+const PHASE_TWO_TRANSITION_SECONDS = 1.8
+const PYRE_TRAVEL_SECONDS = 1.25
 const bossHome = { x: 0, z: 18 }
 const npcBarrageDestination = { x: 40, z: 8 }
 const echoPositions = { 1: { x: 0, z: -34 }, 2: { x: 0, z: 34 } } as const
+const phaseTwoTransitionImpacts = [
+  { x: -29, z: -18 }, { x: -15, z: 27 }, { x: 3, z: -29 },
+  { x: 17, z: 24 }, { x: 31, z: -9 }, { x: 29, z: 14 },
+] as const
 
 function moveToward(point: WorldPoint, target: WorldPoint, speed: number, seconds: number): WorldPoint {
   const length = distance(point, target)
@@ -199,7 +206,7 @@ export function createNekzaliState(selectedSlotId = 'player', trainingDifficulty
   return { time: 0, timeline, phase: 'phase-1', phaseStartedAt: 0, player: { ...start, facing: 0 }, npcPositions, realmNpcPositions: {}, boss: { ...bossHome }, bossHealth: 100, bossEnergy: 0, ritualBurnApplications: [], soulcoilPulseIds: [], anguishedImpacts: [], hollowingApplications: [], hollowingHitIds: [],
     selectedSlotId, projection, soakGroup: groupForSlot(selectedSlotId), cleanupDuty: cleanupForSlot(selectedSlotId), aggroOwner: member.role === 'tank' ? selectedSlotId : 'tank-1', addsSpawned: false, adds: [], corpses: [], hazards: [], rendEventIndex: 0, rendDrops: 0,
     barrageStarted: false, barrageResolved: false, playerAddKills: 0, mainCastRemaining: 0, mainProjectileOrdinal: 0, invokes: 0, outcome: 'active', mistakes: 0, failures: [], trainingDifficulty,
-    wellGroup: groupForSlot(selectedSlotId), wellEventIndex: 0, realmStage: 'none', realmStartedAt: 0, realmAddHits: 0, innerCastInterrupted: false, disruptionIndex: 0, soulExhausted: false }
+    wellGroup: groupForSlot(selectedSlotId), wellEventIndex: 0, realmStage: 'none', realmStartedAt: 0, realmAddHits: 0, innerCastInterrupted: false, disruptionIndex: 0, soulExhausted: false, transitionFieldResolved: false }
 }
 
 export function prepareNekzaliSlot(state: NekzaliState, selectedSlotId: string): NekzaliState {
@@ -494,7 +501,7 @@ function resolveEcho(state: NekzaliState, echo: 1 | 2): NekzaliState {
   next = { ...next, corpses, hazards: [...next.hazards, ...burning] }
   if (echo === 1) return { ...next, phase: 'echo-2', phaseStartedAt: next.time }
   if (corpses.some(corpse => !corpse.cremated)) return addFailure(next, 'residual-corpses', 'Residual Amani corpses reawakened', 'Both spread groups must Cremate every corpse before Phase 2.', true)
-  return { ...next, phase: 'phase-2', phaseStartedAt: next.time, boss: { ...bossHome }, aggroOwner: contractSelectedMember(next.selectedSlotId).role === 'tank' ? next.selectedSlotId : 'tank-1', rendDrops: 0, barrageStarted: false, barrageResolved: false, barrageTargetId: undefined, barrageStartedAt: undefined }
+  return { ...next, phase: 'phase-2', phaseStartedAt: next.time, boss: { ...bossHome }, aggroOwner: contractSelectedMember(next.selectedSlotId).role === 'tank' ? next.selectedSlotId : 'tank-1', rendDrops: 0, barrageStarted: false, barrageResolved: false, barrageTargetId: undefined, barrageStartedAt: undefined, transitionFieldResolved: false }
 }
 
 function stepPhaseTwo(state: NekzaliState, seconds: number, playerPresent = true): NekzaliState {
@@ -526,13 +533,17 @@ function stepPhaseTwo(state: NekzaliState, seconds: number, playerPresent = true
   const boss = moveToward(state.boss, aggroTarget, 4.5, seconds)
   const invokeApplications = Array.from({ length: completedInvokes }, (_, index) => ({ id: `invoke-rite-${invokes - index}`, appliedAt: state.time, duration: 44 }))
   let next: NekzaliState = { ...state, invokes, hazards, aggroOwner, barrageStarted, barrageResolved, barrageTargetId, barrageStartedAt, boss, bossHealth: Math.max(0, 50 - ageAfter * (50 / 65)), bossEnergy: Math.min(100, state.bossEnergy + completedInvokes * 5), ritualBurnApplications: [...state.ritualBurnApplications, ...invokeApplications] }
+  if (!next.transitionFieldResolved && ageAfter >= PHASE_TWO_TRANSITION_SECONDS) {
+    const impact = playerPresent && phaseTwoTransitionImpacts.find(position => distance(next.player, position) < 5.2)
+    if (impact) next = addFailure(next, 'phase-two-transition', 'Hit by the awakening Cultist field', 'Use the short warning to move between the green transition circles.', true)
+    next = { ...next, transitionFieldResolved: true }
+  }
   next = stepSoulcoilIgnition(next, ageAfter, timing.phaseTwoIgnitionStarts, playerPresent)
   next = stepHollowingStrikes(next, ageAfter, playerPresent)
   next = stepScheduledRend(next, ageAfter, timing.phaseTwoRendStarts, timing.phaseOneRendStarts.length)
   if (!barrageResolved && ageAfter >= 22 + timing.possessionBarrageSeconds) {
     const target = barrageTargetPosition(next)
     if (next.barrageTargetId === next.selectedSlotId && distance(next.boss, target) < 24) next = addFailure(next, 'p2-short-barrage', 'Possession Barrage exploded too close to the raid', 'Use the same clear outer tank lane in Phase 2.', true)
-    if (playerPresent && next.barrageTargetId !== next.selectedSlotId && pointToSegmentDistance(next.player, next.boss, target) < 4) next = addFailure(next, 'p2-barrage-impact', 'Hit by a Phase 2 Possession Barrage spirit', 'Stay outside the active tank lane and impact circles.', true)
     if (playerPresent && next.barrageTargetId !== next.selectedSlotId && distance(next.player, target) < BARRAGE_EXPLOSION_RADIUS) next = addFailure(next, 'p2-barrage-explosion', 'Caught in a Possession Barrage explosion', 'Stay outside the distant tank explosion area.', true)
     next = { ...next, barrageResolved: true }
   }
@@ -557,7 +568,6 @@ function stepPhaseOne(state: NekzaliState, seconds: number, playerPresent = true
   if (!next.barrageResolved && next.barrageStartedAt !== undefined && next.time >= next.barrageStartedAt + timing.possessionBarrageSeconds) {
     const target = barrageTargetPosition(next)
     if (next.barrageTargetId === next.selectedSlotId && distance(next.boss, target) < 24) next = addFailure(next, 'short-barrage', 'Possession Barrage exploded too close to the raid', 'Run down the clear outer lane while the off-tank keeps Nek\'zali in place.', true)
-    if (playerPresent && next.barrageTargetId !== next.selectedSlotId && pointToSegmentDistance(next.player, next.boss, target) < 4) next = addFailure(next, 'barrage-impact', 'Hit by a Possession Barrage spirit', 'Leave the tank lane and the small impact circles.', true)
     if (playerPresent && next.barrageTargetId !== next.selectedSlotId && distance(next.player, target) < BARRAGE_EXPLOSION_RADIUS) next = addFailure(next, 'barrage-explosion', 'Caught in a Possession Barrage explosion', 'Stay outside the distant tank explosion area.', true)
     next = { ...next, barrageResolved: true }
   }
@@ -734,6 +744,7 @@ export function activeNekzaliPrompt(state: NekzaliState) {
   }
   if (state.phase === 'phase-2') {
     const age = state.time - state.phaseStartedAt
+    if (age < PHASE_TWO_TRANSITION_SECONDS) return 'Awakening field — move between the green circles'
     if (nekzaliTiming(state.projection).invokeStarts.some(end => age >= end - 5 && age < end)) return 'Invoke — keep clear of orbiting Cultists'
     if (age < 5 && age >= 1) return 'Essence Rend soon'
     if (age >= 22 && age < 28) return contractSelectedMember(state.selectedSlotId).role === 'tank' ? 'Carry Barrage away from the raid' : 'Clear the tank lane'
@@ -753,6 +764,7 @@ export function nextNekzaliTimer(state: NekzaliState) {
     return { label: 'Outward spirits', seconds: 10 - age % 10 }
   }
   if (state.rendStartedAt !== undefined) return { label: 'Rend', seconds: nekzaliRendRemaining(state) }
+  if (state.barrageStartedAt !== undefined && !state.barrageResolved) return { label: 'Barrage impact', seconds: Math.max(0, nekzaliTiming(state.projection).possessionBarrageSeconds - (state.time - state.barrageStartedAt)) }
   const phaseAge = state.time - state.phaseStartedAt
   const ignitionStarts = state.phase === 'phase-1' ? timing.phaseOneIgnitionStarts : state.phase === 'phase-2' ? timing.phaseTwoIgnitionStarts : []
   const activeIgnition = ignitionStarts.find(start => phaseAge >= start && phaseAge < start + 4)
@@ -820,11 +832,13 @@ export function nekzaliSnapshot(state: NekzaliState, playerHealth = 100): Train3
     ]
     return { id: member.id, kind: 'ally', role: member.role, position, facing: Math.atan2(state.boss.x - position.x, position.z - state.boss.z), color: trainingClassColors[member.playerClass], playerClass: member.playerClass, auras, health: 100 }
   })
-  const addActors: ActorSnapshot[] = state.adds.filter(add => add.health > 0).map(add => ({ id: add.id, kind: 'enemy', position: add.position, facing: Math.atan2(-add.position.x, add.position.z), color: add.assignedToPlayer ? '#f0cf63' : '#6ebeb1', auras: [...(add.assignedToPlayer ? [{ id: 'your-target', tone: 'danger' as const, stacks: 1 }] : []), ...(add.shield > 0 ? [{ id: 'gravebound-advance', tone: 'spectral' as const, stacks: Math.ceil(add.shield) }] : add.crowdControlled ? [{ id: 'crowd-controlled', tone: 'beneficial' as const, stacks: 1 }] : [])], health: add.health }))
+  const addActors: ActorSnapshot[] = state.adds.filter(add => add.health > 0).map(add => ({ id: add.id, kind: 'enemy', position: add.position, facing: Math.atan2(-add.position.x, add.position.z), color: add.assignedToPlayer ? '#e28a5e' : '#8664b5', auras: [...(add.assignedToPlayer ? [{ id: 'your-target', tone: 'danger' as const, stacks: 1 }] : []), ...(add.shield > 0 ? [{ id: 'gravebound-advance', tone: 'spectral' as const, stacks: Math.ceil(add.shield) }] : add.crowdControlled ? [{ id: 'crowd-controlled', tone: 'beneficial' as const, stacks: 1 }] : [])], health: add.health }))
   const echo = state.phase === 'echo-1' ? 1 : state.phase === 'echo-2' ? 2 : undefined
   const echoAge = state.time - state.phaseStartedAt
-  const echoActor: ActorSnapshot[] = echo ? [{ id: `echo-${echo}`, kind: 'enemy', position: echoPositions[echo], facing: 0, color: '#75d9d5', auras: [], health: Math.max(0, 100 - Math.max(0, echoAge - SOUL_TRANSFER_SECONDS) / pyreSeconds * 100) }] : []
+  const echoActor: ActorSnapshot[] = echo ? [{ id: `echo-${echo}`, kind: 'enemy', position: echoPositions[echo], facing: 0, color: '#8c6fd1', auras: [], health: Math.max(0, 100 - Math.max(0, echoAge - SOUL_TRANSFER_SECONDS) / pyreSeconds * 100) }] : []
   const effects: EffectSnapshot[] = state.hazards.map(hazard => ({ id: hazard.id, kind: 'ground-harmful', position: hazard.position, radius: hazard.radius, color: hazard.kind === 'burning' ? '#e86f35' : '#4ca99d', progress: (state.time % 1.2) / 1.2, filled: true }))
+  const phaseTwoAge = state.time - state.phaseStartedAt
+  if (state.phase === 'phase-2' && phaseTwoAge < PHASE_TWO_TRANSITION_SECONDS) phaseTwoTransitionImpacts.forEach((position, index) => effects.push({ id: `phase-two-awakening-${index}`, kind: 'ground-harmful', position, radius: 5.2, color: '#62c994', progress: phaseTwoAge / PHASE_TWO_TRANSITION_SECONDS, filled: true }))
   state.anguishedImpacts.forEach(impact => effects.push({ id: impact.id, kind: 'ground-harmful', position: impact.position, radius: 5, color: '#ef7182', progress: Math.min(1, (state.time - impact.createdAt) / 2), filled: true }))
   state.corpses.filter(corpse => !corpse.cremated).forEach(corpse => effects.push({ id: corpse.id, kind: 'ground-objective', position: corpse.position, radius: 1.8, color: '#c8a77e', progress: 0, filled: false }))
   if (state.realmStage === 'pull') {
@@ -834,18 +848,21 @@ export function nekzaliSnapshot(state: NekzaliState, playerHealth = 100): Train3
   const barrageAge = state.barrageStartedAt === undefined ? -1 : state.time - state.barrageStartedAt
   if (barrageAge >= 0 && barrageAge < nekzaliTiming(state.projection).possessionBarrageSeconds) {
     const target = barrageTargetPosition(state)
-    if (state.trainingDifficulty === 'test' || state.trainingDifficulty === 'easy') effects.push({ id: `${state.phase}-barrage-assisted-radius`, kind: 'ground-harmful', position: target, radius: BARRAGE_EXPLOSION_RADIUS, color: '#72d8db', progress: barrageAge / nekzaliTiming(state.projection).possessionBarrageSeconds, filled: true })
+    if (state.trainingDifficulty === 'test' || state.trainingDifficulty === 'easy') effects.push({ id: `${state.phase}-barrage-assisted-radius`, kind: 'ground-objective', position: target, radius: BARRAGE_EXPLOSION_RADIUS, color: '#72d8db', progress: barrageAge / nekzaliTiming(state.projection).possessionBarrageSeconds, filled: false })
     for (let index = 0; index < 5; index += 1) if (barrageAge >= index) {
       const progress = Math.min(1, (barrageAge - index) / Math.max(1, 5 - index))
       effects.push({ id: `${state.phase}-barrage-spirit-${index}`, kind: 'projectile', position: state.boss, target, radius: 1.15, color: '#b69cff', progress, projectileShape: 'shadowbolt' })
-      if (progress >= 1 && barrageAge - index < Math.max(1, 5 - index) + .6) effects.push({ id: `${state.phase}-barrage-impact-${index}`, kind: 'ground-harmful', position: target, radius: 10, color: '#70d9d2', progress: 1, filled: false })
+      if (progress >= 1 && barrageAge - index < Math.max(1, 5 - index) + .6) effects.push({ id: `${state.phase}-barrage-impact-${index}`, kind: 'projectile-impact', position: target, radius: 10, color: '#70d9d2', progress: Math.min(1, (barrageAge - index - Math.max(1, 5 - index)) / .6), filled: false })
     }
   }
   if (echo) {
     const playerSoaks = !state.cleanupDuty
     const age = state.time - state.phaseStartedAt
-    if (age < SOUL_TRANSFER_SECONDS) effects.push({ id: `soul-transfer-${echo}`, kind: 'projectile', position: { x: 0, z: 0 }, target: echoPositions[echo], radius: 2.4, color: '#72d8db', progress: age / SOUL_TRANSFER_SECONDS, filled: true })
+    if (age < SOUL_TRANSFER_SECONDS) effects.push({ id: `soul-transfer-${echo}`, kind: 'projectile', position: { x: 0, z: 0 }, target: echoPositions[echo], radius: .85, color: '#72d8db', progress: age / SOUL_TRANSFER_SECONDS, projectileShape: 'shadowbolt' })
     else if (playerSoaks) {
+      const pyreAge = age - SOUL_TRANSFER_SECONDS
+      if (pyreAge < PYRE_TRAVEL_SECONDS) effects.push({ id: `pyre-projectile-${echo}`, kind: 'projectile', position: { x: 0, z: 0 }, target: echoPositions[echo], radius: .9, color: '#ff5f4f', progress: pyreAge / PYRE_TRAVEL_SECONDS, projectileShape: 'shadowbolt', originHeight: 5.8, targetHeight: .2 })
+      else if (pyreAge < PYRE_TRAVEL_SECONDS + .6) effects.push({ id: `pyre-impact-${echo}`, kind: 'projectile-impact', position: echoPositions[echo], radius: 7.5, color: '#ff5f4f', progress: (pyreAge - PYRE_TRAVEL_SECONDS) / .6 })
       effects.push({ id: `pyre-${echo}`, kind: 'ground-soak', position: echoPositions[echo], radius: 7.5, color: '#ef5c52', progress: (age - SOUL_TRANSFER_SECONDS) / pyreSeconds, filled: distance(state.player, echoPositions[echo]) > 7.5 })
       effects.push({ id: `soak-arrow-${echo}`, kind: 'arrow', position: state.player, target: echoPositions[echo], radius: 1, color: '#ffd87a', progress: 0 })
     }
@@ -863,7 +880,7 @@ export function nekzaliSnapshot(state: NekzaliState, playerHealth = 100): Train3
     : []
   const actors: ActorSnapshot[] = [
     { id: 'controlled-player', kind: 'player', role: controlled.role, position: state.player, facing: state.player.facing, color: trainingClassColors[controlled.playerClass], playerClass: controlled.playerClass, auras: [...(isNekzaliPlayerRendTarget(state) ? [{ id: 'essence-rend', label: 'Rend', tone: 'danger' as const, stacks: 1, expiresAt: state.rendStartedAt! + nekzaliTiming(state.projection).essenceRendDurationSeconds }] : []), ...(state.barrageTargetId === state.selectedSlotId && state.barrageStartedAt !== undefined && barrageAge >= 0 && barrageAge < nekzaliTiming(state.projection).possessionBarrageSeconds ? [{ id: 'possession-barrage', label: `Barrage · ${Math.max(1, 5 - Math.floor(barrageAge))} spirits`, tone: 'spectral' as const, stacks: 1, expiresAt: state.barrageStartedAt + nekzaliTiming(state.projection).possessionBarrageSeconds }] : []), ...(state.hollowingApplications.length ? [{ id: 'hollowing-strikes', tone: 'danger' as const, stacks: state.hollowingApplications.length }] : [])], health: playerHealth },
-    { id: 'nekzali-boss', kind: 'boss', position: state.boss, facing: 0, color: state.phase.startsWith('echo') ? '#596871' : '#43a8a7', auras: [...(state.phase.startsWith('echo') ? [{ id: 'unavailable', label: 'Unavailable', tone: 'spectral' as const, stacks: 1 }] : []), ...(state.ritualBurnApplications.length ? [{ id: 'ritual-burn', tone: 'spectral' as const, stacks: state.ritualBurnApplications.length }] : [])], health: state.bossHealth },
+    { id: 'nekzali-boss', kind: 'boss', position: state.boss, facing: 0, color: state.phase.startsWith('echo') ? '#776b91' : '#3fb0a9', auras: [...(state.phase.startsWith('echo') ? [{ id: 'unavailable', label: 'Unavailable', tone: 'spectral' as const, stacks: 1 }] : []), ...(state.ritualBurnApplications.length ? [{ id: 'ritual-burn', label: `Ritual Burn ${state.ritualBurnApplications.length}`, tone: 'spectral' as const, stacks: 1 }] : [])], health: state.bossHealth },
     ...npcActors, ...addActors, ...echoActor,
   ]
   return { time: state.time, timeline: state.timeline, arena: nekzaliArena, actors, effects: [...effects, ...ambientCombat, ...mainProjectile] }

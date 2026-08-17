@@ -146,7 +146,8 @@ change before implementation.
 
 ## SPEC-009 · Audio and raid-lead assistance
 
-- The authoritative cue catalogue is [`audio-cues.md`](audio-cues.md).
+- The retired Season 1 cue catalogue remains in source history; it is not a
+  Season 2 asset or implementation input.
 - Direct phase entry may speak its visible `3`, `2`, `1`; seamless transitions
   use phase-specific calls without adding another countdown.
 - Coaching that reveals a mechanic may be difficulty-restricted. Visual
@@ -292,8 +293,8 @@ change before implementation.
 - Milestone 1 uses backed-up SQLite and deploys independently to the existing
   Caddy-fronted VPS. Guild-wide tracking remains Milestone 2.
 
-See [`api-highscores.md`](api-highscores.md) for the complete API, storage,
-privacy, deployment, and acceptance contract.
+The retired API, storage, privacy, and deployment contract remains in the
+immutable Season 1 source history.
 
 ## SPEC-012 · Phase 3 landing Soaks
 
@@ -336,8 +337,8 @@ tank ownership.
   zone and the raid follows that tank's visual position. Each controlled role
   has a distinct canonical completion achievement.
 
-The detailed encounter, UI, recovery, and edge-case contract is maintained in
-[`tank-mechanic.md`](tank-mechanic.md).
+The detailed Season 1 encounter, UI, recovery, and edge-case contract remains
+in immutable source history.
 
 ## SPEC-013 · Phase 2 center pull and crystals
 
@@ -426,7 +427,7 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   identity, verified characters, one-use attempts, server score validation,
   four run boards, Global ranking, Achievement Hall, public profiles, privacy,
   activity events, logout, and full deletion.
-- [`api-highscores.md`](api-highscores.md) is the detailed service contract and
+- The retired service contract remains in source history and
   [`milestones.md`](milestones.md) owns the current delivery grouping. The
   historical request ledger remains in [`README.md`](README.md).
 
@@ -468,11 +469,11 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
 ## SPEC-018 · Midnight Season 2 platform and encounter boundary
 
 - The product identity is `midnight-season-2` with the short identifier
-  `midnight-s2`. Its planned public hostname is `midnight.asgard.website`, but
-  no public deployment is enabled during bootstrap.
-- The reviewed L'ura v0.9.1 application is a development-only reference. It
-  must not be the production entry point, contact the inherited `/v1` service
-  from the Season 2 shell, or deploy over `lura.asgard.website`.
+  `midnight-s2`. Its isolated public hostname is `midnight.asgard.website`.
+- The reviewed L'ura v0.9.1 baseline is preserved through its immutable tag,
+  handover, history, and separate repository. Its runtime, `/v1` service,
+  assets, and deployment targets do not exist in the published Season 2 tree;
+  nothing from this repository may deploy over `lura.asgard.website`.
 - The existing shell, navigation vocabulary, controls, HUD concepts, tactical
   planning patterns, audio boundaries, and persistence lessons are extracted
   incrementally. The repository must not be replaced with an unrelated blank
@@ -558,12 +559,13 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   mechanic or React publication frequency.
 - Running lessons use a full-viewport arena under one compact status bar. The
   bar exposes drill/phase context left, current coaching state centrally, and
-  available audio, pause/resume, performance, and exit controls right. Lab-only
+  independent audio, pause/resume, performance, and exit controls right. Lab-only
   diagnostics/configuration belong in a closed slide-in drawer that real
-  encounter runtimes do not render. Unimplemented audio channels are visibly
-  unavailable rather than interactive no-ops. At wide desktop widths those
-  groups remain one horizontal row. Exact build and repository provenance stays
-  on setup and does not consume the running lesson header.
+  encounter runtimes do not render. Music, encounter sounds, and raid-lead
+  speech are separately persisted, opt-in, previewable, and pause-aware. The
+  current release uses browser-generated audio and speech only; unreviewed
+  third-party assets may not ship. At wide desktop widths those groups remain
+  one horizontal row. Exact build and repository provenance stays on setup.
 - A runtime viewport preserves the aspect implied by its arena model; expanding
   the browser may extend the surrounding room treatment but must not stretch
   arena coordinates or playable bounds. The current split arena is 5:3.
@@ -602,6 +604,11 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
   when its setup panel is in view. Setup must not duplicate the selected
   encounter in a separate oversized banner or invent playable mechanics for
   catalogue-only packages.
+- Tactical plans use a versioned package schema. Package fields and abstract
+  arena regions drive draggable assignment markers and editable values; plans
+  validate required and known fields before local save. JSON import must match
+  the current product format, encounter ID, and schema version. Export contains
+  only the selected plan. No Season 1 storage key or tactic is migrated.
 - HUD settings show the same draggable arena-layout frame used by Train 3D,
   without a second report-style HUD summary above it. Dragging tracks the
   pointer without animated positional lag, persists once on release, and keeps
@@ -617,9 +624,9 @@ The detailed encounter, UI, recovery, and edge-case contract is maintained in
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.
-- API `/v2`, public statistics, achievements, rankings, and production hosting
-  are later milestones. The inherited L'ura `/v1` service remains frozen and
-  has no deployment path from this repository.
+- API `/v2`, public statistics, achievements, and rankings are later
+  milestones. Static publication uses only the dedicated `github-pages`
+  environment and `midnight.asgard.website` CNAME.
 
 ## SPEC-019 · Reviewed-platform extraction parity
 

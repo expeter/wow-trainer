@@ -15,7 +15,7 @@ export const sentinelsArena = {
       { id: 'north-meeting-sector', label: 'North meeting sector', x: 0, z: -18 },
       { id: 'south-meeting-sector', label: 'South meeting sector', x: 0, z: 18 },
     ],
-    theme: { kind: 'sentinels', floor: '#172116', boundary: '#90b64d', acid: '#71d49a', blood: '#d66b78', corridor: '#d8c680' },
+    theme: { kind: 'sentinels', material: 'cracked-temple-stone', floor: '#303b27', cracks: '#77845a', poison: '#7ecb38', boundary: '#90b64d', acid: '#71d49a', blood: '#d66b78', corridor: '#d8c680' },
   } as const satisfies WorldArena3D
 
 export const train3dArenas = [sentinelsArena] as const satisfies readonly WorldArena3D[]

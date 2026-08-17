@@ -48,6 +48,9 @@
 .season2-catalogue-diagnostics p { margin: 6px 0 0; color: var(--s2-color-muted); }
 .season2-panel { min-height: 300px; }
 .season2-catalogue-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.season2-boss-journey { position: relative; }
+.season2-boss-journey::before { content: ''; position: absolute; z-index: 0; left: 3%; right: 3%; top: 112px; height: 1px; background: linear-gradient(90deg, transparent, var(--s2-color-accent), var(--s2-color-warning), transparent); opacity: .35; }
+.season2-boss-journey > * { position: relative; z-index: 1; }
 .season2-training-difficulty { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 3px 18px; padding: 13px 15px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); background: rgba(8, 15, 20, .72); }
 .season2-training-difficulty, .season2-contract-room-card, .season2-encounter-card.loading, .season2-encounter-card.unavailable { grid-column: 1 / -1; }
 .season2-training-difficulty legend { padding: 0 6px; color: var(--s2-color-accent); font: 10px var(--s2-font-mono); text-transform: uppercase; }
@@ -62,6 +65,10 @@
   background: var(--s2-color-surface);
 }
 .season2-encounter-card { display: grid; grid-template-rows: auto minmax(58px, auto) auto; min-width: 0; gap: 10px; }
+.season2-encounter-card.journey-step::before { content: counter(journey); counter-increment: journey; position: absolute; right: 10px; top: 8px; color: var(--s2-color-muted); font: 9px var(--s2-font-mono); opacity: .55; }
+.season2-boss-journey { counter-reset: journey; }
+.season2-encounter-card.journey-step.ready { border-color: color-mix(in srgb, var(--s2-color-accent) 62%, var(--s2-color-border)); background: radial-gradient(circle at 15% 12%, var(--s2-color-accent-soft), transparent 34%), var(--s2-color-surface); }
+.season2-encounter-card.journey-step.planned { opacity: .76; }
 .season2-encounter-card > header { display: flex; max-width: none; min-width: 0; align-items: center; gap: 10px; }
 .season2-encounter-card h3 { margin: 0; font-size: 18px; line-height: 1.05; }
 .season2-encounter-card > p, .season2-contract-room-card p, .season2-boundary-note { display: -webkit-box; overflow: hidden; margin: 0; color: var(--s2-color-muted); font-size: 11px; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
@@ -161,6 +168,35 @@
 .hud-preview-box.castbar { border-color: #70caff; }
 .season2-region-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .season2-region-list span { padding: 7px 9px; border: 1px solid var(--s2-color-border); border-radius: 999px; color: var(--s2-color-muted); font: 11px var(--s2-font-mono); }
+.tactical-encounter-select { display: grid; grid-template-columns: auto minmax(220px, 360px); gap: 12px; align-items: center; margin-bottom: 12px; color: var(--s2-color-muted); font: 11px var(--s2-font-mono); }
+.tactical-planner { display: grid; gap: 12px; }
+.tactical-planner-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) auto repeat(4, auto); gap: 8px; align-items: end; }
+.tactical-planner-toolbar > label { display: grid; gap: 5px; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
+.tactical-planner-toolbar > span { align-self: center; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
+.tactic-import { position: relative; display: grid !important; min-height: 36px; padding: 8px 12px; place-items: center; overflow: hidden; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); color: var(--s2-color-text) !important; cursor: pointer; }
+.tactic-import input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.tactical-planner-layout { display: grid; grid-template-columns: minmax(420px, 1.25fr) minmax(300px, .75fr); gap: 12px; }
+.tactical-board { position: relative; min-height: 480px; overflow: hidden; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: repeating-linear-gradient(35deg, rgba(151,173,135,.025) 0 2px, transparent 2px 18px), radial-gradient(circle at 50% 50%, rgba(88,130,80,.2), transparent 42%), #0a100d; box-shadow: inset 0 0 70px rgba(0,0,0,.6); touch-action: none; }
+.tactical-board > strong { position: absolute; left: 14px; top: 12px; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); text-transform: uppercase; }
+.tactical-region { position: absolute; transform: translate(-50%, -50%); padding: 5px 7px; border: 1px dashed rgba(134,227,111,.3); border-radius: 50%; color: rgba(244,241,230,.48); font: 9px var(--s2-font-mono); }
+.tactical-marker { position: absolute; width: auto; max-width: 150px; min-height: 30px; transform: translate(-50%, -50%); padding: 5px 8px; border-color: var(--s2-color-warning); color: #171108; background: var(--s2-color-warning); font: 9px var(--s2-font-mono); cursor: grab; touch-action: none; }
+.tactical-marker.group, .tactical-marker.pair { border-color: var(--s2-color-accent); background: var(--s2-color-accent); }
+.tactical-fields { max-height: 480px; overflow: auto; display: grid; gap: 8px; padding-right: 5px; }
+.tactical-fields label { display: grid; gap: 4px; padding: 9px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); background: rgba(8,14,10,.68); }
+.tactical-fields span { color: var(--s2-color-text); font-size: 11px; }
+.tactical-fields small { color: var(--s2-color-muted); font: 8px var(--s2-font-mono); }
+.tactic-message { margin: 0; color: var(--s2-color-accent); font: 10px var(--s2-font-mono); }
+.tactic-message.error { color: var(--s2-color-danger); }
+.season2-audio-settings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.season2-audio-settings fieldset { display: grid; gap: 13px; padding: 16px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: var(--s2-color-surface); }
+.season2-audio-settings legend { padding: 0 6px; color: var(--s2-color-accent); font: 11px var(--s2-font-mono); text-transform: uppercase; }
+.season2-audio-settings label { color: var(--s2-color-muted); font-size: 12px; }
+.season2-audio-settings label > strong { float: right; color: var(--s2-color-accent); }
+.season2-audio-settings input[type='range'] { margin-top: 8px; }
+.audio-channel-toggle { display: flex; gap: 9px; align-items: start; }
+.audio-channel-toggle input { width: auto; }
+.audio-channel-toggle span, .audio-channel-toggle small { display: block; }
+.audio-channel-toggle small { margin-top: 5px; line-height: 1.4; }
 
 .training-shell { width: 100%; max-width: none; height: 100dvh; margin: 0; padding: 8px 12px 10px; display: flex; flex-direction: column; overflow: hidden; }
 .training-header { display: flex; align-items: start; justify-content: space-between; gap: 24px; max-width: none; margin-bottom: 18px; }
@@ -319,16 +355,16 @@
 .learn2d-raidlead-telegraph span { margin-top: 4px; color: #493700; font: 800 9px var(--s2-font-mono); }
 .nekzali-2d-enemy.unavailable { filter: grayscale(.7); opacity: .62; outline: 2px double #9bb4c2; outline-offset: 4px; }
 .arena-training-hud > div { position: absolute; transform: translate(-50%, -50%); color: var(--s2-color-text); background: rgba(5, 9, 14, .9); box-shadow: 0 3px 14px rgba(0, 0, 0, .48); }
-.arena-training-hud > .arena-hud-mechanic { display: grid; justify-items: center; width: min(380px, 44%); padding: 8px 12px; border: 2px solid #ffe78a; border-radius: 7px; color: #171208; background: rgba(243, 216, 113, .96); box-shadow: 0 4px 20px rgba(0, 0, 0, .62), 0 0 20px rgba(243, 216, 113, .2); text-align: center; }
+.arena-training-hud > .arena-hud-mechanic { display: grid; justify-items: center; width: min(380px, 44%); padding: 8px 12px; border: 2px solid #f3d871; border-radius: 7px; color: #fff4bd; background: rgba(5, 9, 13, .94); box-shadow: 0 4px 20px rgba(0, 0, 0, .72), 0 0 18px rgba(243, 216, 113, .18); text-align: center; }
 .arena-hud-mechanic.compact { width: auto; max-width: min(260px, 34%); padding: 5px 9px; }
 .arena-hud-mechanic small, .arena-hud-health small, .arena-hud-auras small { color: var(--s2-color-muted); font: 8px var(--s2-font-mono); letter-spacing: .08em; text-transform: uppercase; }
-.arena-hud-mechanic small { color: #5d4700; }
+.arena-hud-mechanic small { color: #d9bd59; }
 .arena-hud-mechanic strong { margin-top: 2px; font-size: 11px; }
-.arena-hud-mechanic span { color: #493700; font: 800 9px var(--s2-font-mono); }
+.arena-hud-mechanic span { color: #f3d871; font: 800 9px var(--s2-font-mono); }
 .arena-hud-countdowns { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; margin-top: 2px; }
 .arena-hud-countdowns i { color: var(--s2-color-accent); font: normal 9px var(--s2-font-mono); white-space: nowrap; }
-.arena-hud-mechanic b { margin-top: 4px; color: #174966; font: 8px var(--s2-font-mono); text-transform: uppercase; }
-.arena-hud-mechanic em { display: block; max-width: 100%; margin-top: 4px; overflow: hidden; color: #5d4700; font: normal 8px var(--s2-font-mono); text-overflow: ellipsis; white-space: nowrap; }
+.arena-hud-mechanic b { margin-top: 4px; color: #7ee5dd; font: 8px var(--s2-font-mono); text-transform: uppercase; }
+.arena-hud-mechanic em { display: block; max-width: 100%; margin-top: 4px; overflow: hidden; color: #c8b878; font: normal 8px var(--s2-font-mono); text-overflow: ellipsis; white-space: nowrap; }
 .arena-hud-health { width: min(240px, 26%); padding: 7px 9px; border: 1px solid rgba(113, 221, 153, .55); border-radius: 7px; text-align: center; }
 .arena-hud-health.boss { border-color: rgba(239, 113, 130, .58); }
 .arena-hud-health.boss.owned { border-color: rgba(113, 221, 153, .72); }
@@ -438,6 +474,9 @@
   .season2-footer span { width: 100%; margin-left: 0; }
   .season2-training-difficulty { grid-template-columns: 1fr; }
   .season2-training-difficulty > div { grid-column: 1; grid-row: auto; }
+  .tactical-planner-toolbar, .tactical-planner-layout, .season2-audio-settings { grid-template-columns: 1fr; }
+  .tactical-planner-toolbar > span { justify-self: start; }
+  .tactical-board { min-height: 420px; }
 }
 @media (min-width: 761px) and (max-width: 900px) {
   .season2-catalogue-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -445,4 +484,6 @@
   .season2-camera-settings { grid-column: 1 / -1; }
   .season2-shared-bindings { grid-template-columns: 1fr; }
   .season2-shared-bindings .season2-keybind-grid { grid-template-columns: repeat(4, minmax(100px, 1fr)); }
+  .tactical-planner-layout { grid-template-columns: 1fr; }
+  .season2-audio-settings { grid-template-columns: 1fr; }
 }

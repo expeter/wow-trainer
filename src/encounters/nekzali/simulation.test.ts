@@ -167,6 +167,15 @@ describe("Nek'zali reconciled encounter contract", () => {
     expect(bystanders.every(member => Math.hypot(state.npcPositions[member.id].x - targetPosition.x, state.npcPositions[member.id].z - targetPosition.z) > 11)).toBe(true)
   })
 
+  it('treats Barrage geometry as a preview until spirits impact the distant tank', () => {
+    let state = stepNekzaliState({ ...createNekzaliState('player', 'test'), time: 37.99 }, idle, .02)
+    const target = state.npcPositions[state.barrageTargetId!]
+    state = { ...state, player: { x: (state.boss.x + target.x) / 2, z: (state.boss.z + target.z) / 2, facing: 0 } }
+    state = stepNekzaliState(state, idle, NEKZALI_TIMING.projections.train3d.possessionBarrageSeconds + .01)
+    expect(state.failures.some(failure => failure.code === 'barrage-impact')).toBe(false)
+    expect(nekzaliSnapshot(state).effects.some(effect => effect.id.endsWith('barrage-assisted-radius') && effect.kind === 'ground-harmful')).toBe(false)
+  })
+
   it('assigns a stable Pyre-soak or smaller Cremation-cleanup role before pull', () => {
     const duties = contractRaidRoster.map(member => createNekzaliState(member.id, 'test').cleanupDuty)
     expect(duties.some(Boolean)).toBe(true)
@@ -194,12 +203,22 @@ describe("Nek'zali reconciled encounter contract", () => {
   })
 
   it('shows Soul Transfer before resolving the player intermission duty', () => {
-    const state: NekzaliState = { ...createNekzaliState('tank-1', 'test'), time: 90, phase: 'echo-1', phaseStartedAt: 90, player: { x: 20, z: 10, facing: 0 } }
-    expect(nekzaliSnapshot(state).effects.some(effect => effect.id === 'soul-transfer-1')).toBe(true)
-    const dutyState = { ...state, time: 105.1 }
+    const pyreSlot = contractRaidRoster.find(member => !createNekzaliState(member.id, 'test').cleanupDuty)!.id
+    const state: NekzaliState = { ...createNekzaliState(pyreSlot, 'test'), time: 90, phase: 'echo-1', phaseStartedAt: 90, player: { x: 20, z: 10, facing: 0 } }
+    expect(nekzaliSnapshot(state).effects).toContainEqual(expect.objectContaining({ id: 'soul-transfer-1', radius: .85, projectileShape: 'shadowbolt' }))
+    const dutyState = { ...state, time: 105.5 }
+    expect(nekzaliSnapshot(dutyState).effects).toContainEqual(expect.objectContaining({ id: 'pyre-projectile-1', kind: 'projectile', target: { x: 0, z: -34 } }))
     expect(nekzaliSnapshot(dutyState).effects.some(effect => effect.id === 'pyre-1' || effect.id === 'spread-1')).toBe(true)
     expect(startNekzaliMainCast(state)).toMatchObject({ mainCastRemaining: 1, mainTargetId: 'echo-1' })
     expect(nekzaliSnapshot(state).actors.find(actor => actor.id === 'nekzali-boss')?.auras).toContainEqual({ id: 'unavailable', label: 'Unavailable', tone: 'spectral', stacks: 1 })
+  })
+
+  it('telegraphs a dense avoidable field before Phase 2 becomes active', () => {
+    let state: NekzaliState = { ...createNekzaliState('player', 'test'), time: 100, phase: 'phase-2', phaseStartedAt: 100, player: { x: -29, z: -18, facing: 0 } }
+    expect(nekzaliSnapshot(state).effects.filter(effect => effect.id.startsWith('phase-two-awakening-'))).toHaveLength(6)
+    state = stepNekzaliState(state, idle, 1.81)
+    expect(state.failures.some(failure => failure.code === 'phase-two-transition')).toBe(true)
+    expect(state.transitionFieldResolved).toBe(true)
   })
 
   it('moves intermission NPCs toward the active Echo without detaching Cremation', () => {

@@ -229,11 +229,11 @@ function stepActive(state: SentinelsState, commands: PlayerCommandState, seconds
   if (next.time - next.lastMarkAt >= timing.markCadenceSeconds) {
     if (distance(player, acidBoss) <= 40) acidMarkApplications = [...acidMarkApplications, { id: `acid-${next.cycle}-${next.time.toFixed(2)}`, appliedAt: next.time, duration: timing.markLifetimeSeconds }]
     if (distance(player, bloodBoss) <= 40) bloodMarkApplications = [...bloodMarkApplications, { id: `blood-${next.cycle}-${next.time.toFixed(2)}`, appliedAt: next.time, duration: timing.markLifetimeSeconds }]
-    const acidMarks = acidMarkApplications.length
-    const bloodMarks = bloodMarkApplications.length
+    const acidMarks = Math.min(7, acidMarkApplications.length)
+    const bloodMarks = Math.min(7, bloodMarkApplications.length)
     next = { ...next, acidMarks, bloodMarks, acidMarkApplications, bloodMarkApplications, lastMarkAt: next.time }
     if (acidMarks > 0 && bloodMarks > 0) next = addFailure(next, 'mixed-marks', 'Collected both Acid and Blood marks', 'Stay with the boss assigned to your current side; do not cross both 40-yard auras during the active cycle.')
-  } else next = { ...next, acidMarks: acidMarkApplications.length, bloodMarks: bloodMarkApplications.length, acidMarkApplications, bloodMarkApplications }
+  } else next = { ...next, acidMarks: Math.min(7, acidMarkApplications.length), bloodMarks: Math.min(7, bloodMarkApplications.length), acidMarkApplications, bloodMarkApplications }
 
   if (isTank(next)) {
     const empoweringSlamStacks = next.assignedSide === 'acid' && phaseAge >= 15 ? 1 + Math.floor((phaseAge - 15) / 18) : 0
@@ -345,7 +345,7 @@ function stepStasis(state: SentinelsState, commands: PlayerCommandState, seconds
       ...next, phase: 'active', phaseStartedAt: next.time, cycle, assignedSide, energy: 0,
       acidBoss: next.acidBoss,
       bloodBoss: next.bloodBoss,
-      acidMarks: activeApplications(next.acidMarkApplications, next.time).length, bloodMarks: activeApplications(next.bloodMarkApplications, next.time).length, lastMarkAt: next.time, droplets: [], dropletsSpawned: false, dropletsSpawnedAt: undefined,
+      acidMarks: Math.min(7, activeApplications(next.acidMarkApplications, next.time).length), bloodMarks: Math.min(7, activeApplications(next.bloodMarkApplications, next.time).length), lastMarkAt: next.time, droplets: [], dropletsSpawned: false, dropletsSpawnedAt: undefined,
       miasmaResolved: false, puddleDropAt: undefined, npcPoolsDropped: false, blightedActive: false, blightedResolved: false, blightedAppliedAt: undefined, blightedTargetId: undefined,
       protovenomActive: false, protovenomResolved: false, protovenomCarrierIds: [], protovenomPartnerPosition: undefined, helicalResolved: false,
       helicalResolvedAt: undefined, coagulationHealth: 100, coagulationFailed: false, empoweringSlamStacks: 0, bloodvenomInjectionStacks: 0,
@@ -501,8 +501,6 @@ export function sentinelsSnapshot(state: SentinelsState): Train3DSnapshot {
     id: member.controlled ? 'controlled-player' : member.id, kind: member.controlled ? 'player' : 'ally', role: member.role, playerClass: member.playerClass,
     position: memberPosition(member, state), facing: member.controlled ? state.player.facing : 0, color: trainingClassColors[member.playerClass], health: member.controlled ? 100 : undefined,
     auras: state.phase === 'stasis' && phaseAge >= 2 && !state.helicalResolved ? (member.controlled ? toxins(1, 3) : npcHelicalAuras(member, state, phaseAge)) : member.controlled ? [
-      ...(state.acidMarks ? [{ id: 'acid-mark', tone: 'poison' as const, stacks: state.acidMarks }] : []),
-      ...(state.bloodMarks ? [{ id: 'blood-mark', tone: 'danger' as const, stacks: state.bloodMarks }] : []),
       ...(state.protovenomActive ? [{ id: 'protovenom', tone: 'danger' as const, stacks: 1 }] : []),
       ...(state.puddleDropAt !== undefined ? [{ id: 'blood-pool-drop', label: 'Pool', tone: 'danger' as const, stacks: 1, expiresAt: state.puddleDropAt }] : []),
       ...(state.empoweringSlamStacks ? [{ id: 'empowering-slam', tone: 'danger' as const, stacks: state.empoweringSlamStacks }] : []),
@@ -523,16 +521,23 @@ export function sentinelsSnapshot(state: SentinelsState): Train3DSnapshot {
   }
   const effects: EffectSnapshot[] = []
   for (const droplet of state.droplets) {
-    if (!droplet.soaked) effects.push({ id: droplet.id, kind: 'ground-soak', position: droplet.position, radius: 2.2, color: '#6bea72', progress: 0, filled: true })
+    if (!droplet.soaked) {
+      const playerOwns = droplet.assignedToPlayer && droplet.side === state.assignedSide
+      effects.push({ id: droplet.id, kind: 'ground-soak', position: droplet.position, radius: 2.2, color: playerOwns ? '#79f28a' : '#4ea95c', progress: 0, filled: !playerOwns || distance(state.player, droplet.position) > 2.5 })
+    }
     if (droplet.soakedAt !== undefined) {
       const age = state.time - droplet.soakedAt
-      if (age < timing.livingVenomTelegraphSeconds) effects.push({ id: `${droplet.id}-return-lane`, kind: 'lane', position: droplet.position, target: state.acidBoss, radius: .75, color: '#83ff68', progress: age / timing.livingVenomTelegraphSeconds })
-      else if (age < timing.livingVenomTelegraphSeconds + timing.livingVenomSeconds) effects.push({ id: `${droplet.id}-return`, kind: 'projectile', position: droplet.position, target: state.acidBoss, radius: 1.2, color: '#83ff68', progress: Math.min(1, (age - timing.livingVenomTelegraphSeconds) / timing.livingVenomSeconds) })
+      const playerOwns = droplet.assignedToPlayer && droplet.side === state.assignedSide
+      if (age < timing.livingVenomTelegraphSeconds) {
+        effects.push({ id: `${droplet.id}-armed`, kind: 'ground-soak', position: droplet.position, radius: 2.2, color: playerOwns ? '#b6ff79' : '#618f53', progress: age / timing.livingVenomTelegraphSeconds, filled: false })
+        if (age >= 1) effects.push({ id: `${droplet.id}-return-lane`, kind: 'lane', position: droplet.position, target: state.acidBoss, radius: playerOwns ? .75 : .35, color: playerOwns ? '#b6ff79' : '#557a49', progress: (age - 1) / Math.max(.1, timing.livingVenomTelegraphSeconds - 1) })
+      } else if (age < timing.livingVenomTelegraphSeconds + timing.livingVenomSeconds) effects.push({ id: `${droplet.id}-return`, kind: 'projectile', position: droplet.position, target: state.acidBoss, radius: playerOwns ? 1.05 : .65, color: playerOwns ? '#b6ff79' : '#618f53', progress: Math.min(1, (age - timing.livingVenomTelegraphSeconds) / timing.livingVenomSeconds), projectileShape: 'shadowbolt' })
     }
   }
   if (state.phase === 'active' && phaseAge >= 17 && phaseAge < 17 + timing.miasmaSeconds) {
     const home = homeForSide('blood', state.cycle)
-    effects.push({ id: 'miasma-soak', kind: 'ground-soak', position: { x: towardCentre(home, 13), z: 16 }, radius: 7.5, color: '#ee5265', progress: (phaseAge - 17) / timing.miasmaSeconds, filled: true })
+    const position = { x: towardCentre(home, 13), z: 16 }
+    effects.push({ id: 'miasma-soak', kind: 'ground-soak', position, radius: 7.5, color: '#ee5265', progress: (phaseAge - 17) / timing.miasmaSeconds, filled: distance(state.player, position) > 7.5 })
   }
   for (const pool of state.pools) effects.push({ id: pool.id, kind: 'ground-harmful', position: pool.position, radius: 4.5, color: '#b92c4b', progress: 1 })
   if (state.protovenomActive) {

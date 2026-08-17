@@ -12,7 +12,7 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.getByRole('heading', { name: 'Midnight Season 2 Trainer' })).toBeVisible()
     expect(await screen.findByRole('heading', { name: 'Entombed Sentinels' })).toBeVisible()
     const navigation = screen.getByRole('navigation', { name: 'Setup sections' })
-    expect(within(navigation).getAllByRole('button')).toHaveLength(6)
+    expect(within(navigation).getAllByRole('button')).toHaveLength(7)
     expect(within(navigation).getByRole('button', { name: 'Tactical plan' })).toBeVisible()
   })
 

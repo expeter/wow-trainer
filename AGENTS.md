@@ -16,9 +16,8 @@ Before changing the trainer, read in order:
    ownership.
 
 Treat [`handover/midnight-season-2/10-next-session-prompt.md`](handover/midnight-season-2/10-next-session-prompt.md)
-as binding context. Read [`docs/p1-encounter.md`](docs/p1-encounter.md) only
-when inspecting the frozen L'ura reference; it is not a Season 2 mechanic
-contract.
+as binding historical context. The retired Season 1 runtime is available from
+the immutable baseline tag and its separate repository, not from this tree.
 
 ## Delivery discipline
 
@@ -47,9 +46,8 @@ suite or Playwright arguments outside the focused wrapper.
 
 - Never alter or deploy over `lura.asgard.website`, and never deploy the
   inherited L'ura `/v1` API from this repository.
-- Preserve the reviewed L'ura v0.9.1 source as a development-only reference
-  while extraction is underway. Do not import unfinished L'ura encounter work
-  wholesale or make the legacy application the public entry point.
+- Preserve the reviewed L'ura v0.9.1 baseline tag and repository lineage. Do
+  not reintroduce the retired runtime or import unfinished encounter work.
 - Reuse the established shell, styles, controls, HUD, tactical-planner, audio,
   persistence, testing, and delivery patterns incrementally. Do not replace
   the product with an unrelated blank interface.

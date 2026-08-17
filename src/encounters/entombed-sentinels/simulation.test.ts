@@ -41,6 +41,17 @@ describe('Entombed Sentinels reconciled encounter contract', () => {
     expect(state.acidMarks).toBe(1)
   })
 
+  it('never exposes an impossible eighth side mark or passive mark diamonds', () => {
+    let state = createSentinelsState('player', 'test')
+    for (let elapsed = 0; elapsed < 48; elapsed += .1) {
+      state = stepSentinelsState(state, idle, .1)
+      expect(state.acidMarks).toBeLessThanOrEqual(7)
+      expect(state.bloodMarks).toBeLessThanOrEqual(7)
+    }
+    const player = sentinelsSnapshot(state).actors.find(actor => actor.id === 'controlled-player')!
+    expect(player.auras.some(aura => aura.id === 'acid-mark' || aura.id === 'blood-mark')).toBe(false)
+  })
+
   it('spawns four droplets on each side independently of Coagulation death', () => {
     const state = stepSentinelsState({ ...createSentinelsState('player', 'test'), time: 11.99, coagulationHealth: 100 }, idle, .02)
     expect(state.droplets).toHaveLength(8)
@@ -55,7 +66,9 @@ describe('Entombed Sentinels reconciled encounter contract', () => {
     const assigned = state.droplets.find(droplet => droplet.side === 'blood' && droplet.assignedToPlayer)!
     state = stepSentinelsState({ ...state, player: { ...state.player, ...assigned.position } }, idle, .1)
     expect(state.droplets.find(droplet => droplet.id === assigned.id)?.soaked).toBe(true)
-    expect(sentinelsSnapshot(state).effects.some(effect => effect.id === `${assigned.id}-return-lane` && effect.kind === 'lane')).toBe(true)
+    expect(sentinelsSnapshot(state).effects).toContainEqual(expect.objectContaining({ id: `${assigned.id}-armed`, kind: 'ground-soak', position: assigned.position, filled: false }))
+    const armed = { ...state, time: state.time + 1.1 }
+    expect(sentinelsSnapshot(armed).effects).toContainEqual(expect.objectContaining({ id: `${assigned.id}-return-lane`, kind: 'lane', position: assigned.position }))
   })
 
   it('keeps Living Venom visible for the projection-specific return time', () => {
@@ -63,6 +76,16 @@ describe('Entombed Sentinels reconciled encounter contract', () => {
     const state = { ...createSentinelsState('player', 'test'), time: 13.1, dropletsSpawned: true, droplets: [droplet] }
     expect(sentinelsSnapshot(state).effects.some(effect => effect.id === 'return-return')).toBe(true)
     expect(sentinelsSnapshot({ ...state, time: 14.21 }).effects.some(effect => effect.id === 'return-return')).toBe(false)
+  })
+
+  it('changes soak fill on occupancy and launches Living Venom from the soaked object', () => {
+    const initial = stepSentinelsState({ ...createSentinelsState('player', 'test'), time: 11.99 }, idle, .02)
+    const assigned = initial.droplets.find(droplet => droplet.assignedToPlayer && droplet.side === initial.assignedSide)!
+    const outside = sentinelsSnapshot(initial).effects.find(effect => effect.id === assigned.id)!
+    expect(outside.filled).toBe(true)
+    const soaked = stepSentinelsState({ ...initial, player: { ...initial.player, ...assigned.position } }, idle, .1)
+    const launching = sentinelsSnapshot({ ...soaked, time: soaked.time + 3.1 }).effects.find(effect => effect.id === `${assigned.id}-return`)!
+    expect(launching).toMatchObject({ kind: 'projectile', position: assigned.position, projectileShape: 'shadowbolt' })
   })
 
   it('creates a persistent edge pool when a Blood healer dispels Blighted Blood', () => {

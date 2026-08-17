@@ -19,6 +19,25 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page.getByRole('link', { name: 'Changelog ↗' })).toBeVisible()
   await expect(page.getByLabel('About Pestivator')).toContainText('pestivator#2515')
   await expect(page.getByRole('heading', { name: 'L’ura Trainer' })).toHaveCount(0)
+  await expect(page.getByText(/public deployment disabled|platform extraction/i)).toHaveCount(0)
+})
+
+test('persists a versioned tactic and independent audio channels locally', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Tactical plan' }).click()
+  await expect(page.getByLabel(/draggable tactic board/)).toBeVisible()
+  await expect(page.locator('.tactical-marker')).not.toHaveCount(0)
+  await page.getByLabel('Plan name').fill('Travel playtest plan')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Saved in this browser')
+  const tactic = await page.evaluate(() => JSON.parse(localStorage.getItem('midnight-s2:tactic:v1:nekzali') ?? 'null'))
+  expect(tactic).toMatchObject({ format: 'midnight-season-2-tactic', version: 1, encounterId: 'nekzali', tactic: { name: 'Travel playtest plan', schemaVersion: 1 } })
+
+  await page.getByRole('button', { name: 'Audio' }).click()
+  await page.getByLabel('Enable encounter sounds').check()
+  await page.reload()
+  await page.getByRole('button', { name: 'Audio' }).click()
+  await expect(page.getByLabel('Enable encounter sounds')).toBeChecked()
 })
 
 test("discovers all raid panels and launches Nek'zali in separate 2D and 3D arenas", async ({ page }) => {
@@ -145,8 +164,9 @@ test("keeps Nek'zali mechanic coaching compact and assignment-neutral before sel
   await expect(mechanic.getByLabel('Action state')).toHaveCount(0)
   await expect(mechanic).not.toContainText(/Take Essence Rend|assigned adds|soak group/)
   await expect(mechanic).toContainText(/Soulcoil Ignition in ~\d+s/)
-  await expect(mechanic).toHaveCSS('background-color', 'rgba(243, 216, 113, 0.96)')
-  await expect(mechanic).toHaveCSS('color', 'rgb(23, 18, 8)')
+  await expect(mechanic).toHaveCSS('background-color', 'rgba(5, 9, 13, 0.94)')
+  await expect(mechanic).toHaveCSS('color', 'rgb(255, 244, 189)')
+  await expect(page.locator('canvas')).toHaveAttribute('data-floor-material', 'cracked-soul-stone')
   expect((await mechanic.boundingBox())!.width).toBeLessThanOrEqual(270)
 })
 
@@ -290,7 +310,7 @@ test('launches the single Entombed Sentinels full fight in separate 2D and 3D ar
   await expect.poll(async () => Number(await canvas.getAttribute('data-player-main-effect-count')), { timeout: 2500 }).toBeGreaterThan(0)
 })
 
-test('keeps Sentinels marks compact and its Learn 2D raid telegraph conspicuous', async ({ page }) => {
+test('removes passive Sentinels mark diamonds and keeps its Learn 2D raid telegraph conspicuous', async ({ page }) => {
   await page.clock.install()
   await page.goto('/')
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }).click()
@@ -301,8 +321,7 @@ test('keeps Sentinels marks compact and its Learn 2D raid telegraph conspicuous'
   await expect(raidLead).toHaveCSS('background-color', 'rgba(243, 216, 113, 0.96)')
   await page.clock.runFor(10_200)
   const playerAuras = page.getByLabel(/Controlled .* player/).locator('.platform-aura-icons')
-  await expect(playerAuras.locator('.platform-aura-icon.poison')).toHaveCount(1)
-  await expect(playerAuras.locator('.platform-aura-icon.poison b')).toHaveText('2')
+  await expect(playerAuras.locator('.platform-aura-icon.poison')).toHaveCount(0)
 })
 
 test('moves independently in all four Learn 2D directions and clears input on blur', async ({ page }) => {
@@ -475,6 +494,7 @@ test('uses independently rebound movement keys, shared HUD settings, and paused 
   await page.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' }).click()
 
   await expect(page.getByRole('heading', { name: 'Entombed Sentinels full fight' })).toBeVisible()
+  await expect(page.locator('canvas')).toHaveAttribute('data-floor-material', 'cracked-temple-stone')
   await page.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' }).getByRole('button', { name: 'Start' }).click()
   await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
   await expect(page.getByRole('dialog', { name: 'Contract room entrance' })).toHaveCount(0)
@@ -567,7 +587,8 @@ test('keeps left orbit independent, aligns on right press, and moves with both m
   await expect(arena).toHaveAttribute('data-player-marker', 'humanoid-chevron')
 })
 
-test('retains the v0.9.1 source application behind a development-only reference route', async ({ page }) => {
+test('does not expose the retired Season 1 reference route', async ({ page }) => {
   await page.goto('/?reference=lura-v0.9.1')
-  await expect(page.getByRole('heading', { name: 'L’ura Trainer' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Midnight Season 2 Trainer' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'L’ura Trainer' })).toHaveCount(0)
 })

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState, type ComponentType, type SetStateAction } from 'react'
+import { useCallback, useEffect, useState, type ComponentType, type CSSProperties, type SetStateAction } from 'react'
 import BuildStatus from './platform/BuildStatus'
 import CreatorCard from './platform/CreatorCard'
 import { contractRoomActions } from './platform/contractActions'
 import EncounterIcon from './platform/EncounterIcon'
 import HudLayoutPreview from './platform/HudLayoutPreview'
+import TacticalPlanner from './platform/TacticalPlanner'
 import type { EncounterCatalogue } from './platform/encounters/discovery'
 import { bindEncounterActions, loadEncounterCatalogue, type EncounterActionDefinition, type EncounterMode, type EncounterPackageV1, type EncounterRuntimeProps } from './platform/encounters'
 import {
@@ -20,12 +21,13 @@ import {
   type TrainingAction,
   type TrainingSettings,
 } from './platform/trainingSettings'
-import { LEGACY_REFERENCE_QUERY, PRODUCT } from './product'
+import { PRODUCT } from './product'
+import { playTrainerCue, speakTrainerCue, useTrainerAudioSettings } from './platform/trainerAudio'
 import './styles.css'
 import './styles/tokens.css'
 import './styles/season2.css'
 
-const tabs = ['Game settings', 'Keys & Mouse', 'HUD', 'Tactical plan', 'Statistics', 'Profile'] as const
+const tabs = ['Game settings', 'Keys & Mouse', 'HUD', 'Tactical plan', 'Audio', 'Statistics', 'Profile'] as const
 type SetupTab = typeof tabs[number]
 const movementLabels: Record<MovementAction, string> = {
   forward: 'Forward',
@@ -69,7 +71,12 @@ const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string
   'Tactical plan': {
     eyebrow: 'TACTICAL PLANNER',
     title: 'One encounter package, two arena projections',
-    body: 'Planning data will come from EncounterPackageV1. Learn 2D and Train 3D will render it through separate arena models.',
+    body: 'Edit, position, validate, save, import, and export package-owned assignments without mixing encounter state.',
+  },
+  Audio: {
+    eyebrow: 'AUDIO CHANNELS',
+    title: 'Independent, pause-aware assistance',
+    body: 'Music, encounter sounds, and raid-lead speech are opt-in, persist independently, and remain synchronized with trainer pause.',
   },
   Statistics: {
     eyebrow: 'LATER MILESTONE',
@@ -79,7 +86,7 @@ const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string
   Profile: {
     eyebrow: 'LATER MILESTONE',
     title: 'Profiles are not connected yet',
-    body: 'The Season 2 shell does not contact the inherited L’ura /v1 service. Identity and account work will begin with the API /v2 milestone.',
+    body: 'Identity and account work will begin with the API /v2 milestone. This static release sends no encounter or profile data.',
   },
 }
 
@@ -90,8 +97,10 @@ export default function Season2App() {
   const [rebinding, setRebinding] = useState<Rebinding>()
   const [runtimeLoading, setRuntimeLoading] = useState<EncounterMode>()
   const [runtime, setRuntime] = useState<{ mode: EncounterMode; scenarioId: string; actions: readonly EncounterActionDefinition[]; Component: ComponentType<EncounterRuntimeProps> }>()
+  const [plannerEncounterId, setPlannerEncounterId] = useState('')
+  const [audio, setAudio] = useTrainerAudioSettings()
   const panel = panelCopy[activeTab]
-  const encounter = catalogue?.packages[0]
+  const encounter = catalogue?.packages.find(item => item.manifest.id === plannerEncounterId) ?? catalogue?.packages.find(item => item.tactics.length > 0)
   const catalogueFailed = catalogue && !encounter
 
   useEffect(() => {
@@ -155,7 +164,6 @@ export default function Season2App() {
   }
 
   return <><BuildStatus /><main className="shell setup-shell season2-shell" id="setup-top">
-    <aside className="season2-safety-note">Standalone workspace · public deployment disabled during extraction</aside>
     <div className="season2-hero-row">
       <header className="season2-hero">
         <p className="eyebrow">MIDNIGHT · SEASON 2 · RAID PRACTICE</p>
@@ -164,12 +172,6 @@ export default function Season2App() {
       </header>
       <CreatorCard />
     </div>
-    <div className="season2-status" aria-label="Migration status">
-      <span>Platform extraction</span>
-      <strong>Nek'zali and Entombed Sentinels full fights</strong>
-      <small>All eight raid bosses have isolated catalogue packages. Only Nek'zali and Entombed Sentinels currently expose playable scenarios.</small>
-    </div>
-
     {import.meta.env.DEV && Boolean(catalogue?.diagnostics.length) && <aside className="season2-catalogue-diagnostics">
       <strong>Encounter package diagnostics</strong>
       {catalogue?.diagnostics.map(diagnostic => <p key={diagnostic.source}>
@@ -193,11 +195,11 @@ export default function Season2App() {
         <h2>{panel.title}</h2>
         <p className="hint">{panel.body}</p>
       </div>
-      {activeTab === 'Game settings' && <div className="season2-catalogue-grid" aria-label="Encounter catalogue">
+      {activeTab === 'Game settings' && <div className="season2-catalogue-grid season2-boss-journey" aria-label="Encounter catalogue">
         <fieldset className="season2-training-difficulty"><legend>Trainer difficulty</legend><p>Encounter mechanics stay fixed. This changes guidance and failure tolerance only.</p><div>{(['test', 'easy', 'normal', 'hard'] as const).map(value => <button type="button" key={value} className={settings.difficulty === value ? 'selected' : ''} aria-pressed={settings.difficulty === value} onClick={() => updateSettings(current => ({ ...current, difficulty: value }))}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div></fieldset>
         {!catalogue && <article className="season2-encounter-card loading"><p>Discovering encounter packages…</p></article>}
         {catalogueFailed && <article className="season2-encounter-card unavailable"><h3>No conforming encounter package</h3><p>Check development diagnostics before continuing.</p></article>}
-        {catalogue?.packages.map(selectedEncounter => <article className="season2-encounter-card" key={selectedEncounter.manifest.id}>
+        {catalogue?.packages.map((selectedEncounter, index) => <article className={`season2-encounter-card journey-step ${selectedEncounter.learn2d.some(item => item.status === 'ready') ? 'ready' : 'planned'}`} style={{ '--journey-order': index + 1 } as CSSProperties} key={selectedEncounter.manifest.id}>
           <header><EncounterIcon name={selectedEncounter.manifest.name} /><h3>{selectedEncounter.manifest.name}</h3></header>
           <p>{selectedEncounter.manifest.summary}</p>
           <div className="season2-encounter-actions">
@@ -284,19 +286,24 @@ export default function Season2App() {
         </div>
         <div className="season2-hud-preview"><HudLayoutPreview settings={settings.hud} onChange={hud => updateSettings(current => ({ ...current, hud }))} /></div>
       </div>}
-      {activeTab === 'Tactical plan' && encounter && <div className="season2-plan-preview">
-        <p className="season2-boundary-note">The package-owned abstract regions are available for the first drill. Raid-plan imagery and editable roster assignments will follow the evidence you provide through the inbox.</p>
-        <div className="season2-region-list">
-          {encounter.learn2d[0]?.arena.regions.map(region => <span key={region.id}>{region.label}</span>)}
-        </div>
+      {activeTab === 'Tactical plan' && catalogue && <div className="season2-plan-preview">
+        <label className="tactical-encounter-select">Encounter<select value={encounter?.manifest.id ?? ''} onChange={event => setPlannerEncounterId(event.target.value)}>{catalogue.packages.filter(item => item.tactics.length > 0).map(item => <option key={item.manifest.id} value={item.manifest.id}>{item.manifest.name}</option>)}</select></label>
+        {encounter && <TacticalPlanner encounter={encounter} />}
+      </div>}
+      {activeTab === 'Audio' && <div className="season2-audio-settings">
+        {([
+          ['music', 'Music', 'A low, generated ambient bed; no external asset is shipped.', 'musicVolume'],
+          ['sounds', 'Encounter sounds', 'A short semantic cue when the active mechanic changes.', 'soundsVolume'],
+          ['raidlead', 'Raid-lead speech', 'Browser speech announces the package-owned mechanic prompt.', 'raidleadVolume'],
+        ] as const).map(([key, label, detail, volumeKey]) => <fieldset key={key}><legend>{label}</legend><label className="audio-channel-toggle"><input type="checkbox" checked={audio[key]} onChange={event => setAudio({ ...audio, [key]: event.target.checked })} /><span>Enable {label.toLowerCase()}<small>{detail}</small></span></label><label>Volume <strong>{Math.round(audio[volumeKey] * 100)}%</strong><input type="range" min="0" max="1" step=".05" value={audio[volumeKey]} onChange={event => setAudio({ ...audio, [volumeKey]: Number(event.target.value) })} /></label><button type="button" className="secondary" onClick={() => key === 'raidlead' ? speakTrainerCue('Raid lead ready', audio.raidleadVolume) : playTrainerCue(audio[key === 'music' ? 'musicVolume' : 'soundsVolume'], 'preview')}>Preview</button></fieldset>)}
       </div>}
       {(activeTab === 'Statistics' || activeTab === 'Profile') && <p className="season2-boundary-note">This shell boundary remains intentionally offline until the API /v2 milestone.</p>}
     </section>
 
     <footer className="season2-footer">
       <a href={PRODUCT.repositoryUrl}>Project repository</a>
-      {import.meta.env.DEV && <a href={`?${LEGACY_REFERENCE_QUERY}`}>Open development-only L’ura v0.9.1 reference</a>}
-      <span>{PRODUCT.shortId} · planned host {PRODUCT.plannedHostname}</span>
+      <a href="privacy.html">Privacy</a>
+      <span>{PRODUCT.shortId} · {PRODUCT.plannedHostname}</span>
     </footer>
   </main></>
 }

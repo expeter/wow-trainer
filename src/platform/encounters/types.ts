@@ -114,6 +114,7 @@ export interface TacticPreset {
   name: string
   schemaVersion: number
   assignments: Readonly<Record<string, string | readonly string[]>>
+  placements?: Readonly<Record<string, { x: number; y: number }>>
 }
 
 export interface DiagramRegion2D {

@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+- Prepared the first public Season 2 release candidate at
+  `midnight.asgard.website`: the isolated Pages workflow verifies unit tests,
+  focused browser behavior, and the static build before deploying through the
+  `github-pages` environment. The artifact owns only the new custom domain.
+- Retired the remaining active Season 1 surface: the old runtime/query route,
+  `/v1` API and service units, API workflow, online-submit lab, legacy browser
+  fixtures, screenshots, review tools, and bundled audio. The immutable
+  baseline tag, handover, ticket history, and README lineage remain.
+- Added a versioned local tactical planner with package-owned fields and arena
+  regions, draggable markers, required-field validation, safe persistence,
+  reset, and encounter/schema-checked JSON import/export.
+- Added independent persisted Music, Sounds, and Raidlead channels with setup
+  previews, runtime status-bar toggles, pause-aware scheduling, generated audio
+  primitives, and browser speech; no third-party audio asset ships.
+- Reworked the public setup into the eight-boss journey, removed extraction
+  banners, and applied restrained forest-stone, venom-green, spectral, and bone
+  tokens without copying supplied artwork.
+- Added raid-plan-aligned Train 3D floor materials: cracked soul-stone for
+  Nek'zali and cracked temple stone with poison perimeter strips for Sentinels.
+- Corrected the final tuning captures: Train 3D coaching is black/yellow,
+  hostile entities share a readable silhouette, Soul Transfer is no longer an
+  oversized sphere, Pyre and Phase 2 transitions gain projectiles/impacts,
+  Barrage is impact-only, Droplets preserve soak-to-launch causality, and
+  Sentinels side marks cap at seven.
+- Made setup HUD boxes track window-level pointer movement through release, so
+  fast drags no longer stick when the pointer leaves the selected box.
+
 - Reorganized the Season 2 roadmap into M1 core, M2 encounters, the post-M2
   publication gate, M3 planner, M4 audio, M5 shell, M6 online results, and a
   post-publication optimization pass. Deferred work and frozen L’ura history

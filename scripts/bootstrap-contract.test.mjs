@@ -12,20 +12,18 @@ test('uses the standalone Season 2 product identity', () => {
   assert.match(read('src/product.ts'), /shortId: 'midnight-s2'/)
 })
 
-test('keeps the legacy application behind the development gate', () => {
+test('ships only the standalone Season 2 application', () => {
   const main = read('src/main.tsx')
-  const product = read('src/product.ts')
-  assert.match(main, /import\.meta\.env\.DEV && legacyReferenceRequested\(window\.location\.search, true\)/)
-  assert.match(main, /await import\('\.\/App'\)/)
-  assert.match(product, /return development &&/)
+  assert.match(main, /<StrictMode><Season2App \/><\/StrictMode>/)
+  assert.doesNotMatch(main, /import\.meta\.env\.DEV|\.\/App|legacyReference/)
   assert.doesNotMatch(read('src/Season2App.tsx'), /from '\.\/online'/)
 })
 
-test('preserves the six-section shell around automatically discovered package runtimes', () => {
+test('preserves the setup shell around automatically discovered package runtimes', () => {
   const shell = read('src/Season2App.tsx')
   const discovery = read('src/platform/encounters/discovery.ts')
   const sentinels = read('src/encounters/entombed-sentinels/index.ts')
-  for (const label of ['Game settings', 'Keys & Mouse', 'HUD', 'Tactical plan', 'Statistics', 'Profile']) {
+  for (const label of ['Game settings', 'Keys & Mouse', 'HUD', 'Tactical plan', 'Audio', 'Statistics', 'Profile']) {
     assert.match(shell, new RegExp(`'${label.replace('&', '\\&')}'`))
   }
   assert.match(shell, /'Learn 2D'/)
@@ -40,18 +38,19 @@ test('preserves the six-section shell around automatically discovered package ru
   assert.doesNotMatch(discovery, /entombed-sentinels/)
 })
 
-test('disables both inherited production deployment paths', () => {
+test('publishes only through the dedicated Season 2 Pages path', () => {
   const pages = read('.github/workflows/pages.yml')
-  const api = read('.github/workflows/api.yml')
-  assert.doesNotMatch(pages, /actions\/deploy-pages|actions\/upload-pages-artifact|pages: write/)
-  assert.doesNotMatch(api, /deploy-api:|api\.asgard\.website|scp |ssh /)
-  assert.match(api, /workflow_dispatch:/)
+  assert.match(pages, /actions\/deploy-pages/)
+  assert.match(pages, /actions\/upload-pages-artifact/)
+  assert.match(pages, /pages: write/)
+  assert.doesNotMatch(pages, /lura\.asgard\.website|api\.asgard\.website|scp |ssh /)
 })
 
 test('keeps focused browser tests audited and trainer-only', () => {
   const playwright = read('playwright.config.ts')
   const wrapper = read('scripts/playwright-local.sh')
-  assert.match(wrapper, /sec-helper audit\nexec npm run test:e2e/)
+  assert.match(wrapper, /sec-helper audit/)
+  assert.match(wrapper, /exec npm run test:e2e/)
   assert.match(playwright, /node node_modules\/vite\/bin\/vite\.js --host 127\.0\.0\.1/)
   assert.doesNotMatch(playwright, /npm run dev --/)
 })

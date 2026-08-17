@@ -1,4 +1,4 @@
-name: Verify Season 2 bootstrap (deployment disabled)
+name: Verify and deploy Midnight Season 2
 
 on:
   push:
@@ -7,10 +7,12 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: season-2-verification
-  cancel-in-progress: false
+  group: midnight-season-2-pages
+  cancel-in-progress: true
 
 jobs:
   unit-tests:
@@ -56,6 +58,7 @@ jobs:
           retention-days: 7
 
   build:
+    needs: [unit-tests, season-2-shell]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -67,5 +70,22 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Build standalone site without publishing
+      - name: Build standalone site
         run: npm run build
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Midnight Season 2 to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
