@@ -76,6 +76,19 @@ describe("Nek'zali reconciled encounter contract", () => {
     expect(nextNekzaliTimer({ ...initial, time: 7.5 })).toEqual({ label: 'Soulcoil Ignition', seconds: 3.5 })
   })
 
+  it('targets Anguished Echo at raid entities, resolves after its telegraph, and leaves no after-image', () => {
+    const initial: NekzaliState = { ...createNekzaliState('player', 'test', 'learn2d'), time: 8.99, soulcoilPulseIds: ['phase-1-0-1'] }
+    const telegraphed = stepNekzaliDiagramState(initial, idle, .02)
+    const playerImpact = telegraphed.anguishedImpacts.find(impact => impact.targetId === 'player')!
+    expect(playerImpact.position).toMatchObject({ x: initial.player.x, z: initial.player.z })
+    expect(telegraphed.failures).toHaveLength(0)
+    const escaped = stepNekzaliDiagramState({ ...telegraphed, player: { x: initial.player.x - 7, z: initial.player.z, facing: 0 } }, idle, 2.01)
+    expect(escaped.failures).toHaveLength(0)
+    expect(escaped.anguishedImpacts.some(impact => impact.id === playerImpact.id)).toBe(false)
+    const hit = stepNekzaliDiagramState(telegraphed, idle, 2.01)
+    expect(hit.failures[0]?.code).toBe('anguished-echo')
+  })
+
   it('tracks independently expiring Hollowing Strikes on the active controlled tank', () => {
     let state: NekzaliState = { ...createNekzaliState('tank-1', 'test'), time: 11.99, aggroOwner: 'tank-1' }
     state = stepNekzaliState(state, idle, .02)

@@ -73,6 +73,8 @@ from individually accepted encounter evidence and tickets.
   during its Anguished Echo pulses so the ground circles are not unexplained.
 - `CR-289` — completed: simplify the shared Learn 2D controlled-player marker to
   class color, outline, and glow without a decorative weapon or role accessory.
+- `BUG-199` — completed: turn Anguished Echo circles from arbitrary instant-hit
+  after-images into raid-targeted telegraphs that resolve once and disappear.
 
 - `CR-229` — completed the privacy-safe migration dossier under
   [`handover/midnight-season-2`](../handover/midnight-season-2/00-README.md),

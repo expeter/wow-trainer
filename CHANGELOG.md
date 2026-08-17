@@ -6,6 +6,9 @@
   Anguished Echo pulses instead of letting their circles appear unexplained.
   Simplified the shared Learn 2D player silhouette to class color, outline, and
   glow by removing its decorative staff and role accessory.
+- Corrected Anguished Echo circles to target actual raid entities, telegraph for
+  two seconds, resolve collision only on expiry, and disappear immediately;
+  targeted NPCs now leave them through the shared locomotion controller.
 
 - Completed the entity-owned mechanic and locomotion correction across the
   contract rooms, Nek'zali, and Entombed Sentinels. Shared actors retain class

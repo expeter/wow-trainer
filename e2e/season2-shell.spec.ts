@@ -134,6 +134,18 @@ test("keeps Nek'zali mechanic coaching compact and assignment-neutral before sel
   expect((await mechanic.boundingBox())!.width).toBeLessThanOrEqual(270)
 })
 
+test("makes Nek'zali Anguished Echo a resolving danger telegraph", async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()
+  await page.getByRole('dialog', { name: "Nek'zali encounter setup" }).getByRole('button', { name: 'Start' }).click()
+  await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
+  const firstImpact = page.locator('[data-effect-id^="anguished-"]').first()
+  await expect(firstImpact).toBeVisible({ timeout: 10_000 })
+  await expect(firstImpact).toHaveCSS('border-color', 'rgb(239, 113, 130)')
+  const impactId = await firstImpact.getAttribute('data-effect-id')
+  await expect(page.locator(`[data-effect-id="${impactId}"]`)).toHaveCount(0, { timeout: 2500 })
+})
+
 test("keeps Nek'zali Learn 2D circular, undistorted, and movable left and right", async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler Learn 2D" }).click()

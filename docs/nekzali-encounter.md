@@ -74,6 +74,12 @@ projections, never with Test/Easy/Normal/Hard.
   before their first pulse, then names the active four-second channel while the
   Anguished Echo circles are visible; they must never appear as unexplained
   ambient ground effects.
+- Each pulse snapshots a deterministic raid target's actual position. Its
+  circle is a two-second reaction telegraph, checks occupancy only when it
+  resolves, and disappears immediately afterwards. The controlled player is
+  assigned one pulse per channel; targeted NPCs move out through shared bounded
+  locomotion. Arbitrary arena-coordinate circles and post-hit remnants are not
+  part of the trainer contract.
 - Each Rite adds five energy and a 44-second Ritual Burn application. The
   simulation tracks applications independently; they tick every two seconds.
 - One hundred energy begins Uncoiled Rage and fails the attempt after its

@@ -20,7 +20,7 @@ export type NekzaliRealmStage = 'none' | 'pull' | 'inside' | 'returning'
 export interface NekzaliHazard { id: string; position: WorldPoint; radius: number; direction: WorldPoint; kind: 'cultist' | 'burning'; createdAt?: number }
 export interface NekzaliAdd { id: string; position: WorldPoint; health: number; shield: number; crowdControlled: boolean; assignedToPlayer: boolean; playerDamage: number; corpseGroup: 1 | 2 }
 export interface NekzaliCorpse { id: string; position: WorldPoint; group: 1 | 2; cremated: boolean }
-export interface AnguishedImpact { id: string; position: WorldPoint; createdAt: number }
+export interface AnguishedImpact { id: string; targetId: string; position: WorldPoint; createdAt: number }
 
 export interface NekzaliState {
   time: number
@@ -443,15 +443,21 @@ function transitionToIntermission(state: NekzaliState): NekzaliState {
 }
 
 function stepSoulcoilIgnition(state: NekzaliState, phaseAge: number, starts: readonly number[], playerPresent: boolean): NekzaliState {
+  const resolvedImpacts = state.anguishedImpacts.filter(impact => state.time - impact.createdAt >= 2)
   let next: NekzaliState = { ...state, ritualBurnApplications: activeApplications(state.ritualBurnApplications, state.time), anguishedImpacts: state.anguishedImpacts.filter(impact => state.time - impact.createdAt < 2) }
+  if (playerPresent && resolvedImpacts.some(impact => distance(next.player, impact.position) < 5)) {
+    next = addFailure(next, 'anguished-echo', 'Hit by Anguished Echo', 'Move out of each raid-targeted circle before its two-second telegraph resolves.', true)
+  }
   for (let event = 0; event < starts.length; event += 1) {
     for (let pulse = 1; pulse <= 4; pulse += 1) {
       const at = starts[event] + pulse
       const key = `${state.phase}-${event}-${pulse}`
       if (phaseAge < at || next.soulcoilPulseIds.includes(key)) continue
-      const angle = (event * 2.41 + pulse * 1.37 + (state.phase === 'phase-2' ? .7 : 0)) % (Math.PI * 2)
-      const radius = 12 + ((event * 4 + pulse * 7) % 24)
-      const impact = { id: `anguished-${key}`, position: { x: Math.cos(angle) * radius, z: Math.sin(angle) * radius }, createdAt: state.time }
+      const npcTargets = contractRaidRoster.filter(member => member.id !== state.selectedSlotId)
+      const targetId = pulse === 2 ? state.selectedSlotId : npcTargets[(event * 7 + pulse * 5) % npcTargets.length].id
+      const targetMember = contractSelectedMember(targetId)
+      const targetPosition = targetId === state.selectedSlotId ? state.player : state.npcPositions[targetId] ?? nekzaliMemberPosition(targetMember)
+      const impact = { id: `anguished-${key}`, targetId, position: { x: targetPosition.x, z: targetPosition.z }, createdAt: state.time }
       next = {
         ...next,
         soulcoilPulseIds: [...next.soulcoilPulseIds, key],
@@ -459,7 +465,6 @@ function stepSoulcoilIgnition(state: NekzaliState, phaseAge: number, starts: rea
         ritualBurnApplications: [...next.ritualBurnApplications, { id: `ritual-burn-${key}`, appliedAt: state.time, duration: 44 }],
         anguishedImpacts: [...next.anguishedImpacts, impact],
       }
-      if (playerPresent && distance(next.player, impact.position) < 5) next = addFailure(next, 'anguished-echo', 'Hit by Anguished Echo', 'Move out of each impact circle during Soulcoil Ignition.', true)
     }
   }
   if (next.bossEnergy >= 100 && next.uncoiledRageStartedAt === undefined) next = { ...next, uncoiledRageStartedAt: next.time }
@@ -628,6 +633,12 @@ function npcDestination(member: ContractRaidMember, state: NekzaliState, index: 
     const age = state.time - state.rendStartedAt
     return rendNpcPositionAt(member.id, age, state.projection)
   }
+  const anguishedImpact = state.anguishedImpacts.find(impact => impact.targetId === member.id && state.time - impact.createdAt < 2)
+  if (anguishedImpact) {
+    const position = state.npcPositions[member.id] ?? nekzaliMemberPosition(member)
+    const length = Math.max(1, Math.hypot(position.x, position.z))
+    return { x: position.x + position.x / length * 7, z: position.z + position.z / length * 7 }
+  }
   if (member.role === 'tank' && member.id === state.barrageTargetId && state.barrageStartedAt !== undefined) {
     const age = state.time - state.barrageStartedAt
     if (age < 6) return npcBarrageDestination
@@ -775,7 +786,7 @@ export function nekzaliSnapshot(state: NekzaliState, playerHealth = 100): Train3
   const echoAge = state.time - state.phaseStartedAt
   const echoActor: ActorSnapshot[] = echo ? [{ id: `echo-${echo}`, kind: 'enemy', position: echoPositions[echo], facing: 0, color: '#75d9d5', auras: [], health: Math.max(0, 100 - Math.max(0, echoAge - SOUL_TRANSFER_SECONDS) / pyreSeconds * 100) }] : []
   const effects: EffectSnapshot[] = state.hazards.map(hazard => ({ id: hazard.id, kind: 'ground-harmful', position: hazard.position, radius: hazard.radius, color: hazard.kind === 'burning' ? '#e86f35' : '#4ca99d', progress: (state.time % 1.2) / 1.2, filled: true }))
-  state.anguishedImpacts.forEach(impact => effects.push({ id: impact.id, kind: 'ground-harmful', position: impact.position, radius: 5, color: '#5ed1c4', progress: Math.min(1, (state.time - impact.createdAt) / 2), filled: true }))
+  state.anguishedImpacts.forEach(impact => effects.push({ id: impact.id, kind: 'ground-harmful', position: impact.position, radius: 5, color: '#ef7182', progress: Math.min(1, (state.time - impact.createdAt) / 2), filled: true }))
   state.corpses.filter(corpse => !corpse.cremated).forEach(corpse => effects.push({ id: corpse.id, kind: 'ground-objective', position: corpse.position, radius: 1.8, color: '#c8a77e', progress: 0, filled: false }))
   if (state.realmStage === 'pull') {
     effects.push({ id: 'well-entry', kind: 'ground-soak', position: { x: 0, z: 0 }, radius: WELL_RADIUS, color: '#72d8db', progress: (state.time - state.realmStartedAt) / nekzaliTiming(state.projection).wellEntrySeconds, filled: true })
