@@ -21,7 +21,7 @@ describe('guild feedback reporter', () => {
     await user.type(screen.getByLabelText('Guild access code'), 'guild-code')
     const file = new File([new Uint8Array([137, 80, 78, 71])], 'boss.png', { type: 'image/png' })
     await user.upload(screen.getByLabelText('Add screenshots'), file)
-    expect(screen.getByText('boss.png')).toBeVisible()
+    expect(await screen.findByText('boss.png')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Send report' }))
     expect(await screen.findByText(/FEEDBACK-20260818-120000-abcd1234/)).toBeVisible()
     const [, request] = vi.mocked(fetch).mock.calls[0]
