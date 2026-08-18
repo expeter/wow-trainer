@@ -8,7 +8,9 @@
   aggregate boss/mode statistics, a maintainer-only event queue, and
   authenticated private feedback. Anonymous telemetry stores no durable user,
   device, IP, or user-agent identity; achievements and rankings remain
-  deferred.
+  deferred. The production sidecar runs on its own port, SQLite state, and
+  checksum-verified Node runtime behind a path-specific Caddy route; the
+  inherited `/v1` service remains unchanged.
 - Added an `INFO` action beside each selected boss's 2D/3D training actions.
   It now leads with one ordered “what to do” instruction per mechanic, followed
   by phase-by-phase responsibilities for every encounter role; generated

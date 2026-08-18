@@ -11,7 +11,7 @@ EnvironmentFile=/etc/midnight-online.env
 Environment=MIDNIGHT_ONLINE_HOST=127.0.0.1
 Environment=MIDNIGHT_ONLINE_PORT=8799
 Environment=MIDNIGHT_ONLINE_DATABASE=/var/lib/midnight-online/midnight.sqlite
-ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning /opt/midnight-online/server.mjs
+ExecStart=/opt/midnight-online/node/bin/node --disable-warning=ExperimentalWarning /opt/midnight-online/server.mjs
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=true

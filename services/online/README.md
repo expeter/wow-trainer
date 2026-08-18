@@ -27,3 +27,7 @@ of the static trainer bundle. Never change the working L’ura client.
 The service defaults to `127.0.0.1:8799`. Add only the path-specific Caddy
 handlers from `Caddyfile.example`, leaving `/v1` and `/v2/feedback` on their
 current owners.
+
+The production unit uses an isolated Node 22 runtime at
+`/opt/midnight-online/node`; it does not replace the VPS system Node used by
+other services. Verify the official distribution checksum before installation.

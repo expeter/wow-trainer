@@ -169,9 +169,9 @@ Completed foundation:
 
 - `SPEC-028`, `FR-100`, `FR-101`, `FR-102`, `CR-310`, and `CR-311` — isolated `/v2`
   identity, anonymous/authenticated attempt telemetry, public aggregates,
-  maintainer-only detail, profile controls, and authenticated feedback. Live
-  use still requires the documented Battle.net callback registration and VPS
-  deployment; neither changes the inherited `/v1` owner.
+  maintainer-only detail, profile controls, and authenticated feedback. The
+  dedicated Battle.net callback and isolated VPS sidecar are live; neither
+  changes the inherited `/v1` owner.
 
 `FR-073` is activated only for this identity/statistics foundation.
 Achievements, scoring, rankings, and leaderboard seasons remain deferred.
