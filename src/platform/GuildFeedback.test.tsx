@@ -50,7 +50,7 @@ describe('guild feedback reporter', () => {
     await user.click(screen.getByRole('button', { name: 'Report bug' }))
     const files = Array.from({ length: 5 }, (_, index) => new File([new Uint8Array([137, 80, 78, 71])], `boss-${index + 1}.png`, { type: 'image/png' }))
     await user.upload(screen.getByLabelText('Add screenshots'), files)
-    expect(screen.getByText('4 / 4')).toBeVisible()
+    expect(await screen.findByText('4 / 4')).toBeVisible()
     expect(screen.queryByText('boss-5.png')).not.toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('Only the first four screenshots are attached.')
     expect(screen.getByLabelText('Add screenshots')).toBeDisabled()
