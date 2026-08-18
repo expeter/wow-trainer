@@ -54,6 +54,11 @@ individual encounter gate remains enforced, Lost Explorers plus the three
 evidence-backed follow-up bosses are isolated full-fight packages, and shared
 Train 3D elevation supports encounter-authored airborne mechanics.
 
+`CR-303` is complete: newly supplied Sszorak and Lost Explorers plans drive
+their contained Learn 2D backgrounds, while code-rendered raised platforms,
+toxic depths, and cave-void surroundings align all four evidenced environments
+without changing simulation ownership.
+
 `FR-097` keeps Ula’tek deferred until mechanic evidence exists; its arena image
 and catalogue metadata alone do not authorize runtime work.
 

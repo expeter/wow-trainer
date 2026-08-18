@@ -1,11 +1,12 @@
+import RAID_PLAN from '../../../inbox/sszorak.png'
 import type { EvidenceEncounterDefinition } from '../../platform/encounters/evidenceFullFight'
 
 export const definition = {
   id: 'sszorak', name: 'Sszorak', order: 5,
   summary: 'Read randomized Apex attacks, place four cysts, pair Crosswinds, and counter the ordered Maelstrom winds.',
   sourceAsOf: '2026-08-16', sourceNote: 'Maintained pre-live guide and PTR spell data; exact encounter cadence remains configurable.',
-  arenaKind: 'circle', arena2dId: 'sszorak_wind_platform', arena2dLabel: 'Sszorak circular wind platform', boardClass: 'sszorak-2d-board', start: { x: 0, z: 24 },
-  arena3d: { id: 'sszorak_wind_world', label: 'Sszorak wind platform', shape: 'circle', width: 92, depth: 92, anchors: [{ id: 'center', label: 'Boss center', x: 0, z: 0 }, { id: 'cyst-one', label: 'Cyst one', x: -28, z: -10 }, { id: 'cyst-two', label: 'Cyst two', x: 28, z: -10 }, { id: 'cyst-three', label: 'Cyst three', x: 0, z: 34 }], theme: { kind: 'sszorak', layout: 'wind-platform', material: 'serpent-wind-stone', floor: '#202621', boundary: '#89b274', accent: '#b5dc73', fog: 'none' } },
+  arenaKind: 'octagon', arena2dId: 'sszorak_wind_platform', arena2dLabel: 'Sszorak supplied octagonal raid plan', learn2dBackground: RAID_PLAN, boardClass: 'sszorak-2d-board', start: { x: 0, z: 24 },
+  arena3d: { id: 'sszorak_wind_world', label: 'Sszorak toxic-depths platform', shape: 'rectangle', width: 92, depth: 92, anchors: [{ id: 'center', label: 'Boss center', x: 0, z: 0 }, { id: 'cyst-one', label: 'Cyst one', x: -28, z: -10 }, { id: 'cyst-two', label: 'Cyst two', x: 28, z: -10 }, { id: 'cyst-three', label: 'Cyst three', x: 0, z: 34 }], theme: { kind: 'sszorak', layout: 'poison-octagon', surroundings: 'toxic-depths', platform: 'floating', material: 'serpent-wind-stone', floor: '#202621', boundary: '#89b274', accent: '#b5dc73', poison: '#93cc25', fog: 'toxic-haze' } },
   bosses: [{ id: 'sszorak-boss', name: 'Sszorak', position: { x: 0, z: 0 }, color: '#79bd6f' }],
   stepOrderVariants: [
     ['apex-ravage-one', 'apex-mutilate-one', 'apex-ravage-two', 'apex-tempest', 'apex-mutilate-two', 'serpents-fury', 'virulence', 'venomous-surge-one', 'raging-crosswinds', 'venomous-surge-two', 'maelstrom-one', 'maelstrom-two', 'maelstrom-three'],

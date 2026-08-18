@@ -9,7 +9,7 @@ import { advanceEncounterTimeline, beginEncounterAction, coreEncounterEntities, 
 import type { EncounterActionDefinition, EncounterPackageV1, SourceProvenance, WorldArena3D } from '.'
 import type { EncounterProjection } from './mechanicState'
 
-export type EvidenceArenaKind = 'circle' | 'triangle-ring' | 'rectangle'
+export type EvidenceArenaKind = 'circle' | 'octagon' | 'triangle-ring' | 'rectangle'
 export type EvidenceStepIntent = 'enter' | 'avoid' | 'airborne' | 'action'
 
 export interface EvidenceMechanicStep {
@@ -81,6 +81,13 @@ function clampPlayer(definition: EvidenceEncounterDefinition, previous: Evidence
   if (definition.arenaKind === 'circle') {
     const length = Math.hypot(next.x, next.z); const radius = definition.arena3d.width / 2 - 2
     return length <= radius ? next : { ...next, x: next.x / length * radius, z: next.z / length * radius }
+  }
+  if (definition.arenaKind === 'octagon') {
+    const halfEdge = Math.min(definition.arena3d.width, definition.arena3d.depth) / 2 - 2
+    const diagonal = halfEdge * 1.68
+    let x = Math.max(-halfEdge, Math.min(halfEdge, next.x)); let z = Math.max(-halfEdge, Math.min(halfEdge, next.z))
+    if (Math.abs(x) + Math.abs(z) > diagonal) { const scale = diagonal / (Math.abs(x) + Math.abs(z)); x *= scale; z *= scale }
+    return { ...next, x, z }
   }
   if (definition.arenaKind === 'triangle-ring') return insideTriangle(next, .96) && !insideTriangle(next, .34) ? next : previous
   return {

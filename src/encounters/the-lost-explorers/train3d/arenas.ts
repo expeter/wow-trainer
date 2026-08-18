@@ -8,7 +8,7 @@ export const lostExplorersArena = {
     { id: 'nama-separate', label: 'Nama separation', x: 24, z: 18 },
     { id: 'outer-bomb', label: 'Outer bomb placement', x: 0, z: 42 },
   ],
-  theme: { kind: 'lost-explorers', layout: 'octagonal-council', fog: 'none', material: 'explorer-octagon-stone', floor: '#20201d', cracks: '#4f554b', boundary: '#b49c64', accent: '#e0c57b', center: '#594178' },
+  theme: { kind: 'lost-explorers', layout: 'octagonal-council', surroundings: 'cave-void', platform: 'floating', fog: 'deep-cave', material: 'explorer-octagon-stone', floor: '#20201d', cracks: '#4f554b', boundary: '#b49c64', accent: '#e0c57b', center: '#594178' },
 } as const satisfies WorldArena3D
 
 export const train3dArenas = [lostExplorersArena]

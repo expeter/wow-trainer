@@ -13,8 +13,8 @@ models while leaving uncertain recurrence configurable.
 - The supplied [`the-coiled-altar.png`](../inbox/the-coiled-altar.png) establishes
   the rectangular platform, central seal, and side structures for Learn 2D. It
   does not establish exact world measurements or mechanic timing.
-- Train 3D independently code-renders a bounded altar platform and never uses
-  the supplied bitmap as a floor texture.
+- Train 3D independently code-renders a bounded raised altar platform over
+  toxic depths and never uses the supplied bitmap as a floor texture.
 
 ## Full-fight contract
 

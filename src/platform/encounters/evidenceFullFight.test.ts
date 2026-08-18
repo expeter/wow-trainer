@@ -37,6 +37,12 @@ describe('evidence-backed full-fight simulation', () => {
     expect(intoVoid.player).toMatchObject({ x: 0, z: 11 })
   })
 
+  it('keeps Sszorak movement inside the rendered octagonal platform', () => {
+    const initial = createEvidenceEncounterState(sszorak)
+    const outsideCorner = stepEvidenceEncounter(sszorak, { ...initial, player: { x: 43, z: 43, facing: 0 } }, IDLE_PLAYER_COMMANDS, .01, 'train3d')
+    expect(Math.abs(outsideCorner.player.x) + Math.abs(outsideCorner.player.z)).toBeLessThanOrEqual(73.93)
+  })
+
   it('rotates deterministic five-attack Sszorak Apex variants between pulls', () => {
     const first = createEvidenceEncounterState(sszorak, 'player', 'normal', 'train3d', 0)
     const second = createEvidenceEncounterState(sszorak, 'player', 'normal', 'train3d', 1)

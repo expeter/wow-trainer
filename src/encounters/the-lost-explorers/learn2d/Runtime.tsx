@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import RAID_PLAN from '../../../../inbox/INBOX-20260815-135414-bba2f7.png'
+import RAID_PLAN from '../../../../inbox/the-lost-explorers.png'
 import { contractSelectedMember } from '../../../platform/contractRoom'
 import { ContractPullOverlay, useContractPullGate } from '../../../platform/ContractPullGate'
 import EncounterActionButtons from '../../../platform/EncounterActionButtons'

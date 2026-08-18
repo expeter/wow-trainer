@@ -12,7 +12,8 @@ describe('The Lost Explorers EncounterPackageV1', () => {
 
   it('keeps separate octagonal arenas and explicit pre-live provenance', () => {
     expect(lostExplorers.learn2d[0].arena.id).toBe('lost_explorers_raidplan')
-    expect(lostExplorers.train3dArenas[0]).toMatchObject({ id: 'lost_explorers_octagonal_world', theme: { layout: 'octagonal-council', fog: 'none' } })
+    expect(lostExplorers.tacticSchema.planner?.maps[0].backgroundImage).toContain('the-lost-explorers')
+    expect(lostExplorers.train3dArenas[0]).toMatchObject({ id: 'lost_explorers_octagonal_world', theme: { layout: 'octagonal-council', surroundings: 'cave-void', platform: 'floating', fog: 'deep-cave' } })
     expect(lostExplorers.timingProfiles[0].values.every(value => value.provenance.asOf === '2026-08-16')).toBe(true)
   })
 

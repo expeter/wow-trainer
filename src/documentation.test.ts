@@ -94,7 +94,7 @@ describe('maintained project documentation', () => {
 
   it('tracks supplied raid plans without treating images as mechanic authority', () => {
     const evidence = read('docs/raid-plan-evidence.md')
-    for (const asset of ['the-coiled-altar.png', 'the-twin-fangs.png', 'ulatek.png']) {
+    for (const asset of ['sszorak.png', 'the-lost-explorers.png', 'the-coiled-altar.png', 'the-twin-fangs.png', 'ulatek.png']) {
       expect(existsSync(resolve(process.cwd(), `inbox/${asset}`))).toBe(true)
       expect(evidence).toContain(asset)
     }

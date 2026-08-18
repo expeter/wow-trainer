@@ -25,8 +25,15 @@ export const VASHNIK_FLOOR_OUTLINE = [
 export const LOST_EXPLORERS_FLOOR_OUTLINE = [
   [-18, -44], [18, -44], [44, -18], [44, 18], [18, 44], [-18, 44], [-44, 18], [-44, -18],
 ] as const
+export const SSZORAK_FLOOR_OUTLINE = [
+  [-29, -44], [29, -44], [44, -29], [44, 29], [29, 44], [-29, 44], [-44, 29], [-44, -29],
+] as const
 export const TWIN_FANGS_FLOOR_OUTLINE = [[0, -44], [40, 30], [-40, 30]] as const
 export const TWIN_FANGS_VOID_OUTLINE = [[0, -15], [-13.5, 10], [13.5, 10]] as const
+
+export function arenaSurroundingKind(arena: Train3DSnapshot['arena']) {
+  return arena.theme.surroundings ?? 'grounded'
+}
 
 export function renderedFloorDimensions(arena: Train3DSnapshot['arena']) {
   return { width: arena.width * VISUAL_FLOOR_SCALE, depth: arena.depth * VISUAL_FLOOR_SCALE }
@@ -69,7 +76,7 @@ function arenaFloorDetails(arena: Train3DSnapshot['arena']) {
     const value = Math.sin((index + 1) * 91.733 + seed * 17.17) * 43758.5453
     return value - Math.floor(value)
   }
-  const customFloor = ['three-fountain-plan', 'octagonal-council', 'triangle-ring', 'coiled-altar'].includes(arena.theme.layout ?? '')
+  const customFloor = ['three-fountain-plan', 'octagonal-council', 'poison-octagon', 'triangle-ring', 'coiled-altar'].includes(arena.theme.layout ?? '')
   const count = customFloor ? 0 : arena.shape === 'circle' ? 54 : 76
   for (let index = 0; index < count; index += 1) {
     const angle = unit(index * 7) * Math.PI * 2
@@ -154,6 +161,57 @@ function arenaFloorDetails(arena: Train3DSnapshot['arena']) {
     for (const x of [-38, 38]) {
       const side = new THREE.Mesh(new THREE.PlaneGeometry(13, arena.depth * .78), new THREE.MeshBasicMaterial({ color: arena.theme.accent || '#d3b577', transparent: true, opacity: .1, side: THREE.DoubleSide, depthWrite: false }))
       side.name = 'coiled-altar-side-structure'; side.rotation.x = -Math.PI / 2; side.position.set(x, .04, 0); group.add(side)
+    }
+  }
+  return group
+}
+
+function arenaSurroundings(arena: Train3DSnapshot['arena']) {
+  const group = new THREE.Group()
+  const surroundings = arenaSurroundingKind(arena)
+  group.name = `arena-surroundings-${surroundings}`
+  if (arena.theme.platform === 'floating') {
+    let skirtGeometry: THREE.BufferGeometry
+    if (arena.theme.layout === 'octagonal-council' || arena.theme.layout === 'poison-octagon') {
+      const outline = arena.theme.layout === 'poison-octagon' ? SSZORAK_FLOOR_OUTLINE : LOST_EXPLORERS_FLOOR_OUTLINE
+      const shape = new THREE.Shape(outline.map(([x, z]) => new THREE.Vector2(x, z)))
+      skirtGeometry = new THREE.ExtrudeGeometry(shape, { depth: 4.2, bevelEnabled: false })
+      skirtGeometry.rotateX(Math.PI / 2)
+    } else if (arena.theme.layout === 'triangle-ring') {
+      const shape = new THREE.Shape(TWIN_FANGS_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector2(x, z)))
+      shape.holes.push(new THREE.Path(TWIN_FANGS_VOID_OUTLINE.map(([x, z]) => new THREE.Vector2(x, z))))
+      skirtGeometry = new THREE.ExtrudeGeometry(shape, { depth: 3.5, bevelEnabled: false })
+      skirtGeometry.rotateX(Math.PI / 2)
+    } else skirtGeometry = new THREE.BoxGeometry(arena.width, 4, arena.depth)
+    const skirt = new THREE.Mesh(skirtGeometry, new THREE.MeshStandardMaterial({ color: arena.theme.floor || '#20231f', roughness: 1 }))
+    skirt.name = 'floating-platform-skirt'
+    skirt.position.y = -.12
+    if (arena.theme.layout === 'coiled-altar') skirt.position.y = -2.05
+    group.add(skirt)
+  }
+  if (surroundings === 'toxic-depths') {
+    const poisonColor = arena.theme.poison || '#93cc25'
+    const poison = new THREE.Mesh(new THREE.CircleGeometry(138, 96), new THREE.MeshStandardMaterial({ color: poisonColor, emissive: poisonColor, emissiveIntensity: .62, roughness: .38, transparent: true, opacity: .88, side: THREE.DoubleSide }))
+    poison.name = 'toxic-depths-surface'; poison.rotation.x = -Math.PI / 2; poison.position.y = -4.7; group.add(poison)
+    for (const radius of [58, 82, 108]) {
+      const current = new THREE.Mesh(new THREE.RingGeometry(radius - 1.3, radius + 1.3, 72), new THREE.MeshBasicMaterial({ color: '#d5f24b', transparent: true, opacity: .12, side: THREE.DoubleSide, depthWrite: false }))
+      current.name = 'toxic-depths-current'; current.rotation.x = -Math.PI / 2; current.position.y = -4.58; group.add(current)
+    }
+    for (let index = 0; index < 18; index += 1) {
+      const angle = index / 18 * Math.PI * 2; const radius = 54 + index % 4 * 14
+      const bubble = new THREE.Mesh(new THREE.SphereGeometry(.35 + index % 3 * .22, 10, 8), new THREE.MeshBasicMaterial({ color: '#dfff62', transparent: true, opacity: .4 }))
+      bubble.name = 'toxic-depths-bubble'; bubble.position.set(Math.cos(angle) * radius, -3.8 + index % 4 * .28, Math.sin(angle) * radius); group.add(bubble)
+    }
+  }
+  if (surroundings === 'cave-void') {
+    const abyss = new THREE.Mesh(new THREE.CircleGeometry(130, 64), new THREE.MeshBasicMaterial({ color: '#010304', side: THREE.DoubleSide }))
+    abyss.name = 'cave-void-depth'; abyss.rotation.x = -Math.PI / 2; abyss.position.y = -10; group.add(abyss)
+    const wall = new THREE.Mesh(new THREE.CylinderGeometry(82, 72, 30, 16, 1, true), new THREE.MeshStandardMaterial({ color: '#111815', roughness: 1, side: THREE.BackSide }))
+    wall.name = 'cave-void-wall'; wall.position.y = -1; group.add(wall)
+    for (let index = 0; index < 12; index += 1) {
+      const angle = index / 12 * Math.PI * 2; const radius = 59 + index % 3 * 6
+      const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(5 + index % 4 * 1.4, 0), new THREE.MeshStandardMaterial({ color: index % 2 ? '#18201d' : '#0c1211', roughness: 1 }))
+      rock.name = 'cave-void-rock'; rock.position.set(Math.cos(angle) * radius, -2 + index % 3, Math.sin(angle) * radius); rock.scale.y = 1.4 + index % 2 * .5; group.add(rock)
     }
   }
   return group
@@ -399,13 +457,16 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
       canvas.dataset.arenaTheme = arena.theme.kind ?? 'default'
       canvas.dataset.arenaLayout = arena.theme.layout ?? 'default'
       canvas.dataset.floorMaterial = arena.theme.material ?? 'plain'
+      canvas.dataset.arenaSurroundings = arenaSurroundingKind(arena)
     }
     const floorColor = new THREE.Color(arena.theme.floor?.startsWith('#') ? arena.theme.floor : '#18221b')
     const boundaryColor = new THREE.Color(arena.theme.boundary?.startsWith('#') ? arena.theme.boundary : '#7fa98d')
     const noFog = arena.theme.fog === 'none'
-    renderer.setClearColor(noFog ? new THREE.Color('#07090a') : floorColor.clone().multiplyScalar(.24))
+    const surroundings = arenaSurroundingKind(arena)
+    const environmentColor = surroundings === 'toxic-depths' ? new THREE.Color('#102606') : surroundings === 'cave-void' ? new THREE.Color('#020405') : floorColor.clone().multiplyScalar(.24)
+    renderer.setClearColor(noFog ? new THREE.Color('#07090a') : environmentColor)
     const scene = new THREE.Scene()
-    scene.fog = noFog ? null : new THREE.Fog(floorColor.clone().multiplyScalar(.24), 52, 110)
+    scene.fog = noFog ? null : new THREE.Fog(environmentColor, surroundings === 'cave-void' ? 44 : 62, surroundings === 'cave-void' ? 125 : 150)
     if (import.meta.env.DEV) canvas.dataset.arenaFog = noFog ? 'none' : 'distance'
     const camera = new THREE.PerspectiveCamera(58, 1, .1, 160)
     scene.add(new THREE.HemisphereLight(0xc5ffe1, 0x172018, 2.3))
@@ -416,16 +477,18 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     const visualFloor = renderedFloorDimensions(arena)
     const vashnikShape = new THREE.Shape(VASHNIK_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector2(x, -z)))
     const lostExplorersShape = new THREE.Shape(LOST_EXPLORERS_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector2(x, -z)))
+    const sszorakShape = new THREE.Shape(SSZORAK_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector2(x, -z)))
     const twinFangsShape = new THREE.Shape(TWIN_FANGS_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector2(x, -z)))
     twinFangsShape.holes.push(new THREE.Path(TWIN_FANGS_VOID_OUTLINE.map(([x, z]) => new THREE.Vector2(x, -z))))
     const floor = new THREE.Mesh(
-      arena.theme.layout === 'three-fountain-plan' ? new THREE.ShapeGeometry(vashnikShape) : arena.theme.layout === 'octagonal-council' ? new THREE.ShapeGeometry(lostExplorersShape) : arena.theme.layout === 'triangle-ring' ? new THREE.ShapeGeometry(twinFangsShape) : arena.shape === 'circle' ? new THREE.CircleGeometry(arena.width * VISUAL_FLOOR_SCALE / 2, 96) : new THREE.PlaneGeometry(visualFloor.width, visualFloor.depth),
+      arena.theme.layout === 'three-fountain-plan' ? new THREE.ShapeGeometry(vashnikShape) : arena.theme.layout === 'octagonal-council' ? new THREE.ShapeGeometry(lostExplorersShape) : arena.theme.layout === 'poison-octagon' ? new THREE.ShapeGeometry(sszorakShape) : arena.theme.layout === 'triangle-ring' ? new THREE.ShapeGeometry(twinFangsShape) : arena.shape === 'circle' ? new THREE.CircleGeometry(arena.width * VISUAL_FLOOR_SCALE / 2, 96) : new THREE.PlaneGeometry(visualFloor.width, visualFloor.depth),
       new THREE.MeshStandardMaterial({ color: floorColor, roughness: .9 }),
     )
     floor.rotation.x = -Math.PI / 2
     scene.add(floor)
+    scene.add(arenaSurroundings(arena))
     scene.add(arenaFloorDetails(arena))
-    if (arena.shape === 'rectangle' && !['octagonal-council', 'triangle-ring', 'coiled-altar'].includes(arena.theme.layout ?? '')) {
+    if (arena.shape === 'rectangle' && !['octagonal-council', 'poison-octagon', 'triangle-ring', 'coiled-altar'].includes(arena.theme.layout ?? '')) {
       const grid = new THREE.GridHelper(Math.max(visualFloor.width, visualFloor.depth), 64, 0x405d48, 0x243329)
       grid.position.y = .03
       scene.add(grid)
@@ -465,6 +528,8 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
       ? VASHNIK_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector3(x, .055, z))
       : arena.theme.layout === 'octagonal-council'
         ? LOST_EXPLORERS_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector3(x, .055, z))
+      : arena.theme.layout === 'poison-octagon'
+        ? SSZORAK_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector3(x, .055, z))
       : arena.theme.layout === 'triangle-ring'
         ? TWIN_FANGS_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector3(x, .055, z))
       : arena.shape === 'circle'

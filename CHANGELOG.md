@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added the supplied Sszorak and Lost Explorers raid plans to Learn 2D and
+  reproduced their surrounding environments in code-rendered Train 3D.
+  Sszorak, Twin Fangs, and Coiled Altar now stand above toxic depths; Lost
+  Explorers stands above a dark cavern, with raised platform depth and unchanged
+  simulation-owned collision.
 - Added Sszorak as an isolated Learn 2D and Train 3D full fight with rotating
   deterministic five-read Apex Predator combinations, Fury stack/spread,
   ordered cyst placement, Crosswinds pairing, and Maelstrom counter-knocks.

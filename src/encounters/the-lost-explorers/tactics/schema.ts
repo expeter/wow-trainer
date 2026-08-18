@@ -16,5 +16,5 @@ export const tacticSchema = {
     { id: 'thud-groups', label: 'Mighty Thud groups', kind: 'group', required: true },
     { id: 'interrupt-owner', label: 'Iku interrupt owner', kind: 'action-owner', required: true },
   ],
-  planner: { actors, maps: [{ id: 'lost-council-route', label: 'Council route', arenaId: 'lost_explorers_raidplan', backgroundImage: new URL('../../../../inbox/INBOX-20260815-135414-bba2f7.png', import.meta.url).href, shape: 'rectangle', actorIds: actors.map(actor => actor.id), placements }] },
+  planner: { actors, maps: [{ id: 'lost-council-route', label: 'Council route', arenaId: 'lost_explorers_raidplan', backgroundImage: new URL('../../../../inbox/the-lost-explorers.png', import.meta.url).href, shape: 'rectangle', actorIds: actors.map(actor => actor.id), placements }] },
 } as const satisfies TacticSchema

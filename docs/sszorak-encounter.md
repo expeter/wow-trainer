@@ -13,8 +13,10 @@ Train 3D keep their own schedules without changing mechanic meaning or order.
 - Spell relationships and reaction windows are based on the 2026-08-16 PTR
   guide and spell data. Exact recurrence remains medium-confidence and belongs
   to the replaceable pre-live timing profile.
-- No supplied arena bitmap exists. Both projections therefore use a restrained
-  code-rendered circular wind platform and do not invent decorative landmarks.
+- The supplied [`sszorak.png`](../inbox/sszorak.png) establishes an octagonal
+  platform above luminous poison. Learn 2D contains that image; Train 3D uses a
+  separate code-rendered raised octagon and toxic-depths environment without
+  inferring exact measurements from the crop.
 
 ## Full-fight contract
 
@@ -31,7 +33,7 @@ Train 3D keep their own schedules without changing mechanic meaning or order.
 
 ## Runtime boundary
 
-One headless simulation owns movement, circular collision, cyst state,
+One headless simulation owns movement, octagonal collision, cyst state,
 knockback elevation, step success, failures, and terminal outcome. Learn 2D is
 planar; Train 3D uses shared vertical motion for encounter-authored knockbacks.
 Rendering never decides whether a responsibility succeeded.

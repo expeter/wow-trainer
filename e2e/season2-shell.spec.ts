@@ -234,6 +234,7 @@ test('launches Lost Explorers in both projections and uses shared Train 3D jumpi
   const board = page.getByLabel('Lost Explorers octagonal raid-plan training arena')
   await expect(board).toBeVisible()
   await expect(board).toHaveCSS('clip-path', /polygon/)
+  expect(await board.evaluate(element => getComputedStyle(element).backgroundImage)).toContain('the-lost-explorers')
   await expect(page.getByLabel('Raid lead mechanic telegraph')).toContainText(/highlighted fish crate/i)
   await expect(page.locator('[data-effect-id^="crate-"]')).not.toHaveCount(0, { timeout: 4000 })
   await page.getByRole('button', { name: 'Exit' }).click()
@@ -247,7 +248,8 @@ test('launches Lost Explorers in both projections and uses shared Train 3D jumpi
   await expect(canvas).toHaveAttribute('role', 'application')
   await expect(canvas).toHaveAttribute('data-arena-theme', 'lost-explorers')
   await expect(canvas).toHaveAttribute('data-floor-material', 'explorer-octagon-stone')
-  await expect(canvas).toHaveAttribute('data-arena-fog', 'none')
+  await expect(canvas).toHaveAttribute('data-arena-fog', 'distance')
+  await expect(canvas).toHaveAttribute('data-arena-surroundings', 'cave-void')
   await expect(page.locator('.train3d-controls')).toContainText('jump Space')
   await page.keyboard.down('Space')
   await expect.poll(async () => Number(await canvas.getAttribute('data-player-elevation')), { intervals: [50], timeout: 1500 }).toBeGreaterThan(.2)
@@ -257,9 +259,9 @@ test('launches Lost Explorers in both projections and uses shared Train 3D jumpi
 
 test('launches every evidence-backed remaining boss and keeps Ulatek unavailable', async ({ page }) => {
   const encounters = [
-    { name: 'Sszorak', board: 'Sszorak raid-plan training arena', theme: 'sszorak', layout: 'wind-platform', material: 'serpent-wind-stone' },
-    { name: 'The Twin Fangs', board: 'The Twin Fangs raid-plan training arena', theme: 'twin-fangs', layout: 'triangle-ring', material: 'blood-venom-ring' },
-    { name: 'The Coiled Altar', board: 'The Coiled Altar raid-plan training arena', theme: 'coiled-altar', layout: 'coiled-altar', material: 'ritual-altar-stone' },
+    { name: 'Sszorak', board: 'Sszorak raid-plan training arena', image: 'sszorak', theme: 'sszorak', layout: 'poison-octagon', material: 'serpent-wind-stone' },
+    { name: 'The Twin Fangs', board: 'The Twin Fangs raid-plan training arena', image: 'the-twin-fangs', theme: 'twin-fangs', layout: 'triangle-ring', material: 'blood-venom-ring' },
+    { name: 'The Coiled Altar', board: 'The Coiled Altar raid-plan training arena', image: 'the-coiled-altar', theme: 'coiled-altar', layout: 'coiled-altar', material: 'ritual-altar-stone' },
   ] as const
 
   await page.goto('/')
@@ -271,9 +273,9 @@ test('launches every evidence-backed remaining boss and keeps Ulatek unavailable
     await launch2d.click()
     const board = page.getByLabel(encounter.board)
     await expect(board).toBeVisible()
-    if (encounter.name === 'Sszorak') await expect(board).toHaveCSS('border-radius', '50%')
+    if (encounter.name === 'Sszorak') await expect(board).toHaveCSS('clip-path', /polygon/)
     if (encounter.name === 'The Twin Fangs') await expect(board).toHaveCSS('clip-path', /polygon/)
-    if (encounter.name !== 'Sszorak') expect(await board.evaluate(element => getComputedStyle(element).backgroundImage)).toContain(encounter.name === 'The Twin Fangs' ? 'the-twin-fangs' : 'the-coiled-altar')
+    expect(await board.evaluate(element => getComputedStyle(element).backgroundImage)).toContain(encounter.image)
     await page.getByRole('button', { name: 'Exit' }).click()
     await page.getByRole('button', { name: `Launch ${encounter.name} 3D` }).click()
     const setup = page.getByRole('dialog', { name: `${encounter.name} encounter setup` })
@@ -284,6 +286,7 @@ test('launches every evidence-backed remaining boss and keeps Ulatek unavailable
     await expect(canvas).toHaveAttribute('data-arena-theme', encounter.theme)
     await expect(canvas).toHaveAttribute('data-arena-layout', encounter.layout)
     await expect(canvas).toHaveAttribute('data-floor-material', encounter.material)
+    await expect(canvas).toHaveAttribute('data-arena-surroundings', 'toxic-depths')
     await expect(page.locator('.arena-hud-mechanic')).toBeVisible()
     await page.getByRole('button', { name: 'Exit' }).click()
   }

@@ -13,8 +13,9 @@ Learn 2D and Train 3D.
 - The supplied [`the-twin-fangs.png`](../inbox/the-twin-fangs.png) establishes
   the triangular ring and central void for Learn 2D. It does not establish
   dimensions, collision coordinates, or timings.
-- Train 3D independently code-renders the ring and treats both its outer edge
-  and central void as authoritative movement boundaries.
+- Train 3D independently code-renders the raised ring over toxic depths and
+  treats both its outer edge and central void as authoritative movement
+  boundaries.
 
 ## Full-fight contract
 

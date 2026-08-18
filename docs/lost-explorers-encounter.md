@@ -8,10 +8,11 @@ mechanics or either projection's schedule.
 
 ## Evidence and confidence
 
-- The contained arena reference is
-  [`INBOX-20260815-135414-bba2f7`](../inbox/INBOX-20260815-135414-bba2f7.md).
-  It is the clipped Learn 2D background and visual evidence for the separate
-  code-rendered Train 3D octagon; it is never a 3D floor texture.
+- The supplied [`the-lost-explorers.png`](../inbox/the-lost-explorers.png) is
+  the contained Learn 2D background and establishes a raised octagonal platform
+  over a dark cave or void. Train 3D separately code-renders the octagon,
+  platform depth, and cavern surroundings; it never uses the image as a floor
+  texture.
 - Names, spell relationships, radii, and mechanic ordering reconcile the
   user's 2026-08-15 video review with the 2026-08-16 pre-live guide and spell
   data. Exact recurrence remains medium-confidence and replaceable in
