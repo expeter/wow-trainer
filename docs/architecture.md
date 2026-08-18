@@ -91,7 +91,7 @@ production.
    `FR-075`).
 8. Add the isolated API `/v2` identity/statistics foundation after attempt
    outcomes are stable, without importing or deploying `/v1` (`SPEC-028`,
-   `FR-100`–`FR-102`, `CR-310`).
+   `FR-100`–`FR-102`, `CR-310`, `CR-311`).
 
 `FR-098` established the guild playtesting loop before the online foundation.
 Its loopback service continues to own private text/screenshot storage and

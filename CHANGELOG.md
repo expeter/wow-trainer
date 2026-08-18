@@ -3,7 +3,8 @@
 ## Unreleased
 
 - Added the Season 2 online foundation: anonymous page/attempt counters,
-  optional Battle.net identity and verified character selection, public
+  optional identity through a dedicated Season 2 Battle.net OAuth client and
+  verified character selection, public
   aggregate boss/mode statistics, a maintainer-only event queue, and
   authenticated private feedback. Anonymous telemetry stores no durable user,
   device, IP, or user-agent identity; achievements and rankings remain

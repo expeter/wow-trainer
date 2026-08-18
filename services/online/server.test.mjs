@@ -43,7 +43,9 @@ async function login() {
   const state = new URL(start.headers.get('location')).searchParams.get('state')
   const callback = await fetch(`${baseUrl}/v2/auth/battlenet/callback?state=${state}&code=oauth-code`, { redirect: 'manual' })
   assert.equal(callback.status, 302)
-  return callback.headers.get('set-cookie').split(';')[0]
+  const setCookie = callback.headers.get('set-cookie')
+  assert.match(setCookie, /; Secure;/)
+  return setCookie.split(';')[0]
 }
 
 test('records identity-free anonymous page views and attempt outcomes', async () => {

@@ -46,6 +46,16 @@ test('publishes only through the dedicated Season 2 Pages path', () => {
   assert.doesNotMatch(pages, /lura\.asgard\.website|api\.asgard\.website|scp |ssh /)
 })
 
+test('keeps the dedicated Season 2 OAuth client isolated from V1 configuration', () => {
+  const scripts = JSON.parse(read('package.json')).scripts
+  const onlineServer = read('services/online/server.mjs')
+  assert.match(scripts['online:serve'], /--env-file-if-exists=\.env/)
+  for (const name of ['V2_BATTLE_NET_CLIENT_ID', 'V2_BATTLE_NET_CLIENT_SECRET', 'V2_BATTLE_NET_CALLBACK_URL']) {
+    assert.match(onlineServer, new RegExp(name))
+  }
+  assert.doesNotMatch(onlineServer, /V1_BATTLE_NET|MIDNIGHT_BATTLENET/)
+})
+
 test('keeps focused browser tests audited and trainer-only', () => {
   const playwright = read('playwright.config.ts')
   const wrapper = read('scripts/playwright-local.sh')

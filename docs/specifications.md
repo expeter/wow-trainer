@@ -917,8 +917,9 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   result, and stable failure reason. They exclude custom plans, exact actor
   positions, movement traces, screenshot contents, and free-form gameplay
   logs.
-- Battle.net login is optional and reuses the existing provider client with a
-  separately registered `/v2` callback. Season 2 owns a distinct secure
+- Battle.net login is optional and uses a dedicated Season 2 provider client
+  with its own service URL and `/v2` callback; the working L’ura client remains
+  unchanged. Season 2 owns a distinct secure
   session cookie and isolated account/character/session tables. A valid
   selected character may label authenticated event rows; anonymous play never
   invents or retains an identity.

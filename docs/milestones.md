@@ -167,7 +167,7 @@ Active tickets:
 
 Completed foundation:
 
-- `SPEC-028`, `FR-100`, `FR-101`, `FR-102`, and `CR-310` — isolated `/v2`
+- `SPEC-028`, `FR-100`, `FR-101`, `FR-102`, `CR-310`, and `CR-311` — isolated `/v2`
   identity, anonymous/authenticated attempt telemetry, public aggregates,
   maintainer-only detail, profile controls, and authenticated feedback. Live
   use still requires the documented Battle.net callback registration and VPS

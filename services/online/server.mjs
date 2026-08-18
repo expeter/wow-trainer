@@ -57,8 +57,8 @@ function cookies(request) {
   return result
 }
 
-function sessionCookie(value, maxAge = SESSION_SECONDS) {
-  return `${SESSION_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`
+function sessionCookie(value, maxAge = SESSION_SECONDS, secure = true) {
+  return `${SESSION_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly${secure ? '; Secure' : ''}; SameSite=Lax; Max-Age=${maxAge}`
 }
 
 function corsHeaders(request, origins) {
@@ -245,9 +245,10 @@ export function createOnlineServer(options = {}) {
   const databasePath = resolve(options.databasePath ?? process.env.MIDNIGHT_ONLINE_DATABASE ?? './.tmp/online-service/midnight.sqlite')
   const database = options.database ?? openDatabase(databasePath)
   const origins = new Set(options.allowedOrigins ?? (process.env.MIDNIGHT_ONLINE_ALLOWED_ORIGINS ?? 'https://midnight.asgard.website,http://127.0.0.1:5173,http://localhost:5173').split(',').map(value => value.trim()).filter(Boolean))
-  const callbackUrl = options.callbackUrl ?? process.env.MIDNIGHT_BATTLENET_CALLBACK_URL ?? 'https://api.asgard.website/v2/auth/battlenet/callback'
-  const clientId = options.clientId ?? process.env.MIDNIGHT_BATTLENET_CLIENT_ID ?? ''
-  const clientSecret = options.clientSecret ?? process.env.MIDNIGHT_BATTLENET_CLIENT_SECRET ?? ''
+  const callbackUrl = options.callbackUrl ?? process.env.V2_BATTLE_NET_CALLBACK_URL ?? 'https://api.asgard.website/v2/auth/battlenet/callback'
+  const clientId = options.clientId ?? process.env.V2_BATTLE_NET_CLIENT_ID ?? ''
+  const clientSecret = options.clientSecret ?? process.env.V2_BATTLE_NET_CLIENT_SECRET ?? ''
+  const secureSessionCookie = new URL(callbackUrl).protocol === 'https:'
   const oauth = options.oauthClient ?? defaultOauthClient({ clientId, clientSecret, callbackUrl })
   const maintainerIds = new Set(options.maintainerAccountIds ?? (process.env.MIDNIGHT_ONLINE_MAINTAINER_ACCOUNT_IDS ?? '').split(',').map(value => value.trim()).filter(Boolean))
   const internalKeyHash = options.internalKeyHash ?? process.env.MIDNIGHT_ONLINE_INTERNAL_KEY_SHA256
@@ -361,7 +362,7 @@ export function createOnlineServer(options = {}) {
         const rawSession = token()
         database.prepare('DELETE FROM sessions WHERE expires_at <= ?').run(createdAt)
         database.prepare('INSERT INTO sessions(token_hash, account_id, csrf_token, created_at, expires_at) VALUES (?, ?, ?, ?, ?)').run(sha256(rawSession), account.id, token(18), createdAt, new Date(Date.now() + SESSION_SECONDS * 1000).toISOString())
-        return redirect(response, `${stored.origin}/?online=connected#profile`, { 'set-cookie': sessionCookie(rawSession) })
+        return redirect(response, `${stored.origin}/?online=connected#profile`, { 'set-cookie': sessionCookie(rawSession, SESSION_SECONDS, secureSessionCookie) })
       }
 
       if (request.method === 'GET' && requestUrl.pathname === '/v2/me') {
@@ -382,14 +383,14 @@ export function createOnlineServer(options = {}) {
         const session = requireSession(request)
         requireCsrf(request, session)
         database.prepare('DELETE FROM sessions WHERE token_hash = ?').run(session.token_hash)
-        return json(response, 200, { ok: true }, { ...cors, 'set-cookie': sessionCookie('', 0) })
+        return json(response, 200, { ok: true }, { ...cors, 'set-cookie': sessionCookie('', 0, secureSessionCookie) })
       }
 
       if (request.method === 'DELETE' && requestUrl.pathname === '/v2/me') {
         const session = requireSession(request)
         requireCsrf(request, session)
         database.prepare('DELETE FROM accounts WHERE id = ?').run(session.account_id)
-        return json(response, 200, { ok: true }, { ...cors, 'set-cookie': sessionCookie('', 0) })
+        return json(response, 200, { ok: true }, { ...cors, 'set-cookie': sessionCookie('', 0, secureSessionCookie) })
       }
 
       if (request.method === 'POST' && requestUrl.pathname === '/v2/events/page-view') {
