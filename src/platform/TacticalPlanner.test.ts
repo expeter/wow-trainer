@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import nekzali from '../encounters/nekzali'
-import { assignmentFromSelection, validateSavedTactic } from './TacticalPlanner'
+import { actorIdsInsideSelectionBox, assignmentFromSelection, validateSavedTactic } from './TacticalPlanner'
 
 const valid = {
   format: 'midnight-season-2-tactic', version: 2, encounterId: 'nekzali',
@@ -25,5 +25,12 @@ describe('versioned tactical plan imports', () => {
     expect(validateSavedTactic({ ...valid, tactic: { ...valid.tactic, assignments: incomplete } }, nekzali)).toBeUndefined()
     expect(validateSavedTactic({ ...valid, tactic: { ...valid.tactic, assignments: { ...valid.tactic.assignments, foreign: 'value' } } }, nekzali)).toBeUndefined()
     expect(validateSavedTactic({ ...valid, layouts: { ...valid.layouts, nekzali_phase_1: {} } }, nekzali)).toBeUndefined()
+  })
+})
+
+describe('planner drag-box selection', () => {
+  it('selects actors inside a rectangle regardless of drag direction', () => {
+    const placements = { left: { x: 20, y: 30 }, centre: { x: 50, y: 50 }, right: { x: 80, y: 70 } }
+    expect(actorIdsInsideSelectionBox(['left', 'centre', 'right'], placements, { startX: 65, startY: 60, currentX: 10, currentY: 20 })).toEqual(['left', 'centre'])
   })
 })

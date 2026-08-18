@@ -19,6 +19,25 @@ export interface SavedTacticV2 {
 const storageKey = (encounterId: string) => `midnight-s2:tactic:v2:${encounterId}`
 const legacyStorageKey = (encounterId: string) => `midnight-s2:tactic:v1:${encounterId}`
 const clamp = (value: number) => Math.max(4, Math.min(96, value))
+const clampBoard = (value: number) => Math.max(0, Math.min(100, value))
+
+export interface SelectionBox {
+  startX: number
+  startY: number
+  currentX: number
+  currentY: number
+}
+
+export function actorIdsInsideSelectionBox(actorIds: readonly string[], placements: Readonly<Record<string, { x: number; y: number }>>, box: SelectionBox) {
+  const left = Math.min(box.startX, box.currentX)
+  const right = Math.max(box.startX, box.currentX)
+  const top = Math.min(box.startY, box.currentY)
+  const bottom = Math.max(box.startY, box.currentY)
+  return actorIds.filter(id => {
+    const point = placements[id]
+    return point && point.x >= left && point.x <= right && point.y >= top && point.y <= bottom
+  })
+}
 
 export function assignmentFromSelection(kind: TacticFieldDefinition['kind'], selectedActorIds: readonly string[]): string | readonly string[] {
   if (kind === 'player' && selectedActorIds.length === 1) return selectedActorIds[0]
@@ -95,14 +114,17 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
   const [message, setMessage] = useState('Package preset loaded')
   const [dragging, setDragging] = useState<string | null>(null)
   const [selectedActorIds, setSelectedActorIds] = useState<readonly string[]>([])
+  const [selectionBox, setSelectionBox] = useState<SelectionBox>()
   const importRef = useRef<HTMLInputElement>(null)
   const dragRef = useRef<{ ids: readonly string[]; startX: number; startY: number; positions: Readonly<Record<string, { x: number; y: number }>>; moved: boolean } | undefined>(undefined)
+  const selectionRef = useRef<(SelectionBox & { additive: boolean }) | undefined>(undefined)
 
   useEffect(() => {
     setSaved(loadTactic(encounter))
     setActiveMapId(encounter.tacticSchema.planner?.maps[0]?.id ?? '')
     setMessage('Package preset loaded')
     setSelectedActorIds([])
+    setSelectionBox(undefined)
   }, [encounter])
 
   const errors = useMemo(() => encounter.tacticSchema.fields.flatMap(field => {
@@ -169,7 +191,33 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
     dragRef.current = { ids, startX: event.clientX, startY: event.clientY, positions, moved: false }
     setDragging(id)
   }
+  function beginSelection(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 0 || (event.target as HTMLElement).closest('.tactical-actor')) return
+    event.preventDefault()
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+    const bounds = event.currentTarget.getBoundingClientRect()
+    const point = {
+      startX: clampBoard((event.clientX - bounds.left) / bounds.width * 100),
+      startY: clampBoard((event.clientY - bounds.top) / bounds.height * 100),
+      currentX: clampBoard((event.clientX - bounds.left) / bounds.width * 100),
+      currentY: clampBoard((event.clientY - bounds.top) / bounds.height * 100),
+      additive: event.shiftKey || event.ctrlKey || event.metaKey,
+    }
+    selectionRef.current = point
+    setSelectionBox(point)
+  }
   function moveActor(event: ReactPointerEvent<HTMLDivElement>) {
+    if (selectionRef.current) {
+      const bounds = event.currentTarget.getBoundingClientRect()
+      const next = {
+        ...selectionRef.current,
+        currentX: clampBoard((event.clientX - bounds.left) / bounds.width * 100),
+        currentY: clampBoard((event.clientY - bounds.top) / bounds.height * 100),
+      }
+      selectionRef.current = next
+      setSelectionBox(next)
+      return
+    }
     if (!dragging || !activeMapId || !dragRef.current) return
     const bounds = event.currentTarget.getBoundingClientRect()
     const deltaX = (event.clientX - dragRef.current.startX) / bounds.width * 100
@@ -179,6 +227,17 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
     setSaved(current => ({ ...current, layouts: { ...current.layouts, [activeMapId]: { ...current.layouts[activeMapId], ...moved } } }))
   }
   function finishDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    const selection = selectionRef.current
+    if (selection && activeMap) {
+      const playerIds = activeMap.actorIds.filter(id => actors.get(id)?.kind === 'player')
+      const placements = saved.layouts[activeMap.id] ?? activeMap.placements
+      const inside = actorIdsInsideSelectionBox(playerIds, placements, selection)
+      setSelectedActorIds(current => selection.additive ? [...new Set([...current, ...inside])] : inside)
+      setMessage(inside.length ? `${inside.length} player${inside.length === 1 ? '' : 's'} selected` : 'Raid marker selection cleared')
+      selectionRef.current = undefined
+      setSelectionBox(undefined)
+      return
+    }
     const drag = dragRef.current
     if (!drag) return
     const target = document.elementFromPoint?.(event.clientX, event.clientY)?.closest<HTMLElement>('[data-assignment-id]')
@@ -190,6 +249,12 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
     }
     dragRef.current = undefined
     setDragging(null)
+  }
+  function cancelPointer() {
+    dragRef.current = undefined
+    selectionRef.current = undefined
+    setDragging(null)
+    setSelectionBox(undefined)
   }
 
   if (!planner || !activeMap) return <p className="tactic-message error">This encounter has no package-owned planner maps yet.</p>
@@ -206,7 +271,7 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
       {planner.maps.map(map => <button type="button" key={map.id} className={map.id === activeMap.id ? 'selected' : ''} aria-pressed={map.id === activeMap.id} onClick={() => { setDragging(null); setSelectedActorIds([]); setActiveMapId(map.id) }}>{map.label}</button>)}
     </nav>
     <div className="tactical-planner-layout">
-      <div className={`tactical-board ${activeMap.shape ?? 'rectangle'}${dragging ? ' dragging' : ''}`} aria-label={`${encounter.manifest.name} ${activeMap.label} draggable raid plan`} onPointerMove={moveActor} onPointerUp={finishDrag} onPointerCancel={() => { dragRef.current = undefined; setDragging(null) }} style={activeMap.backgroundImage ? { backgroundImage: `linear-gradient(rgba(4, 9, 8, .42), rgba(4, 9, 8, .64)), url(${activeMap.backgroundImage})` } : undefined}>
+      <div className={`tactical-board ${activeMap.shape ?? 'rectangle'}${dragging ? ' dragging' : ''}${selectionBox ? ' selecting' : ''}`} aria-label={`${encounter.manifest.name} ${activeMap.label} draggable raid plan`} onPointerDown={beginSelection} onPointerMove={moveActor} onPointerUp={finishDrag} onPointerCancel={cancelPointer} style={activeMap.backgroundImage ? { backgroundImage: `linear-gradient(rgba(4, 9, 8, .42), rgba(4, 9, 8, .64)), url(${activeMap.backgroundImage})` } : undefined}>
         <strong>{activeMap.label} · {arena?.label ?? encounter.manifest.name}</strong>
         {arena?.regions.map(region => <span className="tactical-region" key={region.id} style={{ left: `${region.x}%`, top: `${region.y}%` }}>{region.label}</span>)}
         {activeMap.actorIds.map(actorId => {
@@ -216,9 +281,10 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
           const selected = selectedActorIds.includes(actor.id)
           return <button type="button" className={`tactical-actor ${actor.kind} ${actor.role ?? ''}${selected ? ' selected' : ''}`} key={actor.id} style={{ left: `${point.x}%`, top: `${point.y}%`, '--actor-color': actor.color } as CSSProperties} onPointerDown={event => beginDrag(actor.id, event)} aria-pressed={actor.kind === 'player' ? selected : undefined} aria-label={`Move ${actor.label} in ${activeMap.label}`} title={actor.kind === 'player' ? `${actor.label} · ${actor.role}` : actor.label}>{actor.label}</button>
         })}
+        {selectionBox && <span className="tactical-selection-box" aria-hidden="true" style={{ left: `${Math.min(selectionBox.startX, selectionBox.currentX)}%`, top: `${Math.min(selectionBox.startY, selectionBox.currentY)}%`, width: `${Math.abs(selectionBox.currentX - selectionBox.startX)}%`, height: `${Math.abs(selectionBox.currentY - selectionBox.startY)}%` }} />}
       </div>
       <div className="tactical-fields">
-        <div className="tactical-roster-key"><span>Raid marker selection</span><small>Click a player; Shift, Ctrl, or ⌘-click to build a group. Drag any selected marker to move the group or drop it on an assignment.</small><div>{(['tank', 'healer', 'melee', 'ranged'] as const).map(role => <button type="button" key={role} onClick={() => setSelectedActorIds(activeMap.actorIds.filter(id => actors.get(id)?.role === role))}>{role}s</button>)}<button type="button" onClick={() => setSelectedActorIds([])}>Clear</button></div></div>
+        <div className="tactical-roster-key"><span>Raid marker selection</span><small>Drag an empty map area with the left mouse button to box-select players. Click still selects one; Shift, Ctrl, or ⌘ adds markers. Drag any selected marker to move the group or drop it on an assignment.</small><div>{(['tank', 'healer', 'melee', 'ranged'] as const).map(role => <button type="button" key={role} onClick={() => setSelectedActorIds(activeMap.actorIds.filter(id => actors.get(id)?.role === role))}>{role}s</button>)}<button type="button" onClick={() => setSelectedActorIds([])}>Clear</button></div></div>
         <div className="tactical-assignment-targets" aria-label="Player assignment drop targets">
           {encounter.tacticSchema.fields.filter(field => field.kind !== 'region').map(field => {
             const value = saved.tactic.assignments[field.id]

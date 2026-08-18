@@ -25,6 +25,12 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page.getByLabel('About Pestivator')).toContainText('pestivator#2515')
   await expect(page.getByRole('heading', { name: 'L’ura Trainer' })).toHaveCount(0)
   await expect(page.getByText(/public deployment disabled|platform extraction/i)).toHaveCount(0)
+  expect(await page.locator('html').evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(5, 10, 7)')
+  await page.getByRole('button', { name: 'Read Entombed Sentinels tactics' }).click()
+  const tactics = page.getByRole('dialog', { name: 'Entombed Sentinels' })
+  await expect(tactics).toContainText("Ula'tek's Dominance")
+  await expect(tactics).toContainText('Role responsibilities')
+  expect(await tactics.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(9, 21, 14)')
 })
 
 test('Season 2 shell submits private guild feedback from setup and keeps the reporter in a runtime', async ({ page }) => {
@@ -72,8 +78,18 @@ test('persists a versioned tactic and independent audio channels locally', async
   await page.keyboard.up('Shift')
   await expect(phaseOneTank).toHaveAttribute('aria-pressed', 'true')
   await expect(phaseOneTankTwo).toHaveAttribute('aria-pressed', 'true')
-  const [tankBefore, boardBox] = await Promise.all([phaseOneTank.boundingBox(), board.boundingBox()])
-  if (!tankBefore || !boardBox) throw new Error('Planner actor or board has no bounds')
+  await page.locator('.tactical-roster-key').getByRole('button', { name: 'Clear' }).click()
+  const [tankBefore, tankTwoBefore, boardBox] = await Promise.all([phaseOneTank.boundingBox(), phaseOneTankTwo.boundingBox(), board.boundingBox()])
+  if (!tankBefore || !tankTwoBefore || !boardBox) throw new Error('Planner actor or board has no bounds')
+  const tankCentre = { x: tankBefore.x + tankBefore.width / 2, y: tankBefore.y + tankBefore.height / 2 }
+  const tankTwoCentre = { x: tankTwoBefore.x + tankTwoBefore.width / 2, y: tankTwoBefore.y + tankTwoBefore.height / 2 }
+  await page.mouse.move(Math.min(tankCentre.x, tankTwoCentre.x) - 18, Math.min(tankCentre.y, tankTwoCentre.y) - 18)
+  await page.mouse.down()
+  await page.mouse.move(Math.max(tankCentre.x, tankTwoCentre.x) + 18, Math.max(tankCentre.y, tankTwoCentre.y) + 18, { steps: 5 })
+  await expect(page.locator('.tactical-selection-box')).toBeVisible()
+  await page.mouse.up()
+  await expect(phaseOneTank).toHaveAttribute('aria-pressed', 'true')
+  await expect(phaseOneTankTwo).toHaveAttribute('aria-pressed', 'true')
   const tankLeftBefore = Number.parseFloat(await phaseOneTank.evaluate(element => (element as HTMLElement).style.left))
   const tankTwoLeftBefore = Number.parseFloat(await phaseOneTankTwo.evaluate(element => (element as HTMLElement).style.left))
   await page.mouse.move(tankBefore.x + tankBefore.width / 2, tankBefore.y + tankBefore.height / 2)

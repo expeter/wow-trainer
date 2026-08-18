@@ -20,7 +20,7 @@ keys from `App.tsx`, `GameScene.tsx`, or the L'ura `/v1` client.
 
 | Owner | Responsibilities | Must not own |
 | --- | --- | --- |
-| Product shell | Navigation, product identity, preferences, accessibility, encounter/scenario selection, shared terms | Boss mechanics or runtime geometry |
+| Product shell | Navigation, product identity, preferences, accessibility, encounter/scenario selection, package-derived tactic presentation, shared terms | Boss mechanics or runtime geometry |
 | `EncounterPackageV1` | Encounter identity, shared vocabulary, mechanic timeline/content, assignments, runtime capability declarations and lazy runtime loaders | DOM state, Three.js objects, API clients, global registry switches |
 | Tactical planner | One selected encounter/important-phase map, package-declared raid/boss actors, assignment editing, versioned local layouts and checked exchange | Runtime actor state, fake assignment-label arena markers, or another encounter's plan |
 | Learn 2D runtime | Diagrams, explanations, timeline study, 2D planner projection | Train 3D world coordinates or physics |
@@ -44,6 +44,11 @@ route table. Validation excludes incompatible versions, duplicate or unstable
 IDs, broken references, missing full-fight declarations, invalid
 defaults/tactics, and timing without provenance. Load failures become sorted
 development diagnostics instead of crashing the catalogue.
+
+The selected-boss `INFO` dialog is shell presentation over the discovered
+package's manifest, phases, abilities, and roles. It does not identify bosses
+by ID or encode a parallel tactic switch; an empty research package therefore
+renders an explicit unavailable state instead of fabricated mechanics.
 
 Entombed Sentinels remains the architecture-reference encounter. Its package owns
 the `ptr_2026-08-13` profile, tactic declarations, abstract 2D diagram arena,

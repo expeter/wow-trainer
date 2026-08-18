@@ -478,6 +478,10 @@ in immutable source history.
   planning patterns, audio boundaries, and persistence lessons are extracted
   incrementally. The repository must not be replaced with an unrelated blank
   interface and unfinished L'ura encounter work must not be imported wholesale.
+- Shell chrome uses the token-driven poison/ghost green Season 2 identity for
+  the canvas, navigation, surfaces, fields, and dialogs. Blue is not the
+  primary shell surface color; encounter mechanics, roles, warnings, errors,
+  and class treatments retain their distinct semantic colors.
 - Learn 2D and Train 3D share shell-owned vocabulary and encounter content, but
   they remain separate runtimes with separate arena models. Neither runtime may
   treat the other's geometry or simulation state as authoritative.
@@ -604,9 +608,10 @@ in immutable source history.
   visibly distinguishes playable from planned packages. Setup must not invent
   playable mechanics for catalogue-only packages.
 - Tactical plans use a versioned package schema. Players are assigned through
-  direct marker selection, modifier-key multi-selection, group dragging, and
-  visible assignment drop targets instead of raw comma-separated region/group
-  inputs. Plans validate required and known fields before local save. JSON
+  direct marker selection, left-mouse drag-box selection, modifier-key
+  multi-selection, group dragging, and visible assignment drop targets instead
+  of raw comma-separated region/group inputs. Plans validate required and known
+  fields before local save. JSON
   import must match
   the current product format, encounter ID, and schema version. Export contains
   only the selected plan. No Season 1 storage key or tactic is migrated.
@@ -849,9 +854,10 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   expand every encounter into a full launch card or require a long page scroll.
 - The selector communicates the accepted branching raid order and uses the
   reviewed supplied portraits as correctly cropped local identity art. The
-  selected encounter summary owns compact player-facing `2D` and `3D` launch
-  actions, readiness, and concise encounter description; internal runtime IDs
-  remain `learn2d` and `train3d`. Planned encounters stay
+  selected encounter summary owns compact player-facing `2D`, `3D`, and `INFO`
+  actions, readiness, concise encounter description, and a package-derived
+  tactic breakdown of phase flow, key mechanics, and role responsibilities;
+  internal runtime IDs remain `learn2d` and `train3d`. Planned encounters stay
   selectable and clearly unavailable without pretending that a runtime exists.
 - Trainer difficulty is a separate compact two-by-two Test, Easy, Normal, Hard
   control. It changes assistance and failure tolerance only, never encounter
@@ -861,9 +867,11 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   boss or phase below it.
 - Each planner map contains the actual package-declared raid players, bosses,
   and relevant encounter actors. These markers use stable IDs and draggable
-  percentage positions. A selected group moves as one while retaining relative
-  spacing and can be dropped on a package assignment target; raw region/group
-  text inputs are not exposed and assignment labels are not fake arena actors.
+  percentage positions. Click and modifier selection remain available; a
+  left-mouse rectangle over player markers selects a group directly. A selected
+  group moves as one while retaining relative spacing and can be dropped on a
+  package assignment target; raw region/group text inputs are not exposed and
+  assignment labels are not fake arena actors.
 - Planner positions persist independently by encounter and phase. Save, reset,
   validation, and checked JSON import/export cover both assignments and phase
   layouts, reject cross-encounter/schema data, and retain a safe migration from

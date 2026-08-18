@@ -1,12 +1,14 @@
 :root {
-  --s2-color-canvas: #070b0a;
-  --s2-color-surface: #101814;
-  --s2-color-surface-raised: #1b2820;
-  --s2-color-border: #3e5144;
-  --s2-color-text: #f4f1e6;
-  --s2-color-muted: #a6b5a7;
-  --s2-color-accent: #86e36f;
-  --s2-color-accent-soft: rgba(134, 227, 111, .16);
+  color: #edf4ea;
+  background: #050a07;
+  --s2-color-canvas: #050a07;
+  --s2-color-surface: #0c1710;
+  --s2-color-surface-raised: #14251a;
+  --s2-color-border: #355441;
+  --s2-color-text: #edf4ea;
+  --s2-color-muted: #9fb2a4;
+  --s2-color-accent: #8ee36f;
+  --s2-color-accent-soft: rgba(142, 227, 111, .17);
   --s2-color-warning: #d8b862;
   --s2-color-danger: #ef8290;
   --s2-radius-control: 8px;

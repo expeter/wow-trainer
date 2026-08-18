@@ -114,6 +114,8 @@ migrate into the checked V2 layout format.
 `BUG-228` normalizes the compact Import, Export, Save, and Reset controls.
 `CR-300` adds direct single- and multi-player selection, relative group dragging,
 and assignment drop targets without weakening persistence or migration checks.
+`CR-305` adds left-mouse drag-box selection while retaining those click,
+modifier, group-drag, assignment, and persistence contracts.
 
 ### M4 · Sounds and music — complete
 
@@ -143,6 +145,10 @@ ordered boss path with its two progression branches and concise player-facing
 
 `CR-302` removes decorative boss-path connector lines and reduces corner
 sequence-number prominence without changing the accepted selector geometry.
+
+`CR-306` consolidates shell chrome around poison/ghost green tokens while
+preserving semantic encounter colors. `FR-099` adds package-derived fight
+tactics behind an `INFO` action and keeps research-only bosses explicit.
 
 ### M6 · Results, scoring, achievements, and API
 

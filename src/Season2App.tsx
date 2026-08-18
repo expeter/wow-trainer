@@ -3,6 +3,7 @@ import BuildStatus from './platform/BuildStatus'
 import CreatorCard from './platform/CreatorCard'
 import { contractRoomActions } from './platform/contractActions'
 import EncounterIcon from './platform/EncounterIcon'
+import EncounterInfo from './platform/EncounterInfo'
 import HudLayoutPreview from './platform/HudLayoutPreview'
 import GuildFeedback from './platform/GuildFeedback'
 import TacticalPlanner from './platform/TacticalPlanner'
@@ -110,6 +111,7 @@ export default function Season2App() {
   const [runtimeLoading, setRuntimeLoading] = useState<EncounterMode>()
   const [runtime, setRuntime] = useState<{ mode: EncounterMode; scenarioId: string; actions: readonly EncounterActionDefinition[]; Component: ComponentType<EncounterRuntimeProps> }>()
   const [selectedEncounterId, setSelectedEncounterId] = useState('')
+  const [infoEncounter, setInfoEncounter] = useState<EncounterPackageV1>()
   const [plannerEncounterId, setPlannerEncounterId] = useState('')
   const [audio, setAudio] = useTrainerAudioSettings()
   const panel = panelCopy[activeTab]
@@ -240,6 +242,9 @@ export default function Season2App() {
                   <span>{modeLabel}</span><small>{ready ? runtimeLoading === mode ? 'Loading…' : 'Full fight' : 'Coming soon'}</small>
                 </button>
               })}
+              <button type="button" aria-label={`Read ${selectedEncounter.manifest.name} tactics`} onClick={() => setInfoEncounter(selectedEncounter)}>
+                <span>INFO</span><small>Fight tactics</small>
+              </button>
             </div>
           </article>
           <fieldset className="season2-training-difficulty"><legend>Trainer difficulty</legend><div>{(['test', 'easy', 'normal', 'hard'] as const).map(value => <button type="button" key={value} className={settings.difficulty === value ? 'selected' : ''} aria-pressed={settings.difficulty === value} onClick={() => updateSettings(current => ({ ...current, difficulty: value }))}>{value[0].toUpperCase() + value.slice(1)}</button>)}</div><p>Encounter mechanics stay fixed. Only guidance and tolerated mistakes change.</p></fieldset>
@@ -330,5 +335,5 @@ export default function Season2App() {
       <a href="privacy.html">Privacy</a>
       <span>{PRODUCT.shortId} · {PRODUCT.plannedHostname}</span>
     </footer>
-  </main><GuildFeedback context={{ screen: 'setup', encounterId: selectedEncounter?.manifest.id, encounter: selectedEncounter?.manifest.name, difficulty: settings.difficulty, setupTab: activeTab }} /></>
+  </main>{infoEncounter && <EncounterInfo encounter={infoEncounter} onClose={() => setInfoEncounter(undefined)} />}<GuildFeedback context={{ screen: 'setup', encounterId: selectedEncounter?.manifest.id, encounter: selectedEncounter?.manifest.name, difficulty: settings.difficulty, setupTab: activeTab }} /></>
 }

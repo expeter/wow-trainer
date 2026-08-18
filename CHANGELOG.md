@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Added an `INFO` action beside each selected boss's 2D/3D training actions,
+  with an accessible package-derived fight-flow, mechanic, and role breakdown;
+  research-only Ula’tek clearly reports that maintained tactics are unavailable.
+- Added left-mouse drag-box selection to Tactical plan while retaining direct
+  click, Shift/Ctrl/⌘ additive selection, role selection, relative group
+  dragging, and assignment drop targets.
+- Unified the setup shell, controls, feedback form, and tactic dialog around a
+  poison/ghost green Season 2 palette while preserving semantic mechanic,
+  class, warning, and danger colors.
 - Feedback screenshots can now be pasted directly from the clipboard or
   dragged onto the report form as well as selected through the file picker;
   every path shares the existing type, size, count, preview, and removal rules.

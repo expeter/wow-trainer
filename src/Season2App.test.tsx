@@ -31,6 +31,22 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(within(catalogue).getByRole('navigation', { name: 'Boss fight selector' })).toBeVisible()
   })
 
+  it('opens package-owned fight tactics and keeps research-only bosses honest', async () => {
+    render(<Season2App />)
+
+    const selector = await screen.findByRole('navigation', { name: 'Boss fight selector' })
+    fireEvent.click(screen.getByRole('button', { name: "Read Nek'zali the Soulcoiler tactics" }))
+    const tactics = screen.getByRole('dialog', { name: "Nek'zali the Soulcoiler" })
+    expect(within(tactics).getByText('Soulcoiler Initiation')).toBeVisible()
+    expect(within(tactics).getByText('Essence Rend')).toBeVisible()
+    expect(within(tactics).getByText('Role responsibilities')).toBeVisible()
+    fireEvent.click(within(tactics).getByRole('button', { name: 'Close tactic breakdown' }))
+
+    fireEvent.click(within(selector).getByRole('button', { name: /Ula'tek/ }))
+    fireEvent.click(screen.getByRole('button', { name: "Read Ula'tek tactics" }))
+    expect(screen.getByRole('dialog', { name: "Ula'tek" })).toHaveTextContent('No maintained tactic breakdown yet')
+  })
+
   it('uses one compact boss selector and only expands the selected encounter', async () => {
     render(<Season2App />)
     const selector = await screen.findByRole('navigation', { name: 'Boss fight selector' })
