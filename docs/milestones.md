@@ -15,10 +15,10 @@ source archaeology, not part of this roadmap.
   extraction reference.
 - The inherited L’ura leaderboard remains `season-1` and belongs to the legacy
   repository. This repository does not change, migrate, or deploy it.
-- Nek’zali, Entombed Sentinels, Vashnik, and The Lost Explorers are the playable
-  encounter packages in the current workspace; the published v0.10.0 subset
-  remains unchanged until a later release is explicitly requested.
-  Every other boss remains catalogue-only until its own ticket is accepted.
+- Nek’zali, Entombed Sentinels, Vashnik, The Lost Explorers, Sszorak, The Twin
+  Fangs, and The Coiled Altar are playable encounter packages in the current
+  workspace; the published v0.10.0 subset remains unchanged until a later
+  release is explicitly requested. Ula’tek remains catalogue-only.
 
 ## Season 2 roadmap
 
@@ -49,13 +49,13 @@ Open ticket:
 - `FR-085` — reconcile and implement Vash’nik the Malignant as the next isolated
   full-fight package.
 
-`FR-075`, `FR-086`, and `FR-089` are complete: the individual encounter gate
-remains enforced, Lost Explorers is an isolated full-fight package, and shared
-Train 3D elevation now supports encounter-authored airborne mechanics.
+`FR-075`, `FR-086`, `FR-089`, and `FR-094`–`FR-096` are complete: the
+individual encounter gate remains enforced, Lost Explorers plus the three
+evidence-backed follow-up bosses are isolated full-fight packages, and shared
+Train 3D elevation supports encounter-authored airborne mechanics.
 
-Sszorak, The Twin Fangs, The Coiled Altar, and Ula’tek have no accepted
-implementation tickets yet. Research files or catalogue metadata do not
-authorize runtime work.
+`FR-097` keeps Ula’tek deferred until mechanic evidence exists; its arena image
+and catalogue metadata alone do not authorize runtime work.
 
 Exit gate:
 
@@ -157,6 +157,8 @@ through `npm run measure:build` without changing encounter mechanics.
 
 ### Deferred outside the delivery sequence
 
+- `FR-097` — Ula’tek runtime; reconsider only when a maintained mechanic
+  specification exists in addition to the supplied arena image.
 - `FR-093` — reusable Death Knight grip assignment/action; reconsider after
   higher-priority encounter and platform work without adding generic player CC.
 - `FR-090` — development/Test-only simulation-speed control; reconsider only

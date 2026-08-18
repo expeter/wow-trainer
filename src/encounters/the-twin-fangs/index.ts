@@ -1,2 +1,3 @@
-import { createPlannedEncounterPackage } from '../../platform/encounters/plannedPackage'
-export default createPlannedEncounterPackage({ id: 'the-twin-fangs', name: 'The Twin Fangs', order: 6, summary: 'A paired-boss encounter built around Feast groups and an Eternal Venom economy.' })
+import { createEvidenceEncounterPackage } from '../../platform/encounters/evidenceFullFight'
+import { definition } from './definition'
+export default createEvidenceEncounterPackage(definition, { learn2d: () => import('./learn2d/Runtime'), train3d: () => import('./train3d/Runtime') })

@@ -255,6 +255,44 @@ test('launches Lost Explorers in both projections and uses shared Train 3D jumpi
   await expect.poll(async () => Number(await canvas.getAttribute('data-player-elevation')), { intervals: [100], timeout: 2500 }).toBe(0)
 })
 
+test('launches every evidence-backed remaining boss and keeps Ulatek unavailable', async ({ page }) => {
+  const encounters = [
+    { name: 'Sszorak', board: 'Sszorak raid-plan training arena', theme: 'sszorak', layout: 'wind-platform', material: 'serpent-wind-stone' },
+    { name: 'The Twin Fangs', board: 'The Twin Fangs raid-plan training arena', theme: 'twin-fangs', layout: 'triangle-ring', material: 'blood-venom-ring' },
+    { name: 'The Coiled Altar', board: 'The Coiled Altar raid-plan training arena', theme: 'coiled-altar', layout: 'coiled-altar', material: 'ritual-altar-stone' },
+  ] as const
+
+  await page.goto('/')
+  for (const encounter of encounters) {
+    await selectBoss(page, encounter.name)
+    const launch2d = page.getByRole('button', { name: `Launch ${encounter.name} 2D` })
+    const launch3d = page.getByRole('button', { name: `Launch ${encounter.name} 3D` })
+    await expect(launch2d).toBeEnabled(); await expect(launch3d).toBeEnabled()
+    await launch2d.click()
+    const board = page.getByLabel(encounter.board)
+    await expect(board).toBeVisible()
+    if (encounter.name === 'Sszorak') await expect(board).toHaveCSS('border-radius', '50%')
+    if (encounter.name === 'The Twin Fangs') await expect(board).toHaveCSS('clip-path', /polygon/)
+    if (encounter.name !== 'Sszorak') expect(await board.evaluate(element => getComputedStyle(element).backgroundImage)).toContain(encounter.name === 'The Twin Fangs' ? 'the-twin-fangs' : 'the-coiled-altar')
+    await page.getByRole('button', { name: 'Exit' }).click()
+    await page.getByRole('button', { name: `Launch ${encounter.name} 3D` }).click()
+    const setup = page.getByRole('dialog', { name: `${encounter.name} encounter setup` })
+    await expect(setup).toContainText('evidence-backed responsibilities')
+    await setup.getByRole('button', { name: 'Start', exact: true }).click()
+    await expect(page.getByLabel('Pull countdown')).toHaveCount(0, { timeout: 4000 })
+    const canvas = page.getByLabel('Third-person 3D training arena')
+    await expect(canvas).toHaveAttribute('data-arena-theme', encounter.theme)
+    await expect(canvas).toHaveAttribute('data-arena-layout', encounter.layout)
+    await expect(canvas).toHaveAttribute('data-floor-material', encounter.material)
+    await expect(page.locator('.arena-hud-mechanic')).toBeVisible()
+    await page.getByRole('button', { name: 'Exit' }).click()
+  }
+
+  await selectBoss(page, "Ula'tek")
+  await expect(page.getByRole('button', { name: /Ula'tek.*coming soon in 2D/i })).toBeDisabled()
+  await expect(page.getByRole('button', { name: /Ula'tek.*coming soon in 3D/i })).toBeDisabled()
+})
+
 test('uses Season 2 chrome for planner selects and text fields', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Tactical plan' }).click()

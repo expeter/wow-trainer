@@ -12,8 +12,9 @@
 ## 1. Implementation Goal
 
 Supplied arena evidence: [`the-twin-fangs.png`](../../inbox/the-twin-fangs.png).
-It establishes the triangular ring and central void only; it does not authorize
-runtime work or establish collision measurements.
+It establishes the triangular ring and central void only; `FR-095` separately
+authorizes runtime work, and the image still does not establish collision
+measurements.
 
 The Twin Fangs should be implemented as a **two-boss resource-management and spatial-control encounter**.
 

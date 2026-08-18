@@ -1,2 +1,3 @@
-import { createPlannedEncounterPackage } from '../../platform/encounters/plannedPackage'
-export default createPlannedEncounterPackage({ id: 'the-coiled-altar', name: 'The Coiled Altar', order: 7, summary: 'A ritual encounter with Dreadmarch ghosts and a moving globule conveyor.' })
+import { createEvidenceEncounterPackage } from '../../platform/encounters/evidenceFullFight'
+import { definition } from './definition'
+export default createEvidenceEncounterPackage(definition, { learn2d: () => import('./learn2d/Runtime'), train3d: () => import('./train3d/Runtime') })

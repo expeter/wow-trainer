@@ -11,11 +11,13 @@ of the L'ura encounter or its online service.
 
 ## Current status
 
-The public v0.10.0 release loads all eight isolated encounter packages through
-`EncounterPackageV1`. Nek'zali, Entombed Sentinels, Vashnik, and The Lost Explorers are playable full fights
-in Learn 2D and Train 3D; the remaining packages stay visibly planned. The
-shared shell now includes independent controls, draggable HUD setup, a versioned
-local tactical planner, opt-in audio channels, and the compact public boss selector.
+The workspace loads all eight isolated encounter packages through
+`EncounterPackageV1`. Nek'zali, Entombed Sentinels, Vashnik, The Lost Explorers,
+Sszorak, The Twin Fangs, and The Coiled Altar are playable full fights in Learn
+2D and Train 3D; Ula’tek stays visibly planned until mechanic evidence exists.
+The published v0.10.0 subset is unchanged. The shared shell includes independent
+controls, draggable HUD setup, a versioned local tactical planner, opt-in audio
+channels, and the compact public boss selector.
 
 - Product ID: `midnight-season-2`
 - Short ID: `midnight-s2`

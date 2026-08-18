@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Added Sszorak as an isolated Learn 2D and Train 3D full fight with rotating
+  deterministic five-read Apex Predator combinations, Fury stack/spread,
+  ordered cyst placement, Crosswinds pairing, and Maelstrom counter-knocks.
+- Added The Twin Fangs using the supplied triangular raid plan in Learn 2D and
+  a separate code-rendered Train 3D ring, with authoritative central-void
+  collision, Eternal Venom, the Bulwark interrupt, Feast groups, Stone Breaker,
+  and Submerge responsibilities.
+- Added The Coiled Altar using the supplied altar raid plan in Learn 2D and a
+  separate code-rendered Train 3D platform, preserving venom carry/cleanup,
+  Guillotine escape, Dreadmarch, manifestations, player-owned Soulbinding, and
+  the combined final stage.
+- Kept Ula’tek as the sole unavailable boss: its supplied arena image is
+  catalogued, but no maintained mechanic contract exists yet.
 - Added The Lost Explorers as an isolated three-boss full fight in Learn 2D and
   Train 3D, including the octagonal plan, Iku/Gebbo/Nama fish order,
   Frostfire cleanse, mushroom/Blast Wave traversal, and three Mighty Thud

@@ -441,6 +441,11 @@
 .lost-explorers-2d-board { clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); background: linear-gradient(rgba(5, 8, 10, .18), rgba(5, 8, 10, .3)), var(--lost-plan) center / cover no-repeat; }
 .lost-explorers-runtime .learn2d-arena-frame { background: #111410; }
 .lost-explorers-runtime .lost-morzahi { filter: drop-shadow(0 0 8px rgba(156,120,232,.8)); }
+.evidence-2d-board { background: radial-gradient(circle at center, rgba(62,89,66,.18), rgba(5,8,10,.32)), var(--evidence-plan) center / cover no-repeat; }
+.sszorak-2d-board { border-radius: 50%; background: radial-gradient(circle, rgba(56,82,50,.2) 0 24%, rgba(24,34,28,.96) 25% 66%, rgba(103,139,76,.32) 67% 70%, #080d0b 71%); }
+.twin-fangs-2d-board { clip-path: polygon(50% 0, 100% 92%, 0 92%); }
+.coiled-altar-2d-board { background-position: center; background-size: cover; }
+.the-twin-fangs-runtime .learn2d-arena-frame, .the-coiled-altar-runtime .learn2d-arena-frame, .sszorak-runtime .learn2d-arena-frame { background: #0d110f; }
 .nekzali-2d-enemy.unavailable { filter: grayscale(.7); opacity: .62; outline: 2px double #9bb4c2; outline-offset: 4px; }
 .arena-training-hud > div { position: absolute; transform: translate(-50%, -50%); color: var(--s2-color-text); background: rgba(5, 9, 14, .9); box-shadow: 0 3px 14px rgba(0, 0, 0, .48); }
 .arena-training-hud > .arena-hud-mechanic { display: grid; justify-items: center; width: min(380px, 44%); padding: 8px 12px; border: 2px solid #f3d871; border-radius: 7px; color: #fff4bd; background: rgba(5, 9, 13, .94); box-shadow: 0 4px 20px rgba(0, 0, 0, .72), 0 0 18px rgba(243, 216, 113, .18); text-align: center; }
