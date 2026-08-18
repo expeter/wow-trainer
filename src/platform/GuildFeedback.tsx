@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent, type DragEvent, type FormEvent, type KeyboardEvent } from 'react'
 
 const FEEDBACK_API_URL = (import.meta.env.VITE_FEEDBACK_API_URL || 'https://api.asgard.website').replace(/\/$/, '')
 const CODE_STORAGE_KEY = 'midnight-s2-feedback-code'
@@ -8,7 +8,7 @@ const ACCEPTED_SCREENSHOTS = new Set(['image/png', 'image/jpeg', 'image/webp'])
 const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'development'
 const GIT_REVISION = typeof __GIT_REVISION__ === 'string' ? __GIT_REVISION__ : 'unknown'
 
-interface ScreenshotDraft { file: File; dataUrl: string }
+interface ScreenshotDraft { file: File; dataUrl: string; name: string }
 export type FeedbackContext = Record<string, string | number | boolean | undefined>
 
 function readDataUrl(file: File) {
@@ -27,6 +27,7 @@ export default function GuildFeedback({ context }: { context: FeedbackContext })
   const [screenshots, setScreenshots] = useState<ScreenshotDraft[]>([])
   const [status, setStatus] = useState<'idle' | 'submitting' | 'sent'>('idle')
   const [notice, setNotice] = useState('')
+  const [dragActive, setDragActive] = useState(false)
   const launchButton = useRef<HTMLButtonElement>(null)
   const messageField = useRef<HTMLTextAreaElement>(null)
 
@@ -40,24 +41,53 @@ export default function GuildFeedback({ context }: { context: FeedbackContext })
     window.setTimeout(() => launchButton.current?.focus(), 0)
   }
 
-  async function addScreenshots(event: ChangeEvent<HTMLInputElement>) {
+  async function appendScreenshots(files: readonly File[]) {
     setNotice('')
     const available = MAX_SCREENSHOTS - screenshots.length
-    const requested = event.target.files?.length ?? 0
-    const selected = Array.from(event.target.files ?? []).slice(0, available)
-    event.target.value = ''
+    const selected = files.slice(0, available)
     const invalid = selected.find(file => !ACCEPTED_SCREENSHOTS.has(file.type) || file.size > MAX_SCREENSHOT_BYTES)
     if (invalid) {
       setNotice('Screenshots must be PNG, JPEG, or WebP and no larger than 5 MiB each.')
       return
     }
     try {
-      const drafts = await Promise.all(selected.map(async file => ({ file, dataUrl: await readDataUrl(file) })))
+      const drafts = await Promise.all(selected.map(async (file, index) => ({
+        file,
+        dataUrl: await readDataUrl(file),
+        name: file.name || `pasted-screenshot-${screenshots.length + index + 1}.${file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1]}`,
+      })))
       setScreenshots(current => [...current, ...drafts].slice(0, MAX_SCREENSHOTS))
-      if (requested > available) setNotice('Only the first four screenshots are attached.')
+      if (files.length > available) setNotice('Only the first four screenshots are attached.')
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'A screenshot could not be read.')
     }
+  }
+
+  async function addScreenshots(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? [])
+    event.target.value = ''
+    await appendScreenshots(files)
+  }
+
+  function pasteScreenshots(event: ClipboardEvent<HTMLElement>) {
+    const files = Array.from(event.clipboardData.items).filter(item => item.kind === 'file').map(item => item.getAsFile()).filter((file): file is File => Boolean(file))
+    if (!files.length) return
+    event.preventDefault()
+    void appendScreenshots(files)
+  }
+
+  function dragScreenshots(event: DragEvent<HTMLElement>) {
+    if (!Array.from(event.dataTransfer.types).includes('Files')) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
+    setDragActive(true)
+  }
+
+  function dropScreenshots(event: DragEvent<HTMLElement>) {
+    if (!Array.from(event.dataTransfer.types).includes('Files')) return
+    event.preventDefault()
+    setDragActive(false)
+    void appendScreenshots(Array.from(event.dataTransfer.files))
   }
 
   async function submit(event: FormEvent) {
@@ -71,7 +101,7 @@ export default function GuildFeedback({ context }: { context: FeedbackContext })
         body: JSON.stringify({
           guildCode,
           message,
-          screenshots: screenshots.map(({ file, dataUrl }) => ({ name: file.name, type: file.type, dataBase64: dataUrl.slice(dataUrl.indexOf(',') + 1) })),
+          screenshots: screenshots.map(({ file, dataUrl, name }) => ({ name, type: file.type, dataBase64: dataUrl.slice(dataUrl.indexOf(',') + 1) })),
           context: {
             ...context,
             revision: GIT_REVISION,
@@ -103,7 +133,7 @@ export default function GuildFeedback({ context }: { context: FeedbackContext })
   return <>
     <button ref={launchButton} type="button" className="guild-feedback-launch" onClick={() => { setOpen(true); setStatus('idle'); setNotice('') }}>Report bug</button>
     {open && <div className="guild-feedback-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) close() }} onKeyDown={dialogKeyDown}>
-      <section className="guild-feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="guild-feedback-title">
+      <section className="guild-feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="guild-feedback-title" onPaste={pasteScreenshots}>
         <button type="button" className="guild-feedback-close" aria-label="Close feedback form" onClick={close}>×</button>
         <p className="eyebrow">GUILD PLAYTEST</p>
         <h2 id="guild-feedback-title">Report a problem</h2>
@@ -119,14 +149,15 @@ export default function GuildFeedback({ context }: { context: FeedbackContext })
             <input type="password" required autoComplete="off" aria-label="Guild access code" value={guildCode} onChange={event => setGuildCode(event.target.value)} />
             <small>Remembered only in this browser tab after a successful report.</small>
           </label>
-          <div className="guild-feedback-attachments">
+          <div className={`guild-feedback-attachments${dragActive ? ' dragging' : ''}`} role="group" aria-label="Screenshot attachments" onDragEnter={dragScreenshots} onDragOver={dragScreenshots} onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragActive(false) }} onDrop={dropScreenshots}>
             <div><strong>Screenshots</strong><span>{screenshots.length} / {MAX_SCREENSHOTS}</span></div>
-            {screenshots.length > 0 && <ul>{screenshots.map((screenshot, index) => <li key={`${screenshot.file.name}-${index}`}>
-              <img src={screenshot.dataUrl} alt="" /><span>{screenshot.file.name}<small>{Math.ceil(screenshot.file.size / 1024)} KiB</small></span><button type="button" aria-label={`Remove ${screenshot.file.name}`} onClick={() => setScreenshots(current => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
+            {screenshots.length > 0 && <ul>{screenshots.map((screenshot, index) => <li key={`${screenshot.name}-${index}`}>
+              <img src={screenshot.dataUrl} alt="" /><span>{screenshot.name}<small>{Math.ceil(screenshot.file.size / 1024)} KiB</small></span><button type="button" aria-label={`Remove ${screenshot.name}`} onClick={() => setScreenshots(current => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
             </li>)}</ul>}
+            <p className="guild-feedback-drop-copy">Drop screenshots here or paste from your clipboard.</p>
             <label className={`guild-feedback-file${screenshots.length >= MAX_SCREENSHOTS ? ' disabled' : ''}`}>
-              Add screenshots
-              <input type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={screenshots.length >= MAX_SCREENSHOTS} onChange={event => void addScreenshots(event)} />
+              Choose screenshots
+              <input type="file" aria-label="Add screenshots" accept="image/png,image/jpeg,image/webp" multiple disabled={screenshots.length >= MAX_SCREENSHOTS} onChange={event => void addScreenshots(event)} />
             </label>
             <small>Up to four PNG, JPEG, or WebP files, 5 MiB each. Files are stored as supplied for maintainer review.</small>
           </div>

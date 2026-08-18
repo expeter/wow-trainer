@@ -637,6 +637,9 @@ in immutable source history.
   pull into ignored `.tmp/` evidence. Intake never creates GitHub issues or
   changes the inherited `/v1` service. Battle.net identity may later replace
   the shared-code check without changing the report contract.
+- Screenshot file selection, clipboard-image paste, and drag/drop all enter the
+  same attachment pipeline and therefore share preview/removal behavior, the
+  four-file maximum, accepted image types, and per-file size limit.
 - Static publication uses only the dedicated `github-pages` environment and
   `midnight.asgard.website` CNAME.
 

@@ -48,6 +48,7 @@ test('Season 2 shell submits private guild feedback from setup and keeps the rep
   await dialog.getByRole('button', { name: 'Close feedback form' }).click()
 
   await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler 2D" }).click()
+  await expect(page.getByRole('dialog', { name: "Nek'zali encounter setup" })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Report bug' })).toBeVisible()
   await page.getByRole('button', { name: 'Report bug' }).click()
   await expect(page.getByRole('dialog', { name: 'Report a problem' }).getByLabel('Guild access code')).toHaveValue('guild-code')

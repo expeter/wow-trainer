@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import GuildFeedback from './GuildFeedback'
@@ -54,5 +54,24 @@ describe('guild feedback reporter', () => {
     expect(screen.queryByText('boss-5.png')).not.toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('Only the first four screenshots are attached.')
     expect(screen.getByLabelText('Add screenshots')).toBeDisabled()
+  })
+
+  it('accepts screenshots pasted from the clipboard and dropped onto the form', async () => {
+    const user = userEvent.setup()
+    render(<GuildFeedback context={{ screen: 'setup' }} />)
+    await user.click(screen.getByRole('button', { name: 'Report bug' }))
+    const dialog = screen.getByRole('dialog', { name: 'Report a problem' })
+    const pasteFile = new File([new Uint8Array([137, 80, 78, 71])], 'clipboard.png', { type: 'image/png' })
+    fireEvent.paste(dialog, { clipboardData: { items: [{ kind: 'file', getAsFile: () => pasteFile }] } })
+    expect(await screen.findByText('clipboard.png')).toBeVisible()
+
+    const dropZone = screen.getByRole('group', { name: 'Screenshot attachments' })
+    const dropFile = new File([new Uint8Array([255, 216, 255])], 'dropped.jpg', { type: 'image/jpeg' })
+    fireEvent.dragEnter(dropZone, { dataTransfer: { types: ['Files'], dropEffect: 'none' } })
+    expect(dropZone).toHaveClass('dragging')
+    fireEvent.drop(dropZone, { dataTransfer: { types: ['Files'], files: [dropFile] } })
+    expect(await screen.findByText('dropped.jpg')).toBeVisible()
+    expect(dropZone).not.toHaveClass('dragging')
+    expect(screen.getByText('2 / 4')).toBeVisible()
   })
 })

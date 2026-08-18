@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Feedback screenshots can now be pasted directly from the clipboard or
+  dragged onto the report form as well as selected through the file picker;
+  every path shares the existing type, size, count, preview, and removal rules.
 - Added an in-trainer guild feedback form on setup and live encounter screens,
   accepting a short report plus up to four unchanged screenshots behind a
   shared access code. A separate hardened VPS service stores submissions
