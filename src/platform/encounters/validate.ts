@@ -118,7 +118,22 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
     }
   }
 
-  for (const phase of pkg.phases) checkReferences(`Phase "${phase.id}"`, phase.abilityIds, abilityIds, 'ability', errors)
+  for (const phase of pkg.phases) {
+    checkReferences(`Phase "${phase.id}"`, phase.abilityIds, abilityIds, 'ability', errors)
+    if (!Array.isArray(phase.roleResponsibilities)) {
+      errors.push(`Phase "${phase.id}" needs role responsibilities.`)
+      continue
+    }
+    const phaseRoleIds = new Set<string>()
+    for (const entry of phase.roleResponsibilities) {
+      if (!roleIds.has(entry.roleId)) errors.push(`Phase "${phase.id}" references unknown role "${entry.roleId}".`)
+      if (phaseRoleIds.has(entry.roleId)) errors.push(`Phase "${phase.id}" repeats role "${entry.roleId}".`)
+      phaseRoleIds.add(entry.roleId)
+      if (!Array.isArray(entry.responsibilities) || !entry.responsibilities.length || entry.responsibilities.some((responsibility: unknown) => typeof responsibility !== 'string' || !responsibility.trim())) {
+        errors.push(`Phase "${phase.id}" role "${entry.roleId}" needs at least one non-empty responsibility.`)
+      }
+    }
+  }
   for (const role of pkg.roles) checkReferences(`Role "${role.id}"`, role.actionIds, actionIds, 'action', errors)
   for (const profile of pkg.timingProfiles) {
     if (profile.encounterId !== pkg.manifest.id) errors.push(`Timing profile "${profile.id}" targets another encounter.`)
@@ -146,6 +161,16 @@ function validatePackageShape(value: unknown): EncounterValidationResult {
     checkReferences(`Scenario "${scenario.id}"`, scenario.roleIds, roleIds, 'role', errors)
     checkReferences(`Scenario "${scenario.id}"`, scenario.timingProfileIds, timingProfileIds, 'timing profile', errors)
     checkReferences(`Scenario "${scenario.id}"`, scenario.tacticIds, tacticIds, 'tactic', errors)
+    if (scenario.kind === 'full-fight' && scenario.status === 'ready') {
+      for (const phaseId of scenario.phaseIds) {
+        const phase = pkg.phases.find(candidate => candidate.id === phaseId)
+        if (!phase || !Array.isArray(phase.roleResponsibilities)) continue
+        const coveredRoleIds = new Set(phase.roleResponsibilities.map(entry => entry.roleId))
+        for (const roleId of scenario.roleIds) {
+          if (!coveredRoleIds.has(roleId)) errors.push(`Phase "${phase.id}" is missing ready full-fight role "${roleId}".`)
+        }
+      }
+    }
   }
   for (const scenario of pkg.train3d) {
     if (!arenaIds.has(scenario.arenaId)) errors.push(`Scenario "${scenario.id}" references unknown 3D arena "${scenario.arenaId}".`)

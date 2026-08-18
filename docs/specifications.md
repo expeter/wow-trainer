@@ -857,8 +857,11 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   selected encounter summary owns compact player-facing `2D`, `3D`, and `INFO`
   actions, readiness, concise encounter description, and a package-derived
   tactic breakdown. The breakdown leads with one ordered action instruction
-  per declared full-fight mechanic, then phase flow and role responsibilities;
-  raw spell descriptions are a collapsed secondary reference. Each reference
+  per declared full-fight mechanic, then groups explicit responsibilities for
+  every scenario role under each phase. Playable packages must own this phase
+  copy; missing, empty, duplicate, unknown, or generic fallback responsibilities
+  are not an accepted contract. Raw spell descriptions are a collapsed
+  secondary reference. Each reference
   may open an external Wowhead PTR name search but must not invent a spell ID.
   Internal runtime IDs remain `learn2d` and `train3d`. Planned encounters stay
   selectable and clearly unavailable without pretending that a runtime exists.

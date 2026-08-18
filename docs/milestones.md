@@ -151,7 +151,9 @@ preserving semantic encounter colors. `FR-099` adds package-derived fight
 tactics behind an `INFO` action and keeps research-only bosses explicit.
 `CR-307` makes the primary breakdown one actionable instruction per mechanic;
 `CR-308` keeps raw spell text secondary and adds external Wowhead PTR name
-searches without guessing unstable spell IDs.
+searches without guessing unstable spell IDs. `CR-309` nests explicit,
+package-owned role responsibilities under every playable phase and makes
+incomplete responsibility matrices a package-validation failure.
 
 ### M6 · Results, scoring, achievements, and API
 

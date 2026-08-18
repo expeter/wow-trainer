@@ -13,7 +13,41 @@ export const definition = {
     ['apex-mutilate-one', 'apex-ravage-one', 'apex-tempest', 'apex-mutilate-two', 'apex-ravage-two', 'serpents-fury', 'virulence', 'venomous-surge-one', 'raging-crosswinds', 'venomous-surge-two', 'maelstrom-one', 'maelstrom-two', 'maelstrom-three'],
     ['apex-ravage-one', 'apex-tempest', 'apex-mutilate-one', 'apex-mutilate-two', 'apex-ravage-two', 'serpents-fury', 'virulence', 'venomous-surge-one', 'raging-crosswinds', 'venomous-surge-two', 'maelstrom-one', 'maelstrom-two', 'maelstrom-three'],
   ],
-  phaseNames: ['Apex and Fury', 'Cysts and Crosswinds', 'Howling Maelstrom'], resource: { label: 'Cysts prepared', initial: 0, maximum: 4, lethal: 6 },
+  phases: [
+    {
+      name: 'Apex and Fury',
+      description: 'Read each randomized Apex attack, alternate Mutilate groups, then stack late for Fury and spread Virulence.',
+      stepIds: ['apex-ravage-one', 'apex-mutilate-one', 'apex-ravage-two', 'apex-tempest', 'apex-mutilate-two', 'serpents-fury', 'virulence'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Call the active Apex read, carry Ravage out of the raid, and preserve the tank while alternate Mutilate groups intercept.'] },
+        { role: 'healer', responsibilities: ['Cover the exposed tank and Mutilate group, then prepare for the late Fury stack and immediate Virulence spread.'] },
+        { role: 'melee', responsibilities: ['Join the assigned Mutilate intercept, leave Ravage and Tempest lanes, then stack late for Fury before spreading.'] },
+        { role: 'ranged', responsibilities: ['Maintain space for redirected Ravage, join the assigned Mutilate intercept, and spread Virulence toward the outer lane.'] },
+      ],
+    },
+    {
+      name: 'Cysts and Crosswinds',
+      description: 'Place four cysts at assigned outer anchors and collide matching Crosswinds trajectories without overlapping residue.',
+      stepIds: ['venomous-surge-one', 'raging-crosswinds', 'venomous-surge-two'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Hold Sszorak clear of the ordered cyst anchors and keep a path open for paired Crosswinds trajectories.'] },
+        { role: 'healer', responsibilities: ['Track each Venomous Surge carrier and stabilize paired players as their Crosswinds trajectories collide.'] },
+        { role: 'melee', responsibilities: ['Take the assigned cyst outward without crossing the boss, then align with the matching Crosswinds partner.'] },
+        { role: 'ranged', responsibilities: ['Place the assigned cyst at its outer anchor and approach the matching Crosswinds trajectory without pre-stacking.'] },
+      ],
+    },
+    {
+      name: 'Howling Maelstrom',
+      description: 'Trigger the prepared cysts in the announced order from the side opposing each successive wind.',
+      stepIds: ['maelstrom-one', 'maelstrom-two', 'maelstrom-three'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Keep Sszorak out of the next cyst route and move with the raid between each ordered counter-knock.'] },
+        { role: 'healer', responsibilities: ['Cover the raid during each wind and reposition early toward the next announced cyst.'] },
+        { role: 'melee', responsibilities: ['Leave the boss for the announced cyst, trigger it against the wind, and follow the displayed order rather than proximity.'] },
+        { role: 'ranged', responsibilities: ['Stage near the next ordered cyst without triggering it early, then counter the announced wind with the raid.'] },
+      ],
+    },
+  ], resource: { label: 'Cysts prepared', initial: 0, maximum: 4, lethal: 6 },
   tacticFields: [{ id: 'mutilate-groups', label: 'Mutilate groups', kind: 'group', value: ['group-a', 'group-b'] }, { id: 'crosswind-pairs', label: 'Crosswinds pairs', kind: 'pair', value: ['pair-a', 'pair-b'] }, { id: 'cyst-order', label: 'Maelstrom cyst order', kind: 'region', value: ['cyst-one', 'cyst-two', 'cyst-three', 'cyst-four'] }],
   steps: [
     { id: 'apex-ravage-one', label: 'Apex Predator: Ravage', prompt: 'Leave the white Ravage frontal and preserve the active tank.', advice: 'Read the white frontal and move outside its cone.', duration2d: 4, duration3d: 5, position: { x: 0, z: 8 }, radius: 11, intent: 'avoid', color: '#e9ede4' },

@@ -11,7 +11,8 @@ export default function EncounterInfo({ encounter, onClose }: { encounter: Encou
   const tacticalSteps = tacticalScenario?.steps ?? []
   const scenarioAbilities = tacticalScenario?.abilityIds.map(id => encounter.abilities.find(ability => ability.id === id)).filter(ability => ability !== undefined) ?? []
   const stepsMatchAbilities = tacticalSteps.length > 0 && tacticalSteps.length === scenarioAbilities.length
-  const hasMaintainedTactics = tacticalSteps.length > 0 || encounter.phases.length > 0 || encounter.roles.length > 0
+  const hasMaintainedTactics = tacticalSteps.length > 0 || encounter.phases.length > 0
+  const rolesById = new Map(encounter.roles.map(role => [role.id, role]))
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -39,12 +40,15 @@ export default function EncounterInfo({ encounter, onClose }: { encounter: Encou
           </li>)}</ol>
         </section>}
         {encounter.phases.length > 0 && <section aria-labelledby="encounter-info-flow">
-          <h3 id="encounter-info-flow">Fight flow</h3>
-          <ol>{encounter.phases.map(phase => <li key={phase.id}><strong>{phase.name}</strong><span>{phase.description}</span></li>)}</ol>
-        </section>}
-        {encounter.roles.length > 0 && <section aria-labelledby="encounter-info-roles">
-          <h3 id="encounter-info-roles">Role responsibilities</h3>
-          <div className="encounter-info-roles">{encounter.roles.map(role => <article key={role.id}><strong>{role.label}</strong><ul>{role.responsibilities.map(responsibility => <li key={responsibility}>{responsibility}</li>)}</ul></article>)}</div>
+          <h3 id="encounter-info-flow">Fight flow and responsibilities</h3>
+          <ol className="encounter-info-phases">{encounter.phases.map(phase => <li key={phase.id}>
+            <strong>{phase.name}</strong>
+            <span>{phase.description}</span>
+            <div className="encounter-info-phase-roles">{phase.roleResponsibilities.map(entry => {
+              const role = rolesById.get(entry.roleId)
+              return <article key={entry.roleId}><strong>{role?.label ?? entry.roleId}</strong><ul>{entry.responsibilities.map(responsibility => <li key={responsibility}>{responsibility}</li>)}</ul></article>
+            })}</div>
+          </li>)}</ol>
         </section>}
         {encounter.abilities.length > 0 && <details className="encounter-info-reference">
           <summary>Spell reference · {encounter.abilities.length}</summary>

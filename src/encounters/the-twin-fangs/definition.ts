@@ -8,7 +8,41 @@ export const definition = {
   arenaKind: 'triangle-ring', arena2dId: 'twin_fangs_raidplan', arena2dLabel: 'Twin Fangs supplied triangular raid plan', learn2dBackground: RAID_PLAN, boardClass: 'twin-fangs-2d-board', start: { x: 0, z: 24 },
   arena3d: { id: 'twin_fangs_triangle_world', label: 'Twin Fangs toxic-depths ring', shape: 'rectangle', width: 88, depth: 80, anchors: [{ id: 'vexhul', label: 'Vexhul', x: -24, z: 12 }, { id: 'ithraz', label: 'Ithraz', x: 24, z: 12 }, { id: 'feast', label: 'Feast groups', x: 0, z: 25 }, { id: 'submerge', label: 'Submerge route', x: 0, z: -32 }], theme: { kind: 'twin-fangs', layout: 'triangle-ring', surroundings: 'toxic-depths', platform: 'floating', material: 'blood-venom-ring', floor: '#211c22', boundary: '#af765d', accent: '#d0a45b', poison: '#9acb24', fog: 'toxic-haze' } },
   bosses: [{ id: 'twin-vexhul', name: 'Vexhul', position: { x: -24, z: 12 }, color: '#79b868' }, { id: 'twin-ithraz', name: 'Ithraz', position: { x: 24, z: 12 }, color: '#b75a62' }],
-  phaseNames: ['Venom economy', 'Ravenous Feast', 'Submerge'], resource: { label: 'Eternal Venom', initial: 1, maximum: 9, lethal: 9 },
+  phases: [
+    {
+      name: 'Venom economy',
+      description: 'Control Eternal Venom through assigned Globules while interrupting Bulwark and crossing safe gaps in the waves.',
+      stepIds: ['caustic-deluge', 'caustic-globule', 'barbed-bulwark', 'stir-depths'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Keep Vexhul and Ithraz positioned for tank range, move Deluge splashes clear, and preserve low-stack Globule routes.'] },
+        { role: 'healer', responsibilities: ['Track Eternal Venom headroom, support assigned Globule soakers, and cover players crossing the Stir the Depths gap.'] },
+        { role: 'melee', responsibilities: ['Take the assigned player-owned Bulwark interrupt and leave a clear path to the active Globule.'] },
+        { role: 'ranged', responsibilities: ['Consume only the assigned Globule with enough headroom and move through the announced gap between venom waves.'] },
+      ],
+    },
+    {
+      name: 'Ravenous Feast',
+      description: 'Remove Venom in assigned Feast groups while completing three ordered Stone Breaker catches and avoiding Corrosive Spit.',
+      stepIds: ['ravenous-feast-one', 'stone-breaker-one', 'stone-breaker-two', 'stone-breaker-three', 'corrosive-spit'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Complete all three Stone Breaker catches in order, recover from the push, and execute the planned serpent swap.'] },
+        { role: 'healer', responsibilities: ['Cover the active Feast group and each sequential Stone Breaker hit without stepping into another group.'] },
+        { role: 'melee', responsibilities: ['Join only the assigned Feast strike and leave the projected Corrosive Spit line before it resolves.'] },
+        { role: 'ranged', responsibilities: ['Maintain separate Feast groups, keep the Stone Breaker route open, and aim Corrosive Spit away from the raid.'] },
+      ],
+    },
+    {
+      name: 'Submerge',
+      description: 'Follow the safe triangular ring while both serpents reposition, then use the final Feast to restore Venom headroom.',
+      stepIds: ['submerge', 'ravenous-feast-two'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Track both submerged serpents around the ring and reunite them in the planned paired position after they surface.'] },
+        { role: 'healer', responsibilities: ['Move with the raid around the ring, avoid the central void, and prepare for the final Feast group damage.'] },
+        { role: 'melee', responsibilities: ['Follow the announced Submerge anchor without cutting through the void, then join the final assigned Feast.'] },
+        { role: 'ranged', responsibilities: ['Stay on the safe ring during repositioning and preserve enough spacing to reach the final assigned Feast.'] },
+      ],
+    },
+  ], resource: { label: 'Eternal Venom', initial: 1, maximum: 9, lethal: 9 },
   tacticFields: [{ id: 'feast-groups', label: 'Ravenous Feast groups', kind: 'group', value: ['feast-one', 'feast-two', 'feast-three'] }, { id: 'globule-soakers', label: 'Caustic Globule soakers', kind: 'group', value: ['low-stack-one', 'low-stack-two'] }, { id: 'bulwark-kicks', label: 'Barbed Bulwark interrupts', kind: 'action-owner', value: 'player' }],
   steps: [
     { id: 'caustic-deluge', label: 'Caustic Deluge', prompt: 'Leave Vexhul splash impacts while preserving tank range.', advice: 'Move outside the four-yard acid impact.', duration2d: 4, duration3d: 5, position: { x: -24, z: 12 }, radius: 9, intent: 'avoid', color: '#78bf68', failureResourceDelta: 1 },

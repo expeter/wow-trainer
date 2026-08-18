@@ -84,4 +84,28 @@ describe('EncounterPackageV1 conformance', () => {
       expect(result.errors).toContain('Planner map "sentinels_active_cycle" is missing a valid placement for "tank-1".')
     }
   })
+
+  it('rejects incomplete, duplicate, unknown, and empty phase responsibilities', () => {
+    const phase = sentinels.phases[0]
+    const malformed = {
+      ...sentinels,
+      phases: [{
+        ...phase,
+        roleResponsibilities: [
+          ...phase.roleResponsibilities.slice(1),
+          phase.roleResponsibilities[1],
+          { roleId: 'missing_role', responsibilities: [''] },
+        ],
+      }, ...sentinels.phases.slice(1)],
+    }
+    const result = validateEncounterPackage(malformed)
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.errors).toContain(`Phase "${phase.id}" repeats role "${phase.roleResponsibilities[1].roleId}".`)
+      expect(result.errors).toContain(`Phase "${phase.id}" references unknown role "missing_role".`)
+      expect(result.errors).toContain(`Phase "${phase.id}" role "missing_role" needs at least one non-empty responsibility.`)
+      expect(result.errors).toContain(`Phase "${phase.id}" is missing ready full-fight role "${phase.roleResponsibilities[0].roleId}".`)
+    }
+  })
 })

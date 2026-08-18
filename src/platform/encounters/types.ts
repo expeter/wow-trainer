@@ -58,6 +58,12 @@ export interface PhaseDefinition {
   name: string
   description: string
   abilityIds: readonly string[]
+  roleResponsibilities: readonly PhaseRoleResponsibility[]
+}
+
+export interface PhaseRoleResponsibility {
+  roleId: string
+  responsibilities: readonly string[]
 }
 
 export interface EncounterActionDefinition {

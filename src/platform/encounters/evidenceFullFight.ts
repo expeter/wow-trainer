@@ -6,7 +6,7 @@ import { stepPlayerMovement } from '../train3d/simulation'
 import { GROUNDED_VERTICAL_MOTION, launchVerticalMotion, stepVerticalMotion, type VerticalMotionState } from '../train3d/verticalMovement'
 import type { ActorSnapshot, EffectSnapshot, PlayerCommandState, Train3DSnapshot, WorldPoint } from '../train3d/types'
 import { advanceEncounterTimeline, beginEncounterAction, coreEncounterEntities, createEncounterTimeline, type EncounterTimelineState } from './timeline'
-import type { EncounterActionDefinition, EncounterPackageV1, SourceProvenance, WorldArena3D } from '.'
+import type { EncounterActionDefinition, EncounterPackageV1, EncounterPlayerRole, SourceProvenance, WorldArena3D } from '.'
 import type { EncounterProjection } from './mechanicState'
 
 export type EvidenceArenaKind = 'circle' | 'octagon' | 'triangle-ring' | 'rectangle'
@@ -46,9 +46,19 @@ export interface EvidenceEncounterDefinition {
   bosses: readonly { id: string; name: string; position: WorldPoint; color: string }[]
   steps: readonly EvidenceMechanicStep[]
   stepOrderVariants?: readonly (readonly string[])[]
-  phaseNames: readonly string[]
+  phases: readonly EvidencePhaseDefinition[]
   resource: { label: string; initial: number; maximum: number; lethal: number }
   tacticFields: readonly { id: string; label: string; kind: 'group' | 'pair' | 'region' | 'action-owner'; value: string | readonly string[] }[]
+}
+
+export interface EvidencePhaseDefinition {
+  name: string
+  description: string
+  stepIds: readonly string[]
+  roleResponsibilities: readonly {
+    role: EncounterPlayerRole
+    responsibilities: readonly string[]
+  }[]
 }
 
 export interface EvidenceEncounterState {
@@ -194,14 +204,25 @@ export function createEvidenceEncounterPackage(definition: EvidenceEncounterDefi
   const actors = [...contractRaidRoster.map(member => ({ id: member.id, label: member.id.replaceAll('-', ' '), kind: 'player' as const, role: member.role, color: trainingClassColors[member.playerClass] })), ...definition.bosses.map(boss => ({ id: boss.id, label: boss.name, kind: 'boss' as const, color: boss.color }))]
   const placements = Object.fromEntries(actors.map((actor, index) => [actor.id, actor.kind === 'player' ? { x: 35 + index % 5 * 7, y: 58 + Math.floor(index / 5) * 5 } : { x: 35 + index % Math.max(1, definition.bosses.length) * 20, y: 35 }]))
   const tacticSchema = { version: 1, fields: definition.tacticFields.map(field => ({ id: field.id, label: field.label, kind: field.kind, required: true })), planner: { actors, maps: [{ id: `${definition.id}_full_plan`, label: 'Full fight', arenaId: definition.arena2dId, backgroundImage: definition.learn2dBackground, shape: 'rectangle' as const, actorIds: actors.map(actor => actor.id), placements }] } }
-  const tacticId = `${definition.id}_default`; const timingId = `${definition.id}_pre_live`; const scenarioId = `${definition.id}_full_fight`; const phaseIds = definition.phaseNames.map((_name, index) => `${definition.id}_phase_${index + 1}`)
+  const tacticId = `${definition.id}_default`; const timingId = `${definition.id}_pre_live`; const scenarioId = `${definition.id}_full_fight`; const phaseIds = definition.phases.map((_phase, index) => `${definition.id}_phase_${index + 1}`)
   return {
     apiVersion: 1,
     manifest: { id: definition.id, name: definition.name, raid: 'The Venomous Abyss', order: definition.order, contentSeason: 'Midnight Season 2', sourceConfidence: 'medium', availability: 'ptr-preview', supportedModes: ['learn2d', 'train3d'], defaults: [{ mode: 'learn2d', scenarioId, timingProfileId: timingId, tacticId }, { mode: 'train3d', scenarioId, timingProfileId: timingId, tacticId }], capabilities: ['full-fight', 'evidence-driven-sequence', 'simulation-owned-collision'], summary: definition.summary },
     actions,
     abilities,
-    phases: definition.phaseNames.map((name, index) => ({ id: phaseIds[index], name, description: `${name} mechanics`, abilityIds: abilities.filter((_ability, abilityIndex) => Math.min(definition.phaseNames.length - 1, Math.floor(abilityIndex * definition.phaseNames.length / abilities.length)) === index).map(ability => ability.id) })),
-    roles: roleIds.map((id, index) => ({ id, label: ['Tank', 'Healer', 'Melee', 'Ranged'][index], responsibilities: ['Resolve the controlled player assignment'], actionIds: actions.filter(action => action.roles.includes(roleKinds[index])).map(action => action.id) })),
+    phases: definition.phases.map((phase, index) => ({
+      id: phaseIds[index],
+      name: phase.name,
+      description: phase.description,
+      abilityIds: phase.stepIds.map(stepId => `${definition.id}_${stepId}`),
+      roleResponsibilities: phase.roleResponsibilities.map(entry => ({ roleId: `${definition.id}_${entry.role}`, responsibilities: entry.responsibilities })),
+    })),
+    roles: roleIds.map((id, index) => ({
+      id,
+      label: ['Tank', 'Healer', 'Melee', 'Ranged'][index],
+      responsibilities: [...new Set(definition.phases.flatMap(phase => phase.roleResponsibilities.find(entry => entry.role === roleKinds[index])?.responsibilities ?? []))],
+      actionIds: actions.filter(action => action.roles.includes(roleKinds[index])).map(action => action.id),
+    })),
     timingProfiles: [{ id: timingId, encounterId: definition.id, version: 1, status: 'ptr', values: definition.steps.map(step => ({ key: `${step.id}-window`, value: step.duration3d, unit: 'seconds', provenance: provenance(definition) })) }],
     tacticSchema,
     tactics: [{ id: tacticId, name: `${definition.name} default`, schemaVersion: 1, assignments: Object.fromEntries(definition.tacticFields.map(field => [field.id, field.value])), placements }],

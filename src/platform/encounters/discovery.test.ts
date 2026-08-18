@@ -24,6 +24,23 @@ describe('automatic encounter discovery', () => {
     }
   })
 
+  it('gives every playable phase explicit responsibilities for every scenario role', async () => {
+    const catalogue = await loadEncounterCatalogue()
+
+    expect(JSON.stringify(catalogue.packages)).not.toContain('Resolve the controlled player assignment')
+    for (const pkg of catalogue.packages) {
+      const scenarios = pkg.learn2d.filter(scenario => scenario.kind === 'full-fight' && scenario.status === 'ready')
+      for (const scenario of scenarios) {
+        for (const phaseId of scenario.phaseIds) {
+          const phase = pkg.phases.find(candidate => candidate.id === phaseId)!
+          expect(new Set(phase.roleResponsibilities.map(entry => entry.roleId))).toEqual(new Set(scenario.roleIds))
+          expect(phase.roleResponsibilities.flatMap(entry => entry.responsibilities).every(responsibility => responsibility.trim().length > 0)).toBe(true)
+          expect(phase.description).not.toMatch(/ mechanics$/i)
+        }
+      }
+    }
+  })
+
   it('excludes malformed packages and reports their source without crashing the catalogue', async () => {
     const catalogue = await loadEncounterCatalogue({
       '/encounters/valid/index.ts': async () => ({ default: sentinels }),

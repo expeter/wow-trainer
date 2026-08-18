@@ -48,7 +48,10 @@ development diagnostics instead of crashing the catalogue.
 The selected-boss `INFO` dialog is shell presentation over the discovered
 package's manifest, full-fight scenario steps, phases, abilities, and roles.
 Scenario steps pair in order with declared mechanics and are the primary
-player instruction. Ability definitions are a collapsed technical reference;
+player instruction. Each phase owns a complete role-responsibility matrix for
+the ready full-fight scenario; package validation rejects missing, unknown,
+duplicate, or empty entries instead of supplying shell fallback text. Ability
+definitions are a collapsed technical reference;
 Wowhead links are derived as PTR name searches and never become mechanic data
 or guessed spell IDs. The shell does not identify bosses by ID or encode a
 parallel tactic switch; an empty research package therefore renders an explicit

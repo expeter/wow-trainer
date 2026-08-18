@@ -4,9 +4,10 @@
 
 - Added an `INFO` action beside each selected boss's 2D/3D training actions.
   It now leads with one ordered “what to do” instruction per mechanic, followed
-  by fight flow and role responsibilities; raw spell text is a collapsed
-  secondary reference with external Wowhead PTR name searches. Research-only
-  Ula’tek clearly reports that maintained tactics are unavailable.
+  by phase-by-phase responsibilities for every encounter role; generated
+  fallback prose is no longer accepted. Raw spell text is a collapsed secondary
+  reference with external Wowhead PTR name searches. Research-only Ula’tek
+  clearly reports that maintained tactics are unavailable.
 - Added left-mouse drag-box selection to Tactical plan while retaining direct
   click, Shift/Ctrl/⌘ additive selection, role selection, relative group
   dragging, and assignment drop targets.

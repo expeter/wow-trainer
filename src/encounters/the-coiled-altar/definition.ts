@@ -8,7 +8,52 @@ export const definition = {
   arenaKind: 'rectangle', arena2dId: 'coiled_altar_raidplan', arena2dLabel: 'Coiled Altar supplied raid plan', learn2dBackground: RAID_PLAN, boardClass: 'coiled-altar-2d-board', start: { x: 0, z: 20 },
   arena3d: { id: 'coiled_altar_world', label: 'Coiled Altar toxic-depths platform', shape: 'rectangle', width: 100, depth: 60, anchors: [{ id: 'seal', label: 'Central altar seal', x: 0, z: 0 }, { id: 'zuljan', label: "Zul'jan", x: -20, z: -10 }, { id: 'malacrass', label: 'Hex Lord Malacrass', x: 20, z: -10 }, { id: 'escape', label: 'Guillotine escape', x: 44, z: 15 }], theme: { kind: 'coiled-altar', layout: 'coiled-altar', surroundings: 'toxic-depths', platform: 'floating', material: 'ritual-altar-stone', floor: '#25201c', boundary: '#b18b5e', accent: '#d3b577', center: '#6e4c36', poison: '#95c522', fog: 'toxic-haze' } },
   bosses: [{ id: 'altar-zuljan', name: "Zul'jan", position: { x: -20, z: -10 }, color: '#78bb61' }, { id: 'altar-malacrass', name: 'Hex Lord Malacrass', position: { x: 20, z: -10 }, color: '#9270c0' }],
-  phaseNames: ["Zul'jan", 'Hex Lord Malacrass', 'Soulbinding', 'Coiled Union'], resource: { label: 'Venom objects', initial: 0, maximum: 6, lethal: 7 },
+  phases: [
+    {
+      name: "Zul'jan",
+      description: 'Create, carry, and place venom in the future Sever lane while resolving Guillotine and the outward Widow’s Kiss escape.',
+      stepIds: ['fangs-safe', 'toxic-deluge', 'volatile-venom', 'venom-deposit', 'sever', 'guillotine', 'widows-kiss'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Aim Sever through the prepared venom lane while keeping every non-tank outside the cleanup frontal.'] },
+        { role: 'healer', responsibilities: ['Track the venom carrier, cover the assigned Guillotine group, and move outward for Widow’s Kiss after the soak.'] },
+        { role: 'melee', responsibilities: ['Collect and deposit venom only when assigned, leave Sever, then join the correct five-player Guillotine group.'] },
+        { role: 'ranged', responsibilities: ['Place Toxic Deluge and carried venom in the assigned lane, then escape far from the Widow’s Kiss epicenter.'] },
+      ],
+    },
+    {
+      name: 'Hex Lord Malacrass',
+      description: 'Walk against Dreadmarch toward the central recovery point and kite each Manifestation without contact or an edge fall.',
+      stepIds: ['dreadmarch', 'manifestation'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Hold Malacrass near the recovery route and keep the forced march and Manifestation paths clear of the platform edge.'] },
+        { role: 'healer', responsibilities: ['Heal players fighting Dreadmarch movement and support the fixated target while maintaining contact-free spacing.'] },
+        { role: 'melee', responsibilities: ['Walk against Dreadmarch toward center and disengage from a fixating Manifestation before contact.'] },
+        { role: 'ranged', responsibilities: ['Recover centrally from Dreadmarch and kite a fixating Manifestation away from the raid and cleanup lanes.'] },
+      ],
+    },
+    {
+      name: 'Soulbinding',
+      description: 'Intercept assigned Soul Fragments at the altar and use the declared Main action before they reach Malacrass.',
+      stepIds: ['soulbinding'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Keep Malacrass stable while moving into the assigned fragment lane and using Main before the fragment arrives.'] },
+        { role: 'healer', responsibilities: ['Cover fragment owners and intercept the assigned fragment with Main without abandoning the central healing route.'] },
+        { role: 'melee', responsibilities: ['Meet the assigned Soul Fragment near the altar and use Main before it can reach Malacrass.'] },
+        { role: 'ranged', responsibilities: ['Watch the outer fragment route, intercept the assigned Soul Fragment, and confirm Main before contact.'] },
+      ],
+    },
+    {
+      name: 'Coiled Union',
+      description: 'Resolve the combined cleanup frontal and residual hazards, then return to the altar seal as both boss systems overlap.',
+      stepIds: ['blighted-sever', 'coiled-union'],
+      roleResponsibilities: [
+        { role: 'tank', responsibilities: ['Aim Blighted Sever through prepared venom and manifestations, then bring both bosses into the planned altar position.'] },
+        { role: 'healer', responsibilities: ['Cover the combined cleanup overlap and finish inside the altar safe region without touching residual hazards.'] },
+        { role: 'melee', responsibilities: ['Leave Blighted Sever, avoid residual contact zones, and return to the seal only after the frontal clears.'] },
+        { role: 'ranged', responsibilities: ['Keep the combined frontal lane empty, preserve an outer escape route, and collapse safely to the altar seal.'] },
+      ],
+    },
+  ], resource: { label: 'Venom objects', initial: 0, maximum: 6, lethal: 7 },
   tacticFields: [{ id: 'venom-lanes', label: 'Venom cleanup lanes', kind: 'region', value: ['left-sever', 'right-sever'] }, { id: 'guillotine-groups', label: 'Guillotine groups', kind: 'group', value: ['group-one', 'group-two'] }, { id: 'fragment-owners', label: 'Soul fragment owners', kind: 'action-owner', value: 'player' }],
   steps: [
     { id: 'fangs-safe', label: 'Fangs of the Coiled Altar', prompt: 'Move into the central hourglass while Noxious Ground expands.', advice: 'Reach the seal-side safe region before the poison closes in.', duration2d: 5, duration3d: 7, position: { x: 0, z: 0 }, radius: 9, intent: 'enter', color: '#d0b36b' },

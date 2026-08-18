@@ -206,9 +206,12 @@
 .encounter-info-sections dt a { flex: 0 0 auto; color: var(--s2-color-accent); font: 9px var(--s2-font-mono); text-decoration: none; }
 .encounter-info-sections dt a:hover, .encounter-info-sections dt a:focus-visible { text-decoration: underline; text-underline-offset: 2px; }
 .encounter-info-sections dd { margin: 3px 0 0; color: var(--s2-color-muted); font-size: 11px; line-height: 1.45; }
-.encounter-info-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
-.encounter-info-roles article { padding: 11px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); background: rgba(9, 21, 13, .8); }
-.encounter-info-roles ul { margin: 7px 0 0; padding-left: 18px; color: var(--s2-color-muted); font-size: 11px; line-height: 1.5; }
+.encounter-info-phases { list-style: none; padding: 0 !important; }
+.encounter-info-phases > li { padding: 13px !important; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); background: rgba(9, 21, 13, .72); }
+.encounter-info-phase-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; margin-top: 11px; }
+.encounter-info-phase-roles article { padding: 10px; border: 1px solid color-mix(in srgb, var(--s2-color-accent) 24%, var(--s2-color-border)); border-radius: var(--s2-radius-control); background: rgba(7, 17, 10, .86); }
+.encounter-info-phase-roles article > strong { color: var(--s2-color-accent); font: 10px var(--s2-font-mono); letter-spacing: .05em; text-transform: uppercase; }
+.encounter-info-phase-roles ul { margin: 7px 0 0; padding-left: 18px; color: var(--s2-color-muted); font-size: 11px; line-height: 1.5; }
 .encounter-info-unavailable { padding: 17px; border: 1px dashed var(--s2-color-border); border-radius: var(--s2-radius-control); background: var(--s2-color-surface); }
 .encounter-info-unavailable p { margin: 7px 0 0; color: var(--s2-color-muted); line-height: 1.55; }
 .encounter-info-reference { padding: 13px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); background: rgba(7, 17, 10, .76); }
