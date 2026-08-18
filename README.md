@@ -23,8 +23,9 @@ channels, and the compact public boss selector.
 - Short ID: `midnight-s2`
 - Public hostname: `midnight.asgard.website`
 - Public deployment: GitHub Pages workflow on `main`
-- Online services: narrow guild feedback intake at API `/v2`; identity,
-  statistics, achievements, and rankings remain deferred
+- Online services: isolated Season 2 identity, anonymous attempt statistics,
+  and private guild feedback under API `/v2`; achievements and rankings remain
+  deferred
 
 The [request ledger](docs/README.md), [stable specifications](docs/specifications.md),
 [delivery milestones](docs/milestones.md), and [architecture boundary](docs/architecture.md)
@@ -81,6 +82,9 @@ through `./scripts/test-e2e-focused.sh season2-shell`; use
 `npm run test:e2e:local` only for the complete browser suite. Build with
 `npm run build`. The isolated guild feedback service and authenticated local
 pull workflow are documented in [`services/feedback/README.md`](services/feedback/README.md).
+The separate Battle.net identity/statistics sidecar is documented in
+[`services/online/README.md`](services/online/README.md); run its API contract
+with `npm run test:online`.
 
 Pushes to `main` run unit tests, the focused shell browser suite, and the static
 build before deploying `dist/` to the isolated `github-pages` environment. The

@@ -15,6 +15,7 @@ const png = Buffer.from('89504e470d0a1a0a00000000', 'hex')
 const execFileAsync = promisify(execFile)
 let baseUrl
 let service
+const authenticatedCookie = 'midnight_session=authenticated-test-session'
 
 before(async () => {
   const storageDirectory = await mkdtemp(join(tmpdir(), 'midnight-feedback-'))
@@ -24,6 +25,12 @@ before(async () => {
     downloadKeyHash: hash(downloadKey),
     allowedOrigins: ['https://midnight.asgard.website'],
     rateLimit: { maximum: 20 },
+    onlineSessionVerifier: async request => request.headers.cookie === authenticatedCookie ? {
+      authenticated: true,
+      accountId: 7,
+      region: 'eu',
+      character: { name: 'Raidtester', realmName: 'Silvermoon', realmSlug: 'silvermoon' },
+    } : { authenticated: false },
   })
   await new Promise(resolve => service.server.listen(0, '127.0.0.1', resolve))
   baseUrl = `http://127.0.0.1:${service.server.address().port}`
@@ -50,6 +57,7 @@ test('accepts a guild report and keeps screenshots in private storage', async ()
   const stored = JSON.parse(await readFile(join(service.storageDirectory, receipt.id, 'report.json'), 'utf8'))
   assert.equal(stored.message, 'The boss marker clips through the platform.')
   assert.deepEqual(stored.context, { encounterId: 'sszorak', mode: 'train3d' })
+  assert.equal(stored.identity, null)
   assert.equal(await readFile(join(service.storageDirectory, receipt.id, 'screenshot-1.png'), 'hex'), png.toString('hex'))
 
   const list = await fetch(`${baseUrl}/v2/admin/feedback`, { headers: { authorization: `Bearer ${downloadKey}` } })
@@ -67,6 +75,18 @@ test('accepts a guild report and keeps screenshots in private storage', async ()
   assert.match(stdout, /1 downloaded/)
   assert.match(await readFile(join(pullDirectory, receipt.id, 'report.md'), 'utf8'), /boss marker clips through the platform/)
   assert.equal(await readFile(join(pullDirectory, receipt.id, 'screenshot-1.png'), 'hex'), png.toString('hex'))
+})
+
+test('accepts a selected Battle.net character without the guild code', async () => {
+  const response = await fetch(`${baseUrl}/v2/feedback`, {
+    method: 'POST',
+    headers: { origin: 'https://midnight.asgard.website', cookie: authenticatedCookie, 'content-type': 'application/json' },
+    body: JSON.stringify({ message: 'Authenticated report.' }),
+  })
+  assert.equal(response.status, 201)
+  const receipt = await response.json()
+  const stored = JSON.parse(await readFile(join(service.storageDirectory, receipt.id, 'report.json'), 'utf8'))
+  assert.deepEqual(stored.identity, { accountId: 7, region: 'eu', character: { name: 'Raidtester', realmName: 'Silvermoon', realmSlug: 'silvermoon' } })
 })
 
 test('rejects missing origin, invalid access, oversized count, and unauthenticated downloads', async () => {

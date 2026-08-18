@@ -1,0 +1,33 @@
+[Unit]
+Description=Midnight Season 2 online API
+After=network.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+StateDirectory=midnight-online
+WorkingDirectory=/var/lib/midnight-online
+EnvironmentFile=/etc/midnight-online.env
+Environment=MIDNIGHT_ONLINE_HOST=127.0.0.1
+Environment=MIDNIGHT_ONLINE_PORT=8799
+Environment=MIDNIGHT_ONLINE_DATABASE=/var/lib/midnight-online/midnight.sqlite
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning /opt/midnight-online/server.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

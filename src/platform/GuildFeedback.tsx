@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent, type DragEvent, type FormEvent, type KeyboardEvent } from 'react'
+import { useOnline } from './online/OnlineContext'
 
 const FEEDBACK_API_URL = (import.meta.env.VITE_FEEDBACK_API_URL || 'https://api.asgard.website').replace(/\/$/, '')
 const CODE_STORAGE_KEY = 'midnight-s2-feedback-code'
@@ -21,6 +22,8 @@ function readDataUrl(file: File) {
 }
 
 export default function GuildFeedback({ context }: { context: FeedbackContext }) {
+  const { session } = useOnline()
+  const authenticatedFeedback = Boolean(session.authenticated && session.selectedCharacter)
   const [open, setOpen] = useState(false)
   const [guildCode, setGuildCode] = useState(() => sessionStorage.getItem(CODE_STORAGE_KEY) ?? '')
   const [message, setMessage] = useState('')
@@ -97,6 +100,7 @@ export default function GuildFeedback({ context }: { context: FeedbackContext })
     try {
       const response = await fetch(`${FEEDBACK_API_URL}/v2/feedback`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           guildCode,
@@ -114,7 +118,7 @@ export default function GuildFeedback({ context }: { context: FeedbackContext })
       })
       const result = await response.json().catch(() => ({})) as { id?: string; error?: string }
       if (!response.ok || !result.id) throw new Error(result.error ?? 'The report could not be sent.')
-      sessionStorage.setItem(CODE_STORAGE_KEY, guildCode)
+      if (!authenticatedFeedback) sessionStorage.setItem(CODE_STORAGE_KEY, guildCode)
       setStatus('sent')
       setNotice(`Report received · ${result.id}`)
       setMessage('')
@@ -145,10 +149,10 @@ export default function GuildFeedback({ context }: { context: FeedbackContext })
           <label>What happened?
             <textarea ref={messageField} required minLength={1} maxLength={4000} value={message} onChange={event => setMessage(event.target.value)} placeholder="Boss, mode, mechanic, what you expected…" />
           </label>
-          <label>Guild access code
+          {authenticatedFeedback ? <p className="guild-feedback-identity">Sending privately as <strong>{session.selectedCharacter?.name} · {session.selectedCharacter?.realmName}</strong>.</p> : <label>Guild access code
             <input type="password" required autoComplete="off" aria-label="Guild access code" value={guildCode} onChange={event => setGuildCode(event.target.value)} />
             <small>Remembered only in this browser tab after a successful report.</small>
-          </label>
+          </label>}
           <div className={`guild-feedback-attachments${dragActive ? ' dragging' : ''}`} role="group" aria-label="Screenshot attachments" onDragEnter={dragScreenshots} onDragOver={dragScreenshots} onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragActive(false) }} onDrop={dropScreenshots}>
             <div><strong>Screenshots</strong><span>{screenshots.length} / {MAX_SCREENSHOTS}</span></div>
             {screenshots.length > 0 && <ul>{screenshots.map((screenshot, index) => <li key={`${screenshot.name}-${index}`}>

@@ -14,7 +14,7 @@ test('uses the standalone Season 2 product identity', () => {
 
 test('ships only the standalone Season 2 application', () => {
   const main = read('src/main.tsx')
-  assert.match(main, /<StrictMode><Season2App \/><\/StrictMode>/)
+  assert.match(main, /<StrictMode><OnlineProvider><Season2App \/><\/OnlineProvider><\/StrictMode>/)
   assert.doesNotMatch(main, /import\.meta\.env\.DEV|\.\/App|legacyReference/)
   assert.doesNotMatch(read('src/Season2App.tsx'), /from '\.\/online'/)
 })

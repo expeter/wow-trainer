@@ -8,9 +8,9 @@ uncompressed artifact listing.
 
 | Boundary | Measured | Budget | Loading contract |
 | --- | ---: | ---: | --- |
-| Initial shell JavaScript | 74.50 KiB gzip | 87.89 KiB | Required by setup, including the `FR-098` reporter |
-| Initial shell CSS | 26.48 KiB gzip | 34.18 KiB | Required by setup, including the `FR-098` reporter |
-| Three.js renderer chunk | 147.36 KiB gzip | 170.90 KiB | Lazy; Train 3D only |
+| Initial shell JavaScript | 75.28 KiB gzip | 87.89 KiB | Required by setup, including feedback and the online provider |
+| Initial shell CSS | 27.88 KiB gzip | 34.18 KiB | Required by setup, including feedback and online panel styling |
+| Three.js renderer chunk | 147.38 KiB gzip | 170.90 KiB | Lazy; Train 3D only |
 | Lost Explorers raid plan | 1.76 MB source | Evidence asset | Painted only in Lost Explorers Learn 2D |
 | Sszorak raid plan | 2.42 MB source | Evidence asset | Painted only in Sszorak Learn 2D |
 | Twin Fangs raid plan | 2.39 MB source | Evidence asset | Painted only in Twin Fangs Learn 2D |
@@ -26,6 +26,10 @@ gzip to shell JavaScript and 0.94 KiB gzip to shell CSS while remaining below
 both accepted budgets. The feedback server and pull script do not ship in the
 static Pages artifact.
 
+`SPEC-028` and `FR-100`–`FR-102` keep Profile and Statistics in separate lazy
+chunks while the small session/attempt provider remains in the shell. The
+Node online service and SQLite store do not ship in the static Pages artifact.
+
 Runtime acceptance remains the existing local threshold of at least 30 FPS and
 p95 below 50 ms in the contract-room browser regression. Hosted software
 rendering retains its separately documented 10 FPS / 120 ms threshold.
@@ -35,9 +39,9 @@ removes generic floor decoration from custom arena silhouettes, preserves a
 visible keyboard focus and interactive role on the 3D canvas, contains arena
 painting, and records focused plus complete zero-retry browser duration.
 
-The 2026-08-18 acceptance run completed the focused environment slice in 26.4
-seconds (2 tests) and the complete suite in 3.0 minutes (22 tests), both with
-one worker and zero retries.
+The 2026-08-18 online-foundation acceptance run completed its final focused
+slice in 34.5 seconds (10 tests) and the complete suite in 3.0 minutes (25 tests), both
+with one worker and zero retries.
 
 Run the measurement after every production build. A budget failure requires a
 measured explanation or a loading/code-splitting correction; do not raise a

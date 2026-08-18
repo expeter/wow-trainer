@@ -120,6 +120,7 @@ function corsHeaders(request, origins) {
   if (!origin || !origins.has(origin)) return {}
   return {
     'access-control-allow-origin': origin,
+    'access-control-allow-credentials': 'true',
     'access-control-allow-methods': 'POST, GET, OPTIONS',
     'access-control-allow-headers': 'content-type, authorization',
     'access-control-max-age': '600',
@@ -153,6 +154,20 @@ export function createFeedbackServer(options = {}) {
   const downloadKeyHash = options.downloadKeyHash ?? process.env.MIDNIGHT_FEEDBACK_DOWNLOAD_KEY_SHA256
   const origins = new Set(options.allowedOrigins ?? (process.env.MIDNIGHT_FEEDBACK_ALLOWED_ORIGINS ?? 'https://midnight.asgard.website,http://127.0.0.1:5173,http://localhost:5173').split(',').map(item => item.trim()).filter(Boolean))
   const allowSubmission = createRateLimiter(options.rateLimit)
+  const onlineSessionVerifier = options.onlineSessionVerifier ?? (async request => {
+    const url = process.env.MIDNIGHT_ONLINE_INTERNAL_URL
+    const key = process.env.MIDNIGHT_ONLINE_INTERNAL_KEY
+    if (!url || !key || !request.headers.cookie) return { authenticated: false }
+    try {
+      const response = await fetch(url, {
+        headers: { authorization: `Bearer ${key}`, cookie: request.headers.cookie },
+        signal: AbortSignal.timeout(1_500),
+      })
+      return response.ok ? response.json() : { authenticated: false }
+    } catch {
+      return { authenticated: false }
+    }
+  })
 
   if (!/^[a-f0-9]{64}$/i.test(guildCodeHash ?? '') || !/^[a-f0-9]{64}$/i.test(downloadKeyHash ?? '')) {
     throw new Error('MIDNIGHT_FEEDBACK_GUILD_CODE_SHA256 and MIDNIGHT_FEEDBACK_DOWNLOAD_KEY_SHA256 must be SHA-256 hex digests.')
@@ -176,7 +191,17 @@ export function createFeedbackServer(options = {}) {
         if (!request.headers.origin || !origins.has(request.headers.origin)) return json(response, 403, { error: 'Origin is not allowed.' }, cors)
         if (!allowSubmission(remoteAddress(request))) return json(response, 429, { error: 'Too many reports. Please try again later.' }, cors)
         const body = await readJsonBody(request)
-        if (!secretMatches(body.guildCode, guildCodeHash)) return json(response, 403, { error: 'Guild access code is not valid.' }, cors)
+        const onlineIdentity = await onlineSessionVerifier(request)
+        const authenticatedIdentity = onlineIdentity?.authenticated && onlineIdentity?.character ? {
+          accountId: Number(onlineIdentity.accountId),
+          region: String(onlineIdentity.region ?? '').slice(0, 8),
+          character: {
+            name: String(onlineIdentity.character.name ?? '').slice(0, 80),
+            realmName: String(onlineIdentity.character.realmName ?? '').slice(0, 100),
+            realmSlug: String(onlineIdentity.character.realmSlug ?? '').slice(0, 100),
+          },
+        } : undefined
+        if (!authenticatedIdentity && !secretMatches(body.guildCode, guildCodeHash)) return json(response, 403, { error: 'Guild access code or a Battle.net character is required.' }, cors)
         const message = typeof body.message === 'string' ? body.message.trim() : ''
         if (!message || message.length > MAX_MESSAGE_LENGTH) return json(response, 400, { error: 'Describe the problem in 1–4000 characters.' }, cors)
         const screenshots = validateScreenshots(body.screenshots)
@@ -198,7 +223,7 @@ export function createFeedbackServer(options = {}) {
               sha256: createHash('sha256').update(screenshot.bytes).digest('hex'),
             })
           }
-          const report = { id, createdAt, message, context: safeContext(body.context), attachments }
+          const report = { id, createdAt, message, context: safeContext(body.context), identity: authenticatedIdentity ?? null, attachments }
           await writeFile(join(stagingDirectory, 'report.json'), `${JSON.stringify(report, null, 2)}\n`, { flag: 'wx', mode: 0o600 })
           await rename(stagingDirectory, reportDirectory)
         } catch (error) {

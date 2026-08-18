@@ -27,8 +27,8 @@ import of L’ura encounter code.
 | Stable failure review, recap and offline share/result identity | Partial: live corners and detailed terminal drill card extracted; recap/share pending | `CR-249`, `BUG-169`, `FR-080` |
 | Namespaced, schema-versioned local persistence | Extracted for settings, audio, and tactics | `FR-078`, `FR-079` |
 | Unit/component/focused browser/build delivery gates | Extracted and evolving | `CR-231`, `FR-072` |
-| Dedicated Pages workflow and production monitoring | Deliberately deferred | `FR-074` |
-| Online identity, public activity, achievements and rankings | Deliberately deferred to isolated `/v2` | `FR-073` |
+| Dedicated Pages workflow and production monitoring | Extracted | `FR-074` |
+| Online identity, public activity, achievements and rankings | Partial: optional Battle.net identity, anonymous/authenticated attempt activity, public aggregates, and maintainer detail are extracted to isolated `/v2`; achievements and rankings remain deferred | `SPEC-028`, `FR-073`, `FR-100`–`FR-102` |
 
 ## Final frozen-source review (`FR-087`)
 
@@ -47,15 +47,17 @@ represented precisely enough in the Season 2 backlog:
 The review also confirmed these mappings and exclusions:
 
 - Measured accessibility and optimization work remains in `CR-234`.
-- Attempt recap/share identity remains `FR-080`; planning and audio are extracted,
-  deployment remains `FR-074`, and all online activity/profile/ranking work
-  remains isolated under `FR-073` and `/v2`.
+- Attempt recap/share identity remains `FR-080`; planning, audio, deployment,
+  online activity, and the optional profile are extracted. Online authority
+  remains isolated under `FR-073` and `/v2`; achievements and rankings remain
+  deferred.
 - Configurable player movement speed is not retained: `SPEC-020` owns the fixed
   WoW-calibrated Train 3D yard model. A diagnostic time scale, if accepted,
   scales the one encounter clock rather than changing movement alone.
 - Permanent global combat actions, render-position-owned collision, L’ura
-  phase practice data, fake completion shortcuts, achievements, live activity,
-  `/v1`, and production deployment targets remain intentionally excluded.
+  phase practice data, fake completion shortcuts, achievements, rankings,
+  `/v1`, and inherited production deployment targets remain intentionally
+  excluded.
 
 This closes the audit only. Every discuss item still requires an explicit
 keep/drop decision before implementation.

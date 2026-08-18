@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import GuildFeedback from './GuildFeedback'
+import { OnlineProvider } from './online/OnlineContext'
 
 describe('guild feedback reporter', () => {
   beforeEach(() => {
@@ -73,5 +74,24 @@ describe('guild feedback reporter', () => {
     expect(await screen.findByText('dropped.jpg')).toBeVisible()
     expect(dropZone).not.toHaveClass('dragging')
     expect(screen.getByText('2 / 4')).toBeVisible()
+  })
+
+  it('uses a selected Battle.net character instead of asking for the guild code', async () => {
+    vi.mocked(fetch).mockImplementation(async input => {
+      const url = String(input)
+      if (url.endsWith('/v2/me')) return new Response(JSON.stringify({ authenticated: true, selectedCharacterId: 1, selectedCharacter: { id: 1, name: 'Raidtester', realmName: 'Silvermoon', realmSlug: 'silvermoon' }, characters: [], csrfToken: 'csrf' }), { status: 200 })
+      if (url.endsWith('/v2/events/page-view')) return new Response(JSON.stringify({ accepted: true }), { status: 202 })
+      return new Response(JSON.stringify({ id: 'FEEDBACK-20260818-120000-abcd1234' }), { status: 201 })
+    })
+    const user = userEvent.setup()
+    render(<OnlineProvider><GuildFeedback context={{ screen: 'setup' }} /></OnlineProvider>)
+    await user.click(screen.getByRole('button', { name: 'Report bug' }))
+    expect(await screen.findByText(/Sending privately as/)).toHaveTextContent('Raidtester · Silvermoon')
+    expect(screen.queryByLabelText('Guild access code')).not.toBeInTheDocument()
+    await user.type(screen.getByLabelText('What happened?'), 'Authenticated report.')
+    await user.click(screen.getByRole('button', { name: 'Send report' }))
+    const feedbackCall = vi.mocked(fetch).mock.calls.find(([input]) => String(input).endsWith('/v2/feedback'))
+    expect(feedbackCall?.[1]).toMatchObject({ credentials: 'include' })
+    expect(JSON.parse(String(feedbackCall?.[1]?.body)).guildCode).toBe('')
   })
 })

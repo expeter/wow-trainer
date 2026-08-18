@@ -1,14 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { stableReasonCode, useAttemptReporting } from './online/AttemptReporting'
 
-export default function RuntimeOutcomeOverlay({ resultKey, kind, reason, advice, onRetry, onExit }: {
+export default function RuntimeOutcomeOverlay({ resultKey, kind, reason, reasonCode, advice, onRetry, onExit }: {
   resultKey: string
   kind: 'wipe' | 'success'
   reason: string
+  reasonCode?: string
   advice: string
   onRetry: () => void
   onExit: () => void
 }) {
+  const attemptReporting = useAttemptReporting()
   const [dismissedKey, setDismissedKey] = useState<string>()
+  useEffect(() => {
+    attemptReporting.complete(kind === 'success' ? 'success' : 'failure', reasonCode ?? (kind === 'success' ? 'completed' : stableReasonCode(reason)), reason)
+  }, [attemptReporting, kind, reason, reasonCode, resultKey])
   if (dismissedKey === resultKey) return null
   return <section className={`runtime-outcome-card ${kind}`} role="dialog" aria-label={kind === 'wipe' ? 'Drill wipe summary' : 'Drill completion summary'}>
     <button type="button" className="runtime-outcome-dismiss" aria-label="Dismiss outcome summary" onClick={() => setDismissedKey(resultKey)}>−</button>

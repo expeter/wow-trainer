@@ -1,10 +1,10 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import Season2App from './Season2App'
 
 describe('Midnight Season 2 bootstrap shell', () => {
-  afterEach(cleanup)
-  beforeEach(() => localStorage.clear())
+  afterEach(() => { cleanup(); vi.restoreAllMocks() })
+  beforeEach(() => { localStorage.clear(); window.history.replaceState(null, '', '/') })
 
   it('keeps the established six-section shell vocabulary around the discovered first encounter', async () => {
     render(<Season2App />)
@@ -145,12 +145,21 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.queryByRole('button', { name: 'Boss health' })).not.toBeInTheDocument()
   })
 
-  it('keeps online features deferred and disconnected from the legacy service', () => {
+  it('shows public aggregate statistics without connecting to the legacy service', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async input => String(input).includes('/v2/statistics/summary') ? new Response(JSON.stringify({
+        generatedAt: '2026-08-18T12:00:00.000Z', pageViews: 14, pageViews7d: 9, attempts7d: 4,
+        started: 6, finished: 5, completed: 3, failed: 2, exited: 0, authenticated: 1,
+        modes: [{ modeId: 'learn2d', started: 4, completed: 2, failed: 1 }, { modeId: 'train3d', started: 2, completed: 1, failed: 1 }],
+        encounters: [{ encounterId: 'sszorak', encounterName: 'Sszorak', started: 6, completed: 3, failed: 2 }],
+      }), { status: 200, headers: { 'content-type': 'application/json' } }) : new Response(JSON.stringify({ version: '0.10.0' }), { status: 200 }))
     render(<Season2App />)
     fireEvent.click(screen.getByRole('button', { name: 'Statistics' }))
 
-    expect(screen.getByRole('heading', { name: 'Statistics are intentionally offline' })).toBeVisible()
-    expect(screen.getAllByText(/API \/v2/)).toHaveLength(2)
+    expect(await screen.findByRole('heading', { name: 'Season 2 usage statistics' })).toBeVisible()
+    expect(await screen.findByText('14')).toBeVisible()
+    expect(screen.getByText('Learn 2D')).toBeVisible()
+    expect(screen.getByText('Sszorak')).toBeVisible()
+    expect(screen.getByText(/not unique players/)).toBeVisible()
     expect(document.body.textContent).not.toContain('/v1/auth')
   })
 

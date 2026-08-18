@@ -63,6 +63,54 @@ test('Season 2 shell submits private guild feedback from setup and keeps the rep
   await expect(page.getByRole('dialog', { name: 'Report a problem' }).getByLabel('Guild access code')).toHaveValue('guild-code')
 })
 
+test('Season 2 shell exposes aggregate statistics at the statistics route', async ({ page }) => {
+  await page.route('https://api.asgard.website/v2/**', async route => {
+    const path = new URL(route.request().url()).pathname
+    if (path === '/v2/me') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ authenticated: false }) })
+    if (path === '/v2/events/page-view') return route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ accepted: true }) })
+    if (path === '/v2/statistics/summary') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+      generatedAt: '2026-08-18T12:00:00.000Z', pageViews: 28, pageViews7d: 12, attempts7d: 7,
+      started: 11, finished: 9, completed: 5, failed: 4, exited: 2, authenticated: 3,
+      modes: [{ modeId: 'learn2d', started: 7, completed: 4, failed: 2 }, { modeId: 'train3d', started: 4, completed: 1, failed: 2 }],
+      encounters: [{ encounterId: 'sszorak', encounterName: 'Sszorak', started: 6, completed: 3, failed: 2 }],
+    }) })
+    return route.fulfill({ status: 404, contentType: 'application/json', body: '{}' })
+  })
+  await page.goto('/statistics/')
+  await expect(page).toHaveURL(/\/statistics\/$/)
+  await expect(page.getByRole('heading', { name: 'Season 2 usage statistics' })).toBeVisible()
+  await expect(page.getByLabel('Usage totals')).toContainText('28')
+  await expect(page.getByText('Sszorak')).toBeVisible()
+  await expect(page.getByText(/not unique players/)).toBeVisible()
+})
+
+test('Season 2 shell reports a 2D run when the pull countdown begins', async ({ page }) => {
+  let attemptPayload: Record<string, unknown> | undefined
+  let outcomePayload: Record<string, unknown> | undefined
+  await page.route('https://api.asgard.website/v2/**', async route => {
+    const path = new URL(route.request().url()).pathname
+    if (path === '/v2/me') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ authenticated: false }) })
+    if (path === '/v2/events/page-view') return route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ accepted: true }) })
+    if (path === '/v2/attempts') {
+      attemptPayload = route.request().postDataJSON()
+      return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ attemptId: 'ATTEMPT-browser', reportToken: 'report-token', startedAt: new Date().toISOString(), attribution: 'anonymous' }) })
+    }
+    if (path === '/v2/attempts/ATTEMPT-browser/complete') {
+      outcomePayload = route.request().postDataJSON()
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ accepted: true }) })
+    }
+    return route.fulfill({ status: 404, contentType: 'application/json', body: '{}' })
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler 2D" }).click()
+  await page.getByRole('dialog', { name: "Nek'zali encounter setup" }).getByRole('button', { name: 'Start', exact: true }).click()
+  await expect.poll(() => attemptPayload).toBeTruthy()
+  expect(attemptPayload).toMatchObject({ encounterId: 'nekzali', encounterName: "Nek'zali the Soulcoiler", modeId: 'learn2d', scenarioKind: 'full-fight', difficulty: 'normal' })
+  await page.getByRole('button', { name: 'Exit', exact: true }).click()
+  await expect.poll(() => outcomePayload).toBeTruthy()
+  expect(outcomePayload).toMatchObject({ reportToken: 'report-token', result: 'exit', reasonCode: 'change-setup' })
+})
+
 test('persists a versioned tactic and independent audio channels locally', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Tactical plan' }).click()

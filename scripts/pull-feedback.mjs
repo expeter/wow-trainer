@@ -8,8 +8,11 @@ function yamlString(value) {
 
 function markdown(report) {
   const context = Object.entries(report.context ?? {}).map(([key, value]) => `- ${key}: ${yamlString(value)}`).join('\n') || '- none'
+  const identity = report.identity?.character
+    ? `- character: ${yamlString(`${report.identity.character.name} · ${report.identity.character.realmName}`)}\n- region: ${yamlString(report.identity.region)}`
+    : '- anonymous guild-code report'
   const attachments = report.attachments.map(item => `- [Open ${item.filename}](./${item.filename}) · original ${yamlString(item.originalName || item.filename)} · ${item.type} · ${item.bytes} bytes · sha256 ${item.sha256}`).join('\n') || '- none'
-  return `---\nsource: guild-feedback\nid: ${yamlString(report.id)}\ncreated_at: ${yamlString(report.createdAt)}\nstatus: untriaged\n---\n\n# ${report.id}\n\n## Report\n\n${report.message}\n\n## Context\n\n${context}\n\n## Screenshots\n\n${attachments}\n`
+  return `---\nsource: guild-feedback\nid: ${yamlString(report.id)}\ncreated_at: ${yamlString(report.createdAt)}\nstatus: untriaged\n---\n\n# ${report.id}\n\n## Report\n\n${report.message}\n\n## Private identity\n\n${identity}\n\n## Context\n\n${context}\n\n## Screenshots\n\n${attachments}\n`
 }
 
 async function downloadKey() {

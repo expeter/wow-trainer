@@ -17,15 +17,20 @@
   <main>
     <p><a href="./">← Back to Midnight Season 2 Trainer</a></p>
     <h1>Privacy</h1>
-    <p class="note">The trainer works without an account. It does not submit gameplay, profile, or ranking data automatically. Guild playtesters can explicitly send a feedback report.</p>
+    <p class="note">The trainer works without an account. It sends anonymous page-view and run counters so the maintainers can see which bosses and modes are being tested. Anonymous telemetry contains no persistent user, browser, device, IP-address, or user-agent identifier.</p>
 
     <h2>Services used</h2>
-    <p>GitHub Pages hosts the static files. There are no advertising, analytics, fingerprinting, login, leaderboard, or unrelated tracking services in this release.</p>
+    <p>GitHub Pages hosts the static files. The private Season 2 service counts page views, started runs, completions, terminal wipes, and explicit setup exits. Run records include boss, 2D/3D mode, scenario, trainer difficulty, result, duration, version, and build. They do not contain movement traces, exact positions, custom tactics, or an anonymous visitor identifier.</p>
+    <p>Public statistics are aggregates. Detailed recent events are available only to configured maintainer Battle.net accounts. Anonymous counts describe events and attempts, not unique players.</p>
     <p>Preferences such as key bindings, HUD layout, audio channels, and local tactics are stored only in your browser. Clearing site data removes them.</p>
+
+    <h2>Optional Battle.net identity</h2>
+    <p>You may connect Battle.net and select an imported WoW character. The service then stores the Battle.net account identifier, region, imported character roster, selected character, secure session, and the test events created while that session is valid. The selected character is visible only in the maintainer event queue and private feedback tooling; public statistics remain aggregated.</p>
+    <p>Login uses a secure, HTTP-only Season 2 session cookie. You can log out or delete the complete Season 2 online account from Profile. Deletion removes the account, sessions, imported characters, and attributed event records. Achievements, rankings, and leaderboard submissions are not enabled.</p>
 
     <h2>Guild feedback</h2>
     <p>The optional “Report bug” form sends the text and screenshots you choose, plus the current trainer version, page, encounter, mode, difficulty, browser user agent, and viewport size. Screenshots are stored as supplied and may contain names or other visible information, so review them before sending.</p>
-    <p>Reports are kept in private server storage for maintainer triage. They are not published to GitHub automatically and have no public read link. The shared guild access code is remembered only for the current browser tab after a successful report.</p>
+    <p>Reports are kept in private server storage for maintainer triage. They are not published to GitHub automatically and have no public read link. Anonymous testers use the shared guild access code, remembered only for the current browser tab after a successful report. A connected account with a selected WoW character may submit without that code; its server-verified character attribution is stored with the private report.</p>
 
     <h2>Source and contact</h2>
     <p>The trainer source is published in the <a href="https://github.com/expeter/wow-trainer">GitHub repository</a>. Guild playtest reports should use the private form; repository issues are public.</p>

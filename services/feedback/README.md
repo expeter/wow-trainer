@@ -59,6 +59,13 @@ manifest. Manually assign an `FR`, `CR`, or `BUG` in `docs/README.md` before
 implementation; raw guild reports remain ignored evidence rather than tracked
 instructions.
 
+When the Season 2 online service is enabled, configure
+`MIDNIGHT_ONLINE_INTERNAL_URL=http://127.0.0.1:8799/v2/internal/session` and
+`MIDNIGHT_ONLINE_INTERNAL_KEY`. A valid session with a selected Battle.net
+character may submit without the guild code; server-verified character
+attribution is stored privately with the report. Anonymous reports retain the
+existing guild-code path.
+
 Credential rotation means generating a new guild code and/or download token,
 updating their digests in `/etc/midnight-feedback.env`, restarting only
 `midnight-feedback.service`, and distributing the new guild code. Future

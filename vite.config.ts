@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { execFileSync } from 'node:child_process'
+import { copyFileSync, mkdirSync } from 'node:fs'
 import packageJson from './package.json' with { type: 'json' }
 
 const buildTime = new Date().toISOString()
@@ -33,6 +34,13 @@ export default defineConfig({
       },
       generateBundle() {
         this.emitFile({ type: 'asset', fileName: 'version.json', source: versionManifest })
+      },
+    },
+    {
+      name: 'midnight-season-2-statistics-entry',
+      closeBundle() {
+        mkdirSync('dist/statistics', { recursive: true })
+        copyFileSync('dist/index.html', 'dist/statistics/index.html')
       },
     },
   ],

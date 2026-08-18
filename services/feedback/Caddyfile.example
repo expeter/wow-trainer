@@ -8,6 +8,13 @@ api.asgard.website {
 		}
 	}
 
+	@midnight_online path /v2/auth/* /v2/me /v2/me/* /v2/events/* /v2/attempts /v2/attempts/* /v2/statistics /v2/statistics/*
+	handle @midnight_online {
+		reverse_proxy 127.0.0.1:8799 {
+			header_up X-Midnight-Client-IP {remote_host}
+		}
+	}
+
 	handle {
 		reverse_proxy 127.0.0.1:8787
 	}

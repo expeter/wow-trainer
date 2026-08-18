@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { CONTRACT_DEFAULT_PLAYER_SLOT, contractRaidRoster, contractSelectedMember, contractSlotLabel } from './contractRoom'
 import { RUNTIME_INPUT_CLEAR_EVENT } from './useRuntimePause'
+import { useAttemptReporting } from './online/AttemptReporting'
 
 export type ContractPullPhase = 'setup' | 'countdown' | 'active'
 
 export function useContractPullGate() {
+  const attemptReporting = useAttemptReporting()
   const [selectedSlotId, setSelectedSlotId] = useState(CONTRACT_DEFAULT_PLAYER_SLOT)
   const [phase, setPhase] = useState<ContractPullPhase>('setup')
   const [seconds, setSeconds] = useState(3)
@@ -26,7 +28,14 @@ export function useContractPullGate() {
     return () => window.clearInterval(timer)
   }, [phase])
 
-  const start = () => { window.dispatchEvent(new Event(RUNTIME_INPUT_CLEAR_EVENT)); setSeconds(3); phaseRef.current = 'countdown'; setPhase('countdown') }
+  const start = () => {
+    window.dispatchEvent(new Event(RUNTIME_INPUT_CLEAR_EVENT))
+    const member = contractSelectedMember(selectedSlotId)
+    attemptReporting.start({ roleId: member.role, rosterSlot: member.id })
+    setSeconds(3)
+    phaseRef.current = 'countdown'
+    setPhase('countdown')
+  }
   return { selectedSlotId, setSelectedSlotId, role: contractSelectedMember(selectedSlotId).role, phase, phaseRef, seconds, start, restart: start }
 }
 

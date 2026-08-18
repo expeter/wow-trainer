@@ -630,8 +630,9 @@ in immutable source history.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.
-- API `/v2` identity, public statistics, achievements, and rankings are later
-  milestones. `FR-098` is a narrow playtest-intake exception: the reporter is
+- API `/v2` identity and public statistics are implemented by `SPEC-028` and
+  `FR-100`–`FR-102`; achievements and rankings remain later milestones.
+  `FR-098` established the playtest reporter: it is
   explicit and available from setup and encounter runtimes; accepts 1–4000
   text characters plus at most four PNG, JPEG, or WebP screenshots of no more
   than 5 MiB each; and includes build/page/encounter diagnostics. Submission
@@ -640,8 +641,9 @@ in immutable source history.
   current testing cycle. The VPS stores reports outside the web root, exposes
   no public read route, and requires a separate read-only credential for local
   pull into ignored `.tmp/` evidence. Intake never creates GitHub issues or
-  changes the inherited `/v1` service. Battle.net identity may later replace
-  the shared-code check without changing the report contract.
+  changes the inherited `/v1` service. A selected, server-verified Battle.net
+  character now replaces the shared-code check; anonymous testers still use
+  the code without changing the report contract.
 - Screenshot file selection, clipboard-image paste, and drag/drop all enter the
   same attachment pipeline and therefore share preview/removal behavior, the
   four-file maximum, accepted image types, and per-file size limit.
@@ -898,3 +900,39 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - The contract room proves the base jump lifecycle. The Lost Explorers proves
   mushroom launch, wave clearance, and Mighty Thud knockback against the same
   capability.
+
+## SPEC-028 · Season 2 telemetry, identity, and private feedback
+
+- Anonymous telemetry requires no account and carries no durable anonymous
+  user, browser, device, IP-address, or user-agent identifier. Operational IP
+  processing is transient and used only for rate limiting. Public wording
+  describes attempts and page views rather than unique anonymous players.
+- The initial event vocabulary is `page_view`, `run_started`, `run_failed`,
+  `run_completed`, and `run_exited`. A run starts when the pull countdown
+  becomes active, not when setup is opened. Terminal outcomes are idempotent;
+  browser closure is never presented as a deliberate exit.
+- Attempt facts include the product/season, encounter ID and name snapshot,
+  `learn2d` or `train3d`, scenario and kind, trainer difficulty, timing profile,
+  selected role/roster slot where available, client version/build, duration,
+  result, and stable failure reason. They exclude custom plans, exact actor
+  positions, movement traces, screenshot contents, and free-form gameplay
+  logs.
+- Battle.net login is optional and reuses the existing provider client with a
+  separately registered `/v2` callback. Season 2 owns a distinct secure
+  session cookie and isolated account/character/session tables. A valid
+  selected character may label authenticated event rows; anonymous play never
+  invents or retains an identity.
+- Public statistics expose aggregate page views, attempts, outcomes, mode
+  split, and encounter breakdowns. Public responses do not expose event rows
+  or reconstruct an individual's activity. Detailed recent events are
+  restricted to configured maintainer Battle.net accounts.
+- Anonymous feedback retains the shared guild-code authorization. A valid
+  Season 2 session may replace that code and adds only server-verified account
+  and selected-character attribution. Feedback text and screenshots remain in
+  the existing private store and are readable only through maintainer tooling.
+- Browser-reported telemetry is product-usage evidence, not gameplay proof.
+  It cannot award achievements, enter rankings, change scoring, or alter a
+  leaderboard season. Those consumers require separately approved validation.
+- The Season 2 online service and feedback service remain isolated sidecars
+  behind path-specific Caddy routes. Neither imports, migrates, stops, or
+  deploys the inherited `/v1` service.

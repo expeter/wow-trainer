@@ -1,0 +1,30 @@
+# Keep the inherited /v1 proxy and the existing /v2/feedback handlers unchanged.
+handle /v2/auth/* {
+  reverse_proxy 127.0.0.1:8799 {
+    header_up X-Midnight-Client-IP {remote_host}
+  }
+}
+
+handle /v2/me* {
+  reverse_proxy 127.0.0.1:8799 {
+    header_up X-Midnight-Client-IP {remote_host}
+  }
+}
+
+handle /v2/events/* {
+  reverse_proxy 127.0.0.1:8799 {
+    header_up X-Midnight-Client-IP {remote_host}
+  }
+}
+
+handle /v2/attempts* {
+  reverse_proxy 127.0.0.1:8799 {
+    header_up X-Midnight-Client-IP {remote_host}
+  }
+}
+
+handle /v2/statistics* {
+  reverse_proxy 127.0.0.1:8799 {
+    header_up X-Midnight-Client-IP {remote_host}
+  }
+}

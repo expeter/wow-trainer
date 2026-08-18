@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added the Season 2 online foundation: anonymous page/attempt counters,
+  optional Battle.net identity and verified character selection, public
+  aggregate boss/mode statistics, a maintainer-only event queue, and
+  authenticated private feedback. Anonymous telemetry stores no durable user,
+  device, IP, or user-agent identity; achievements and rankings remain
+  deferred.
 - Added an `INFO` action beside each selected boss's 2D/3D training actions.
   It now leads with one ordered “what to do” instruction per mechanic, followed
   by phase-by-phase responsibilities for every encounter role; generated

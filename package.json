@@ -14,6 +14,8 @@
     "feedback:serve": "node services/feedback/server.mjs",
     "feedback:pull": "node scripts/pull-feedback.mjs",
     "test:feedback": "node --test services/feedback/server.test.mjs",
+    "online:serve": "node services/online/server.mjs",
+    "test:online": "node --test services/online/server.test.mjs",
     "test": "vitest run",
     "test:bootstrap": "node --test scripts/bootstrap-contract.test.mjs",
     "test:watch": "vitest",

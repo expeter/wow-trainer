@@ -155,16 +155,26 @@ searches without guessing unstable spell IDs. `CR-309` nests explicit,
 package-owned role responsibilities under every playable phase and makes
 incomplete responsibility matrices a package-validation failure.
 
-### M6 · Results, scoring, achievements, and API
+### M6 · Results and online foundation — current
 
 Goal: add result presentation and online services only after the offline trainer
 and encounter packages are stable.
 
-Open tickets:
+Active tickets:
 
 - `FR-080` — finish reusable offline recap and shareable result identity;
   scoring, achievements, rankings, and submission remain separate consumers.
-- `FR-073` — introduce API `/v2`, public statistics, achievements, and rankings.
+
+Completed foundation:
+
+- `SPEC-028`, `FR-100`, `FR-101`, `FR-102`, and `CR-310` — isolated `/v2`
+  identity, anonymous/authenticated attempt telemetry, public aggregates,
+  maintainer-only detail, profile controls, and authenticated feedback. Live
+  use still requires the documented Battle.net callback registration and VPS
+  deployment; neither changes the inherited `/v1` owner.
+
+`FR-073` is activated only for this identity/statistics foundation.
+Achievements, scoring, rankings, and leaderboard seasons remain deferred.
 
 Any change to scoring, achievement eligibility, accepted-run comparability, or
 rankings requires an explicit leaderboard-season decision. A SemVer release

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ComponentType, type SetStateAction } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState, type ComponentType, type SetStateAction } from 'react'
 import BuildStatus from './platform/BuildStatus'
 import CreatorCard from './platform/CreatorCard'
 import { contractRoomActions } from './platform/contractActions'
@@ -25,12 +25,24 @@ import {
 } from './platform/trainingSettings'
 import { PRODUCT } from './product'
 import { playTrainerCue, speakTrainerCue, useTrainerAudioSettings } from './platform/trainerAudio'
+import { AttemptReportingProvider, useAttemptReporting } from './platform/online/AttemptReporting'
 import './styles.css'
 import './styles/tokens.css'
 import './styles/season2.css'
 
+const ProfilePanel = lazy(() => import('./platform/online/ProfilePanel'))
+const StatisticsPanel = lazy(() => import('./platform/online/StatisticsPanel'))
+
 const tabs = ['Game settings', 'Keys & Mouse', 'HUD', 'Tactical plan', 'Audio', 'Statistics', 'Profile'] as const
 type SetupTab = typeof tabs[number]
+const tabHashes: Record<SetupTab, string> = {
+  'Game settings': 'game', 'Keys & Mouse': 'controls', HUD: 'hud', 'Tactical plan': 'tactics', Audio: 'audio', Statistics: 'statistics', Profile: 'profile',
+}
+const tabFromLocation = () => {
+  const hashTab = tabs.find(tab => tabHashes[tab] === window.location.hash.slice(1))
+  if (hashTab) return hashTab
+  return /^\/statistics\/?$/.test(window.location.pathname) ? 'Statistics' : 'Game settings'
+}
 const movementLabels: Record<MovementAction, string> = {
   forward: 'Forward',
   backward: 'Backward',
@@ -92,24 +104,54 @@ const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string
     body: 'Music, encounter sounds, and raid-lead speech are opt-in, persist independently, and remain synchronized with trainer pause.',
   },
   Statistics: {
-    eyebrow: 'LATER MILESTONE',
-    title: 'Statistics are intentionally offline',
-    body: 'API /v2, public statistics, achievements, and rankings are deferred until the offline trainer and Entombed Sentinels are stable.',
+    eyebrow: 'PLAYTEST ACTIVITY',
+    title: 'Season 2 usage statistics',
+    body: 'Anonymous counters show page views, boss attempts, 2D/3D usage, completions, and wipes. They count events rather than unique anonymous players.',
   },
   Profile: {
-    eyebrow: 'LATER MILESTONE',
-    title: 'Profiles are not connected yet',
-    body: 'Identity and account work will begin with the API /v2 milestone. This static release sends no encounter or profile data.',
+    eyebrow: 'OPTIONAL IDENTITY',
+    title: 'Battle.net test identity',
+    body: 'Training remains anonymous by default. Connect Battle.net only when you want private test events and feedback attributed to a selected WoW character.',
   },
 }
 
+interface ActiveRuntime {
+  mode: EncounterMode
+  scenarioId: string
+  scenarioKind: 'focused' | 'full-fight'
+  timingProfileId?: string
+  encounter: EncounterPackageV1
+  actions: readonly EncounterActionDefinition[]
+  Component: ComponentType<EncounterRuntimeProps>
+  development?: boolean
+}
+
+function ReportedRuntime({ active, settings, updateSettings, onClose }: { active: ActiveRuntime; settings: TrainingSettings; updateSettings: (update: SetStateAction<TrainingSettings>) => void; onClose: () => void }) {
+  const attemptReporting = useAttemptReporting()
+  const Runtime = active.Component
+  const exit = () => { attemptReporting.exit(); onClose() }
+  return <>
+    <Runtime
+      scenarioId={active.scenarioId}
+      trainingDifficulty={settings.difficulty}
+      keyBindings={runtimeKeyBindings(settings, active.mode)}
+      actions={bindEncounterActions(active.actions, runtimeKeyBindings(settings, active.mode))}
+      hudSettings={settings.hud}
+      cameraSettings={settings.camera}
+      onCameraSettingsChange={camera => updateSettings(current => ({ ...current, camera }))}
+      onExit={exit}
+    />
+    <GuildFeedback context={{ screen: 'runtime', encounterId: active.encounter.manifest.id, encounter: active.encounter.manifest.name, mode: active.mode, scenarioId: active.scenarioId, difficulty: settings.difficulty }} />
+  </>
+}
+
 export default function Season2App() {
-  const [activeTab, setActiveTab] = useState<SetupTab>('Game settings')
+  const [activeTab, setActiveTab] = useState<SetupTab>(() => tabFromLocation())
   const [catalogue, setCatalogue] = useState<EncounterCatalogue>()
   const [settings, setSettings] = useState<TrainingSettings>(() => loadTrainingSettings())
   const [rebinding, setRebinding] = useState<Rebinding>()
   const [runtimeLoading, setRuntimeLoading] = useState<EncounterMode>()
-  const [runtime, setRuntime] = useState<{ mode: EncounterMode; scenarioId: string; actions: readonly EncounterActionDefinition[]; Component: ComponentType<EncounterRuntimeProps> }>()
+  const [runtime, setRuntime] = useState<ActiveRuntime>()
   const [selectedEncounterId, setSelectedEncounterId] = useState('')
   const [infoEncounter, setInfoEncounter] = useState<EncounterPackageV1>()
   const [plannerEncounterId, setPlannerEncounterId] = useState('')
@@ -125,6 +167,18 @@ export default function Season2App() {
       if (active) setCatalogue(result)
     })
     return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    const onHashChange = () => setActiveTab(tabFromLocation())
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
+
+  const selectTab = useCallback((tab: SetupTab) => {
+    setActiveTab(tab)
+    const target = tab === 'Statistics' ? '/statistics/' : `/#${tabHashes[tab]}`
+    window.history.replaceState(null, '', target)
   }, [])
 
   const updateSettings = useCallback((update: SetStateAction<TrainingSettings>) => {
@@ -152,7 +206,7 @@ export default function Season2App() {
     if (!scenario) return
     setRuntimeLoading(mode)
     const module = await selectedEncounter.runtimeLoaders[mode]()
-    setRuntime({ mode, scenarioId: scenario.id, actions: selectedEncounter.actions, Component: module.default })
+    setRuntime({ mode, scenarioId: scenario.id, scenarioKind: scenario.kind, timingProfileId: scenario.timingProfileIds[0], encounter: selectedEncounter, actions: selectedEncounter.actions, Component: module.default })
     setRuntimeLoading(undefined)
   }
 
@@ -161,25 +215,16 @@ export default function Season2App() {
     const module = mode === 'learn2d'
       ? await import('./platform/learn2d/ContractRoom')
       : await import('./platform/train3d/ContractRoom')
-    setRuntime({ mode, scenarioId: 'platform-contract-room', actions: contractRoomActions, Component: module.default })
+    const contractEncounter = selectedEncounter ?? catalogue?.packages[0]
+    if (!contractEncounter) return
+    setRuntime({ mode, scenarioId: 'platform-contract-room', scenarioKind: 'focused', encounter: contractEncounter, actions: contractRoomActions, Component: module.default, development: true })
     setRuntimeLoading(undefined)
   }
 
   if (runtime) {
-    const Runtime = runtime.Component
-    return <>
-      <Runtime
-        scenarioId={runtime.scenarioId}
-        trainingDifficulty={settings.difficulty}
-        keyBindings={runtimeKeyBindings(settings, runtime.mode)}
-        actions={bindEncounterActions(runtime.actions, runtimeKeyBindings(settings, runtime.mode))}
-        hudSettings={settings.hud}
-        cameraSettings={settings.camera}
-        onCameraSettingsChange={camera => updateSettings(current => ({ ...current, camera }))}
-        onExit={() => setRuntime(undefined)}
-      />
-      <GuildFeedback context={{ screen: 'runtime', encounterId: selectedEncounter?.manifest.id, encounter: selectedEncounter?.manifest.name, mode: runtime.mode, scenarioId: runtime.scenarioId, difficulty: settings.difficulty }} />
-    </>
+    const content = <ReportedRuntime active={runtime} settings={settings} updateSettings={updateSettings} onClose={() => setRuntime(undefined)} />
+    if (runtime.development) return content
+    return <AttemptReportingProvider metadata={{ encounterId: runtime.encounter.manifest.id, encounterName: runtime.encounter.manifest.name, modeId: runtime.mode, scenarioId: runtime.scenarioId, scenarioKind: runtime.scenarioKind, difficulty: settings.difficulty, timingProfileId: runtime.timingProfileId }}>{content}</AttemptReportingProvider>
   }
 
   return <><BuildStatus /><main className="shell setup-shell season2-shell" id="setup-top">
@@ -204,7 +249,7 @@ export default function Season2App() {
         key={tab}
         className={activeTab === tab ? 'selected' : ''}
         aria-current={activeTab === tab ? 'page' : undefined}
-        onClick={() => setActiveTab(tab)}
+        onClick={() => selectTab(tab)}
       >{tab}</button>)}
     </nav>
 
@@ -327,7 +372,8 @@ export default function Season2App() {
           ['raidlead', 'Raid-lead speech', 'Browser speech announces the package-owned mechanic prompt.', 'raidleadVolume'],
         ] as const).map(([key, label, detail, volumeKey]) => <fieldset key={key}><legend>{label}</legend><label className="audio-channel-toggle"><input type="checkbox" checked={audio[key]} onChange={event => setAudio({ ...audio, [key]: event.target.checked })} /><span>Enable {label.toLowerCase()}<small>{detail}</small></span></label><label>Volume <strong>{Math.round(audio[volumeKey] * 100)}%</strong><input type="range" min="0" max="1" step=".05" value={audio[volumeKey]} onChange={event => setAudio({ ...audio, [volumeKey]: Number(event.target.value) })} /></label><button type="button" className="secondary" onClick={() => key === 'raidlead' ? speakTrainerCue('Raid lead ready', audio.raidleadVolume) : playTrainerCue(audio[key === 'music' ? 'musicVolume' : 'soundsVolume'], 'preview')}>Preview</button></fieldset>)}
       </div>}
-      {(activeTab === 'Statistics' || activeTab === 'Profile') && <p className="season2-boundary-note">This shell boundary remains intentionally offline until the API /v2 milestone.</p>}
+      {activeTab === 'Statistics' && catalogue && <Suspense fallback={<p className="season2-boundary-note">Loading play statistics…</p>}><StatisticsPanel encounters={catalogue.packages} /></Suspense>}
+      {activeTab === 'Profile' && <Suspense fallback={<p className="season2-boundary-note">Loading Battle.net profile…</p>}><ProfilePanel /></Suspense>}
     </section>
 
     <footer className="season2-footer">
