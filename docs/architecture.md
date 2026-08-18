@@ -46,9 +46,13 @@ defaults/tactics, and timing without provenance. Load failures become sorted
 development diagnostics instead of crashing the catalogue.
 
 The selected-boss `INFO` dialog is shell presentation over the discovered
-package's manifest, phases, abilities, and roles. It does not identify bosses
-by ID or encode a parallel tactic switch; an empty research package therefore
-renders an explicit unavailable state instead of fabricated mechanics.
+package's manifest, full-fight scenario steps, phases, abilities, and roles.
+Scenario steps pair in order with declared mechanics and are the primary
+player instruction. Ability definitions are a collapsed technical reference;
+Wowhead links are derived as PTR name searches and never become mechanic data
+or guessed spell IDs. The shell does not identify bosses by ID or encode a
+parallel tactic switch; an empty research package therefore renders an explicit
+unavailable state instead of fabricated mechanics.
 
 Entombed Sentinels remains the architecture-reference encounter. Its package owns
 the `ptr_2026-08-13` profile, tactic declarations, abstract 2D diagram arena,

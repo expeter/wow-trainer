@@ -28,8 +28,10 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   expect(await page.locator('html').evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(5, 10, 7)')
   await page.getByRole('button', { name: 'Read Entombed Sentinels tactics' }).click()
   const tactics = page.getByRole('dialog', { name: 'Entombed Sentinels' })
-  await expect(tactics).toContainText("Ula'tek's Dominance")
+  await expect(tactics).toContainText('Tanks keep the two Sentinels more than 40 yards apart')
   await expect(tactics).toContainText('Role responsibilities')
+  await tactics.getByText(/Spell reference/).click()
+  await expect(tactics.getByRole('link', { name: "Ula'tek's Dominance on Wowhead" })).toHaveAttribute('href', /wowhead\.com\/ptr\/search\?q=Ula(%27|')tek/)
   expect(await tactics.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(9, 21, 14)')
 })
 

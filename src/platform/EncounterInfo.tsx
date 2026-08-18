@@ -1,8 +1,17 @@
 import { useEffect } from 'react'
 import type { EncounterPackageV1 } from './encounters'
 
+export function wowheadSpellSearch(spellName: string) {
+  return `https://www.wowhead.com/ptr/search?q=${encodeURIComponent(spellName)}`
+}
+
 export default function EncounterInfo({ encounter, onClose }: { encounter: EncounterPackageV1; onClose: () => void }) {
-  const hasMaintainedTactics = encounter.phases.length > 0 || encounter.abilities.length > 0 || encounter.roles.length > 0
+  const tacticalScenario = encounter.learn2d.find(scenario => scenario.kind === 'full-fight' && scenario.status === 'ready')
+    ?? encounter.learn2d.find(scenario => scenario.status === 'ready')
+  const tacticalSteps = tacticalScenario?.steps ?? []
+  const scenarioAbilities = tacticalScenario?.abilityIds.map(id => encounter.abilities.find(ability => ability.id === id)).filter(ability => ability !== undefined) ?? []
+  const stepsMatchAbilities = tacticalSteps.length > 0 && tacticalSteps.length === scenarioAbilities.length
+  const hasMaintainedTactics = tacticalSteps.length > 0 || encounter.phases.length > 0 || encounter.roles.length > 0
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -22,18 +31,26 @@ export default function EncounterInfo({ encounter, onClose }: { encounter: Encou
         <strong>No maintained tactic breakdown yet.</strong>
         <p>This encounter remains research-only. The arena reference is catalogued, but mechanics and role responsibilities will stay unavailable until reliable encounter evidence exists.</p>
       </div> : <div className="encounter-info-sections">
+        {tacticalSteps.length > 0 && <section aria-labelledby="encounter-info-tactics">
+          <h3 id="encounter-info-tactics">What to do</h3>
+          <ol className="encounter-info-tactics">{tacticalSteps.map((instruction, index) => <li key={`${index}-${instruction}`}>
+            <strong>{stepsMatchAbilities ? scenarioAbilities[index]?.name : `Fight step ${index + 1}`}</strong>
+            <span>{instruction}</span>
+          </li>)}</ol>
+        </section>}
         {encounter.phases.length > 0 && <section aria-labelledby="encounter-info-flow">
           <h3 id="encounter-info-flow">Fight flow</h3>
           <ol>{encounter.phases.map(phase => <li key={phase.id}><strong>{phase.name}</strong><span>{phase.description}</span></li>)}</ol>
-        </section>}
-        {encounter.abilities.length > 0 && <section aria-labelledby="encounter-info-mechanics">
-          <h3 id="encounter-info-mechanics">Key mechanics</h3>
-          <dl>{encounter.abilities.map(ability => <div key={ability.id} data-severity={ability.severity}><dt>{ability.name}</dt><dd>{ability.description}</dd></div>)}</dl>
         </section>}
         {encounter.roles.length > 0 && <section aria-labelledby="encounter-info-roles">
           <h3 id="encounter-info-roles">Role responsibilities</h3>
           <div className="encounter-info-roles">{encounter.roles.map(role => <article key={role.id}><strong>{role.label}</strong><ul>{role.responsibilities.map(responsibility => <li key={responsibility}>{responsibility}</li>)}</ul></article>)}</div>
         </section>}
+        {encounter.abilities.length > 0 && <details className="encounter-info-reference">
+          <summary>Spell reference · {encounter.abilities.length}</summary>
+          <p>Technical spell descriptions are secondary to the instructions above.</p>
+          <dl>{encounter.abilities.map(ability => <div key={ability.id} data-severity={ability.severity}><dt>{ability.name}<a href={wowheadSpellSearch(ability.name)} target="_blank" rel="noreferrer" aria-label={`${ability.name} on Wowhead`}>Wowhead ↗</a></dt><dd>{ability.description}</dd></div>)}</dl>
+        </details>}
       </div>}
     </section>
   </div>

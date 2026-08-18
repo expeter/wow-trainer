@@ -13,6 +13,17 @@ describe('automatic encounter discovery', () => {
     ])
   })
 
+  it('gives every playable full fight one actionable instruction per declared mechanic', async () => {
+    const catalogue = await loadEncounterCatalogue()
+    const scenarios = catalogue.packages.flatMap(pkg => pkg.learn2d.filter(scenario => scenario.kind === 'full-fight' && scenario.status === 'ready'))
+
+    expect(scenarios).not.toHaveLength(0)
+    for (const scenario of scenarios) {
+      expect(scenario.steps).toHaveLength(scenario.abilityIds.length)
+      expect(scenario.steps.every(step => step.trim().length > 0)).toBe(true)
+    }
+  })
+
   it('excludes malformed packages and reports their source without crashing the catalogue', async () => {
     const catalogue = await loadEncounterCatalogue({
       '/encounters/valid/index.ts': async () => ({ default: sentinels }),

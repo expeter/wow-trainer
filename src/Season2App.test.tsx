@@ -37,9 +37,13 @@ describe('Midnight Season 2 bootstrap shell', () => {
     const selector = await screen.findByRole('navigation', { name: 'Boss fight selector' })
     fireEvent.click(screen.getByRole('button', { name: "Read Nek'zali the Soulcoiler tactics" }))
     const tactics = screen.getByRole('dialog', { name: "Nek'zali the Soulcoiler" })
+    const guidance = within(tactics).getByText('What to do').closest('section')!
+    expect(within(guidance).getByText('Soulcoil Well')).toBeVisible()
+    expect(within(guidance).getByText('Stay clear of the Well and stop spirits or adds from reaching it.')).toBeVisible()
     expect(within(tactics).getByText('Soulcoiler Initiation')).toBeVisible()
-    expect(within(tactics).getByText('Essence Rend')).toBeVisible()
     expect(within(tactics).getByText('Role responsibilities')).toBeVisible()
+    fireEvent.click(within(tactics).getByText('Spell reference · 13'))
+    expect(within(tactics).getByRole('link', { name: 'Essence Rend on Wowhead' })).toHaveAttribute('href', 'https://www.wowhead.com/ptr/search?q=Essence%20Rend')
     fireEvent.click(within(tactics).getByRole('button', { name: 'Close tactic breakdown' }))
 
     fireEvent.click(within(selector).getByRole('button', { name: /Ula'tek/ }))

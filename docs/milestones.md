@@ -149,6 +149,9 @@ sequence-number prominence without changing the accepted selector geometry.
 `CR-306` consolidates shell chrome around poison/ghost green tokens while
 preserving semantic encounter colors. `FR-099` adds package-derived fight
 tactics behind an `INFO` action and keeps research-only bosses explicit.
+`CR-307` makes the primary breakdown one actionable instruction per mechanic;
+`CR-308` keeps raw spell text secondary and adds external Wowhead PTR name
+searches without guessing unstable spell IDs.
 
 ### M6 · Results, scoring, achievements, and API
 

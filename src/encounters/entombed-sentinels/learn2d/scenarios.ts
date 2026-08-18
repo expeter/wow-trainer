@@ -33,6 +33,17 @@ export const learn2dScenarios = [
       'sentinels_unstable_miasma', 'sentinels_vitriolic_stasis', 'sentinels_helical_toxins',
       'sentinels_blighted_blood', 'sentinels_shifting_protovenom',
     ],
-    steps: ['Resolve assigned side mechanics.', 'Clear marked Protovenom before Stasis.', 'Match Helical Toxins.', 'Swap sides and repeat.'],
+    steps: [
+      'Tanks keep the two Sentinels more than 40 yards apart so Dominance never activates.',
+      'Stay with your assigned Acid or Blood side and track the accumulating side mark.',
+      'Assigned Acid players intercept Toxic Droplets before they explode.',
+      'Dodge the outgoing venom lanes, then move again for their delayed return path.',
+      'Switch to Venom Coagulation immediately and kill it before Contaminate completes.',
+      'The Blood group stacks for Miasma, then marked players carry the delayed pool to the edge.',
+      'At full energy, move to the Stasis meeting sector and prepare the toxin pairing puzzle.',
+      'Find the red/green partner whose combined toxin count equals four green and meet only that player.',
+      'A Blood healer dispels Blighted Blood after the carrier reaches the assigned safe drop location.',
+      'Protovenom partners meet in their assigned lane without touching unmarked or incorrect players.',
+    ],
   },
 ] as const satisfies readonly Learn2DScenario[]
