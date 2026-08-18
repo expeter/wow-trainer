@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- Replaced the flat boss picker with the supplied Venomous Abyss boss-order
+  path, including its two branches and correctly cropped local boss portraits;
+  the selected encounter now uses compact `2D`/`3D` launch actions.
+- Reworked tactical-plan assignment editing around single- and multi-player
+  marker selection, group dragging, and assignment drop targets instead of raw
+  comma-separated region/group fields. Import, Export, Save, and Reset now use
+  one compact control treatment without changing checked plan persistence.
+- Kept every Learn 2D raid-lead prompt outside clipped arena boards and changed
+  it from a solid-yellow block to the shared dark HUD surface with accessible
+  yellow accents.
+- Aligned Vashnik's fountain/add origins with the three visible raid-plan lanes,
+  constrained actors to the tapered room, and added explicit visible and
+  accessible circle meanings. Train 3D now renders the matching three-lane
+  chamber outline and central cavity on neutral stone without green fog.
+- Fixed the combined `npm run dev` workflow and explicit inbox commands to
+  launch Project Inbox from the current user's installed Codex skill directory
+  instead of the stale `/home/codex/.agents/skills` path.
 - Styled Season 2 text fields and select controls to match the shell instead of
   falling back to browser-default form chrome.
 - Promoted all five remaining-boss research specifications from the transient

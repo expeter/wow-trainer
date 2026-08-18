@@ -18,6 +18,10 @@ interface ThreeWorldRendererProps {
 
 const auraColors = { beneficial: 0x72e5c0, poison: 0x70dc87, danger: 0xe96f80, spectral: 0x9d83f2 } as const
 export const VISUAL_FLOOR_SCALE = 4
+export const VASHNIK_FLOOR_OUTLINE = [
+  [-17, -46], [17, -46], [21, -34], [22, -23], [38, -15], [38, 12], [34, 25], [23, 46],
+  [-23, 46], [-34, 25], [-38, 12], [-38, -15], [-22, -23], [-21, -34],
+] as const
 
 export function renderedFloorDimensions(arena: Train3DSnapshot['arena']) {
   return { width: arena.width * VISUAL_FLOOR_SCALE, depth: arena.depth * VISUAL_FLOOR_SCALE }
@@ -60,7 +64,7 @@ function arenaFloorDetails(arena: Train3DSnapshot['arena']) {
     const value = Math.sin((index + 1) * 91.733 + seed * 17.17) * 43758.5453
     return value - Math.floor(value)
   }
-  const count = arena.shape === 'circle' ? 54 : 76
+  const count = arena.theme.layout === 'three-fountain-plan' ? 0 : arena.shape === 'circle' ? 54 : 76
   for (let index = 0; index < count; index += 1) {
     const angle = unit(index * 7) * Math.PI * 2
     const radial = Math.sqrt(unit(index * 7 + 1))
@@ -93,6 +97,31 @@ function arenaFloorDetails(arena: Train3DSnapshot['arena']) {
       strip.position.set(x, .045, 0)
       group.add(strip)
     }
+  }
+  if (arena.theme.layout === 'three-fountain-plan') {
+    const laneDefinitions = [
+      { id: 'blood', origin: { x: 0, z: -36 }, color: arena.theme.blood || '#c04a5a' },
+      { id: 'flame', origin: { x: -31, z: 18 }, color: arena.theme.flame || '#e57c3f' },
+      { id: 'shadow', origin: { x: 31, z: 18 }, color: arena.theme.shadow || '#8468d4' },
+    ]
+    for (const lane of laneDefinitions) {
+      const length = Math.hypot(lane.origin.x, lane.origin.z)
+      const strip = new THREE.Mesh(new THREE.PlaneGeometry(length, 5.5), new THREE.MeshBasicMaterial({ color: lane.color, transparent: true, opacity: .15, side: THREE.DoubleSide, depthWrite: false }))
+      strip.name = `${lane.id}-fountain-lane`
+      strip.rotation.x = -Math.PI / 2
+      strip.rotation.z = -Math.atan2(-lane.origin.z, -lane.origin.x)
+      strip.position.set(lane.origin.x / 2, .045, lane.origin.z / 2)
+      group.add(strip)
+      const fountain = new THREE.Mesh(new THREE.RingGeometry(4.2, 5.1, 40), new THREE.MeshBasicMaterial({ color: lane.color, transparent: true, opacity: .82, side: THREE.DoubleSide, depthWrite: false }))
+      fountain.name = `${lane.id}-fountain-dais`
+      fountain.rotation.x = -Math.PI / 2
+      fountain.position.set(lane.origin.x, .07, lane.origin.z)
+      group.add(fountain)
+    }
+    const cavity = new THREE.Mesh(new THREE.CylinderGeometry(5.8, 6.7, .8, 48), new THREE.MeshStandardMaterial({ color: arena.theme.cavity || '#173a25', emissive: '#3a9b55', emissiveIntensity: .22, roughness: .42 }))
+    cavity.name = 'malignant-cavity-floor'
+    cavity.position.y = -.28
+    group.add(cavity)
   }
   return group
 }
@@ -338,9 +367,11 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     }
     const floorColor = new THREE.Color(arena.theme.floor?.startsWith('#') ? arena.theme.floor : '#18221b')
     const boundaryColor = new THREE.Color(arena.theme.boundary?.startsWith('#') ? arena.theme.boundary : '#7fa98d')
-    renderer.setClearColor(floorColor.clone().multiplyScalar(.24))
+    const noFog = arena.theme.fog === 'none'
+    renderer.setClearColor(noFog ? new THREE.Color('#07090a') : floorColor.clone().multiplyScalar(.24))
     const scene = new THREE.Scene()
-    scene.fog = new THREE.Fog(floorColor.clone().multiplyScalar(.24), 52, 110)
+    scene.fog = noFog ? null : new THREE.Fog(floorColor.clone().multiplyScalar(.24), 52, 110)
+    if (import.meta.env.DEV) canvas.dataset.arenaFog = noFog ? 'none' : 'distance'
     const camera = new THREE.PerspectiveCamera(58, 1, .1, 160)
     scene.add(new THREE.HemisphereLight(0xc5ffe1, 0x172018, 2.3))
     const light = new THREE.DirectionalLight(0xf1ffe5, 2.1)
@@ -348,8 +379,9 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     scene.add(light)
 
     const visualFloor = renderedFloorDimensions(arena)
+    const vashnikShape = new THREE.Shape(VASHNIK_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector2(x, -z)))
     const floor = new THREE.Mesh(
-      arena.shape === 'circle' ? new THREE.CircleGeometry(arena.width * VISUAL_FLOOR_SCALE / 2, 96) : new THREE.PlaneGeometry(visualFloor.width, visualFloor.depth),
+      arena.theme.layout === 'three-fountain-plan' ? new THREE.ShapeGeometry(vashnikShape) : arena.shape === 'circle' ? new THREE.CircleGeometry(arena.width * VISUAL_FLOOR_SCALE / 2, 96) : new THREE.PlaneGeometry(visualFloor.width, visualFloor.depth),
       new THREE.MeshStandardMaterial({ color: floorColor, roughness: .9 }),
     )
     floor.rotation.x = -Math.PI / 2
@@ -372,7 +404,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         corridor.position.y = .045
         scene.add(corridor)
       }
-    } else {
+    } else if (arena.theme.layout !== 'three-fountain-plan') {
       for (const radius of [10, 22, 34, 44]) {
         const ring = new THREE.Mesh(new THREE.RingGeometry(radius - .08, radius + .08, 72), new THREE.MeshBasicMaterial({ color: boundaryColor, side: THREE.DoubleSide, transparent: true, opacity: radius === 44 ? .48 : .15 }))
         ring.rotation.x = -Math.PI / 2
@@ -391,7 +423,9 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         }
       }
     }
-    const boundaryPoints = arena.shape === 'circle'
+    const boundaryPoints = arena.theme.layout === 'three-fountain-plan'
+      ? VASHNIK_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector3(x, .055, z))
+      : arena.shape === 'circle'
       ? Array.from({ length: 96 }, (_, index) => { const angle = index * Math.PI * 2 / 96; return new THREE.Vector3(Math.cos(angle) * arena.width / 2, .055, Math.sin(angle) * arena.depth / 2) })
       : [
           new THREE.Vector3(-arena.width / 2, .055, -arena.depth / 2),

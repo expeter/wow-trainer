@@ -597,16 +597,17 @@ in immutable source history.
   use shared snapshot/renderer vocabulary, are explicitly non-mechanical, and
   do not appear in the real Sentinels lesson unless an encounter later declares
   actual marker semantics.
-- Setup presents automatically discovered packages as a compact four-column
-  desktop encounter matrix. Each card contains one reusable square identity,
-  title, short description, and direct Learn 2D/Train 3D actions; planned
-  actions say Coming soon. The complete eight-boss catalogue fits in two rows
-  when its setup panel is in view. Setup must not duplicate the selected
-  encounter in a separate oversized banner or invent playable mechanics for
-  catalogue-only packages.
-- Tactical plans use a versioned package schema. Package fields and abstract
-  arena regions drive draggable assignment markers and editable values; plans
-  validate required and known fields before local save. JSON import must match
+- Setup presents automatically discovered packages as the compact ordered
+  Venomous Abyss path: Nek'zali; the Sentinels/Lost Explorers branch; the
+  Vashnik/Sszorak branch; then Twin Fangs, Coiled Altar, and Ula'tek. Each
+  selectable stage uses the reviewed user-supplied local portrait crop and
+  visibly distinguishes playable from planned packages. Setup must not invent
+  playable mechanics for catalogue-only packages.
+- Tactical plans use a versioned package schema. Players are assigned through
+  direct marker selection, modifier-key multi-selection, group dragging, and
+  visible assignment drop targets instead of raw comma-separated region/group
+  inputs. Plans validate required and known fields before local save. JSON
+  import must match
   the current product format, encounter ID, and schema version. Export contains
   only the selected plan. No Season 1 storage key or tactic is migrated.
 - HUD settings show the same draggable arena-layout frame used by Train 3D,
@@ -734,10 +735,11 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - Shared HUD capability means common state and action semantics, not identical
   screen geometry. Train 3D uses its configurable WoW-like frames; Learn 2D
   keeps actor-attached health, cast, aura, and mechanic visuals appropriate to
-  its tactical projection plus a conspicuous high-contrast yellow raid-lead
-  telegraph fixed to the arena's top-left. Train 3D uses that same treatment at
-  the configured mechanic-HUD anchor. Both show the active mechanic and next
-  event; DOM presence without visually recognizable presentation is not enough.
+  its tactical projection plus a conspicuous dark raid-lead panel with yellow
+  border/text accents fixed to the viewport's top-left outside the clipped
+  board. Train 3D uses that same treatment at the configured mechanic-HUD
+  anchor. Both show the active mechanic and next event; DOM presence without
+  visually recognizable presentation is not enough.
 - Soak, avoid, spread, assignment, and occupancy visuals retain the existing
   shared behavior: filled shapes request player/NPC entry, satisfied shapes
   become outlines, harmful shapes remain visibly hazardous, and guidance may
@@ -831,8 +833,11 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
 - Game settings presents the automatically discovered boss catalogue as one
   compact selector followed by one selected-encounter summary. It does not
   expand every encounter into a full launch card or require a long page scroll.
-- The selected encounter summary owns its Learn 2D and Train 3D launch actions,
-  readiness, and concise encounter description. Planned encounters stay
+- The selector communicates the accepted branching raid order and uses the
+  reviewed supplied portraits as correctly cropped local identity art. The
+  selected encounter summary owns compact player-facing `2D` and `3D` launch
+  actions, readiness, and concise encounter description; internal runtime IDs
+  remain `learn2d` and `train3d`. Planned encounters stay
   selectable and clearly unavailable without pretending that a runtime exists.
 - Trainer difficulty is a separate compact two-by-two Test, Easy, Normal, Hard
   control. It changes assistance and failure tolerance only, never encounter
@@ -842,8 +847,9 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   boss or phase below it.
 - Each planner map contains the actual package-declared raid players, bosses,
   and relevant encounter actors. These markers use stable IDs and draggable
-  percentage positions; assignment-field labels are editor controls, not fake
-  arena actors.
+  percentage positions. A selected group moves as one while retaining relative
+  spacing and can be dropped on a package assignment target; raw region/group
+  text inputs are not exposed and assignment labels are not fake arena actors.
 - Planner positions persist independently by encounter and phase. Save, reset,
   validation, and checked JSON import/export cover both assignments and phase
   layouts, reject cross-encounter/schema data, and retain a safe migration from

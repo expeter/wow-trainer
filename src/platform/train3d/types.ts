@@ -42,6 +42,9 @@ export interface ActorSnapshot {
 
 export interface EffectSnapshot {
   id: string
+  /** Player-facing meaning for accessible and contextual coaching. */
+  label?: string
+  intent?: 'avoid' | 'soak' | 'objective' | 'path'
   kind: 'pulse' | 'projectile' | 'cosmetic-projectile' | 'projectile-impact' | 'ground-harmful' | 'ground-soak' | 'ground-spread' | 'ground-objective' | 'lane' | 'arrow' | 'dome'
   position: WorldPoint
   target?: WorldPoint

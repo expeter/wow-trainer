@@ -16,16 +16,16 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(within(navigation).getByRole('button', { name: 'Tactical plan' })).toBeVisible()
   })
 
-  it('presents Learn 2D and Train 3D as separate launchable runtimes', async () => {
+  it('presents 2D and 3D as separate launchable runtimes', async () => {
     render(<Season2App />)
 
     const selector = await screen.findByRole('navigation', { name: 'Boss fight selector' })
     fireEvent.click(within(selector).getByRole('button', { name: /Entombed Sentinels/ }))
     const sentinels = screen.getByRole('heading', { name: 'Entombed Sentinels' }).closest('article')!
-    expect(within(sentinels).getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toHaveTextContent('Learn 2D')
-    expect(within(sentinels).getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toHaveTextContent('Train 3D')
-    expect(screen.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: 'Launch Entombed Sentinels Train 3D' })).toBeEnabled()
+    expect(within(sentinels).getByRole('button', { name: 'Launch Entombed Sentinels 2D' })).toHaveTextContent('2D')
+    expect(within(sentinels).getByRole('button', { name: 'Launch Entombed Sentinels 3D' })).toHaveTextContent('3D')
+    expect(screen.getByRole('button', { name: 'Launch Entombed Sentinels 2D' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Launch Entombed Sentinels 3D' })).toBeEnabled()
     const catalogue = screen.getByLabelText('Encounter catalogue')
     expect(within(catalogue).getByRole('heading', { name: 'Entombed Sentinels' })).toBeVisible()
     expect(within(catalogue).getByRole('navigation', { name: 'Boss fight selector' })).toBeVisible()
@@ -35,11 +35,27 @@ describe('Midnight Season 2 bootstrap shell', () => {
     render(<Season2App />)
     const selector = await screen.findByRole('navigation', { name: 'Boss fight selector' })
     expect(within(selector).getAllByRole('button')).toHaveLength(8)
+    expect(within(selector).getByText('Boss order')).toBeVisible()
+    expect(selector.querySelectorAll('[data-boss-portrait]')).toHaveLength(8)
+    expect(within(selector).getByRole('button', { name: /Entombed Sentinels/ })).toHaveAttribute('data-path-stage', 'branch-one-upper')
+    expect(within(selector).getByRole('button', { name: /The Lost Explorers/ })).toHaveAttribute('data-path-stage', 'branch-one-lower')
+    expect(within(selector).getByRole('button', { name: /The Twin Fangs/ })).toHaveAttribute('data-path-stage', 'convergence')
     expect(document.querySelectorAll('.season2-selected-encounter h3')).toHaveLength(1)
 
     fireEvent.click(within(selector).getByRole('button', { name: /Vashnik the Malignant/ }))
     expect(screen.getByRole('heading', { name: 'Vashnik the Malignant' })).toBeVisible()
-    expect(screen.getByRole('button', { name: /Vashnik the Malignant.*coming soon in Learn 2D/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Launch Vashnik the Malignant 2D' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Launch Vashnik the Malignant 3D' })).toBeEnabled()
+  })
+
+  it('loads the reconciled Vashnik Learn 2D full fight', async () => {
+    render(<Season2App />)
+    const selector = await screen.findByRole('navigation', { name: 'Boss fight selector' })
+    fireEvent.click(within(selector).getByRole('button', { name: /Vashnik the Malignant/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Launch Vashnik the Malignant 2D' }))
+    expect(await screen.findByRole('heading', { name: 'Vashnik the Malignant full fight' })).toBeVisible()
+    expect(screen.getByLabelText('Vashnik three-fountain raid-plan training arena')).toBeVisible()
+    expect(screen.getByRole('dialog', { name: 'Vashnik encounter setup' })).toHaveTextContent('Flame + Shadow, Shadow + Blood, Blood + Flame')
   })
 
   it('loads the single Sentinels Learn 2D full fight', async () => {
@@ -47,7 +63,7 @@ describe('Midnight Season 2 bootstrap shell', () => {
     const selector = await screen.findByRole('navigation', { name: 'Boss fight selector' })
     fireEvent.click(within(selector).getByRole('button', { name: /Entombed Sentinels/ }))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Launch Entombed Sentinels 2D' }))
     expect(await screen.findByRole('heading', { name: 'Entombed Sentinels full fight' })).toBeVisible()
     expect(screen.getByLabelText('Entombed Sentinels raid-plan training arena')).toBeVisible()
     expect(screen.getByRole('dialog', { name: 'Entombed Sentinels encounter setup' })).toHaveTextContent('Protovenom pairing occurs before Stasis')
@@ -86,7 +102,7 @@ describe('Midnight Season 2 bootstrap shell', () => {
     expect(screen.getByLabelText('Build information')).toBeVisible()
     const selector = await screen.findByRole('navigation', { name: 'Boss fight selector' })
     fireEvent.click(within(selector).getByRole('button', { name: /Entombed Sentinels/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'Launch Entombed Sentinels Learn 2D' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Launch Entombed Sentinels 2D' }))
     expect(await screen.findByRole('heading', { name: 'Entombed Sentinels full fight' })).toBeVisible()
     expect(screen.queryByLabelText('Build information')).not.toBeInTheDocument()
     expect(screen.getByRole('complementary', { name: 'Recent failures' })).toHaveTextContent('No failures yet')

@@ -26,8 +26,8 @@ test('preserves the setup shell around automatically discovered package runtimes
   for (const label of ['Game settings', 'Keys & Mouse', 'HUD', 'Tactical plan', 'Audio', 'Statistics', 'Profile']) {
     assert.match(shell, new RegExp(`'${label.replace('&', '\\&')}'`))
   }
-  assert.match(shell, /'Learn 2D'/)
-  assert.match(shell, /'Train 3D'/)
+  assert.match(shell, /mode === 'learn2d' \? '2D' : '3D'/)
+  assert.match(shell, /\(\['learn2d', 'train3d'\] as EncounterMode\[\]\)/)
   assert.match(shell, /loadEncounterCatalogue/)
   assert.match(shell, /selectedEncounter\.runtimeLoaders\[mode\]/)
   assert.match(shell, /import\.meta\.env\.DEV && <article className="season2-contract-room-card">/)
@@ -53,6 +53,14 @@ test('keeps focused browser tests audited and trainer-only', () => {
   assert.match(wrapper, /exec npm run test:e2e/)
   assert.match(playwright, /node node_modules\/vite\/bin\/vite\.js --host 127\.0\.0\.1/)
   assert.doesNotMatch(playwright, /npm run dev --/)
+})
+
+test('resolves Project Inbox from the current Codex home instead of a stale agent home', () => {
+  const scripts = JSON.parse(read('package.json')).scripts
+  for (const name of ['dev:inbox', 'inbox', 'inbox:list']) {
+    assert.match(scripts[name], /\$HOME\/\.codex\/skills\/project-inbox\/scripts\/project-inbox\.mjs/)
+    assert.doesNotMatch(scripts[name], /\/home\/codex\/\.agents/)
+  }
 })
 
 test('records the ordered migration boundary', () => {

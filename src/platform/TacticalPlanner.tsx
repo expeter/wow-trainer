@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
-import type { EncounterPackageV1, TacticPreset } from './encounters'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import type { EncounterPackageV1, TacticFieldDefinition, TacticPreset } from './encounters'
 
 interface SavedTacticV1 {
   format: 'midnight-season-2-tactic'
@@ -19,6 +19,11 @@ export interface SavedTacticV2 {
 const storageKey = (encounterId: string) => `midnight-s2:tactic:v2:${encounterId}`
 const legacyStorageKey = (encounterId: string) => `midnight-s2:tactic:v1:${encounterId}`
 const clamp = (value: number) => Math.max(4, Math.min(96, value))
+
+export function assignmentFromSelection(kind: TacticFieldDefinition['kind'], selectedActorIds: readonly string[]): string | readonly string[] {
+  if (kind === 'player' && selectedActorIds.length === 1) return selectedActorIds[0]
+  return [...selectedActorIds]
+}
 
 function defaultLayouts(pkg: EncounterPackageV1) {
   return Object.fromEntries((pkg.tacticSchema.planner?.maps ?? []).map(map => [map.id, { ...map.placements }]))
@@ -89,11 +94,15 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
   const [activeMapId, setActiveMapId] = useState(() => planner?.maps[0]?.id ?? '')
   const [message, setMessage] = useState('Package preset loaded')
   const [dragging, setDragging] = useState<string | null>(null)
+  const [selectedActorIds, setSelectedActorIds] = useState<readonly string[]>([])
+  const importRef = useRef<HTMLInputElement>(null)
+  const dragRef = useRef<{ ids: readonly string[]; startX: number; startY: number; positions: Readonly<Record<string, { x: number; y: number }>>; moved: boolean } | undefined>(undefined)
 
   useEffect(() => {
     setSaved(loadTactic(encounter))
     setActiveMapId(encounter.tacticSchema.planner?.maps[0]?.id ?? '')
     setMessage('Package preset loaded')
+    setSelectedActorIds([])
   }, [encounter])
 
   const errors = useMemo(() => encounter.tacticSchema.fields.flatMap(field => {
@@ -104,9 +113,12 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
   const actors = new Map(planner?.actors.map(actor => [actor.id, actor]))
   const arena = encounter.learn2d.find(scenario => scenario.arena.id === activeMap?.arenaId)?.arena ?? encounter.learn2d[0]?.arena
 
-  function updateAssignment(id: string, original: string | readonly string[], value: string) {
-    const next = Array.isArray(original) ? value.split(',').map(item => item.trim()).filter(Boolean) : value
-    setSaved(current => ({ ...current, tactic: { ...current.tactic, assignments: { ...current.tactic.assignments, [id]: next } } }))
+  const selectedPlayers = selectedActorIds.filter(id => actors.get(id)?.kind === 'player')
+  function assignSelection(field: TacticFieldDefinition, actorIds = selectedPlayers) {
+    if (actorIds.length === 0) { setMessage('Select one or more raid markers before assigning'); return }
+    if (field.kind === 'player' && actorIds.length !== 1) { setMessage(`${field.label} accepts exactly one player`); return }
+    setSaved(current => ({ ...current, tactic: { ...current.tactic, assignments: { ...current.tactic.assignments, [field.id]: assignmentFromSelection(field.kind, actorIds) } } }))
+    setMessage(`${actorIds.length} player${actorIds.length === 1 ? '' : 's'} assigned to ${field.label}`)
   }
   function save() {
     if (errors.length) { setMessage('Resolve required assignments before saving'); return }
@@ -145,15 +157,39 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
   function beginDrag(id: string, event: ReactPointerEvent) {
     event.preventDefault()
     event.currentTarget.setPointerCapture?.(event.pointerId)
+    const actor = actors.get(id)
+    const additive = event.shiftKey || event.ctrlKey || event.metaKey
+    let ids = actor?.kind === 'player' && selectedActorIds.includes(id) ? selectedActorIds : [id]
+    if (actor?.kind === 'player' && additive) {
+      ids = selectedActorIds.includes(id) ? selectedActorIds.filter(actorId => actorId !== id) : [...selectedActorIds, id]
+      setSelectedActorIds(ids)
+      if (!ids.includes(id)) return
+    } else if (actor?.kind === 'player' && !selectedActorIds.includes(id)) setSelectedActorIds([id])
+    const positions = Object.fromEntries(ids.map(actorId => [actorId, saved.layouts[activeMapId]?.[actorId] ?? activeMap?.placements[actorId] ?? { x: 50, y: 50 }]))
+    dragRef.current = { ids, startX: event.clientX, startY: event.clientY, positions, moved: false }
     setDragging(id)
   }
   function moveActor(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!dragging || !activeMapId) return
+    if (!dragging || !activeMapId || !dragRef.current) return
     const bounds = event.currentTarget.getBoundingClientRect()
-    setSaved(current => ({ ...current, layouts: { ...current.layouts, [activeMapId]: { ...current.layouts[activeMapId], [dragging]: {
-      x: clamp(((event.clientX - bounds.left) / bounds.width) * 100),
-      y: clamp(((event.clientY - bounds.top) / bounds.height) * 100),
-    } } } }))
+    const deltaX = (event.clientX - dragRef.current.startX) / bounds.width * 100
+    const deltaY = (event.clientY - dragRef.current.startY) / bounds.height * 100
+    if (Math.hypot(event.clientX - dragRef.current.startX, event.clientY - dragRef.current.startY) > 2) dragRef.current.moved = true
+    const moved = Object.fromEntries(dragRef.current.ids.map(id => [id, { x: clamp(dragRef.current!.positions[id].x + deltaX), y: clamp(dragRef.current!.positions[id].y + deltaY) }]))
+    setSaved(current => ({ ...current, layouts: { ...current.layouts, [activeMapId]: { ...current.layouts[activeMapId], ...moved } } }))
+  }
+  function finishDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current
+    if (!drag) return
+    const target = document.elementFromPoint?.(event.clientX, event.clientY)?.closest<HTMLElement>('[data-assignment-id]')
+    const field = target ? encounter.tacticSchema.fields.find(candidate => candidate.id === target.dataset.assignmentId) : undefined
+    const playerIds = drag.ids.filter(id => actors.get(id)?.kind === 'player')
+    if (field && playerIds.length > 0) {
+      setSaved(current => ({ ...current, layouts: { ...current.layouts, [activeMapId]: { ...current.layouts[activeMapId], ...drag.positions } } }))
+      assignSelection(field, playerIds)
+    }
+    dragRef.current = undefined
+    setDragging(null)
   }
 
   if (!planner || !activeMap) return <p className="tactic-message error">This encounter has no package-owned planner maps yet.</p>
@@ -162,27 +198,39 @@ export default function TacticalPlanner({ encounter }: { encounter: EncounterPac
     <div className="tactical-planner-toolbar">
       <label>Plan name<input value={saved.tactic.name} onChange={event => setSaved(current => ({ ...current, tactic: { ...current.tactic, name: event.target.value } }))} /></label>
       <span>Schema v{encounter.tacticSchema.version} · {encounter.manifest.name}</span>
-      <button type="button" onClick={save}>Save</button><button type="button" className="secondary" onClick={download}>Export</button>
-      <label className="tactic-import">Import<input type="file" accept="application/json" onChange={event => void importFile(event)} /></label>
-      <button type="button" className="secondary" onClick={reset}>Reset</button>
+      <button type="button" className="tactical-toolbar-action" onClick={save}>Save</button><button type="button" className="tactical-toolbar-action secondary" onClick={download}>Export</button>
+      <button type="button" className="tactical-toolbar-action secondary" onClick={() => importRef.current?.click()}>Import</button><input ref={importRef} className="tactic-file-input" type="file" accept="application/json" aria-label="Import tactical plan file" onChange={event => void importFile(event)} />
+      <button type="button" className="tactical-toolbar-action secondary" onClick={reset}>Reset</button>
     </div>
     <nav className="tactical-phase-tabs" aria-label={`${encounter.manifest.name} planner phases`}>
-      {planner.maps.map(map => <button type="button" key={map.id} className={map.id === activeMap.id ? 'selected' : ''} aria-pressed={map.id === activeMap.id} onClick={() => { setDragging(null); setActiveMapId(map.id) }}>{map.label}</button>)}
+      {planner.maps.map(map => <button type="button" key={map.id} className={map.id === activeMap.id ? 'selected' : ''} aria-pressed={map.id === activeMap.id} onClick={() => { setDragging(null); setSelectedActorIds([]); setActiveMapId(map.id) }}>{map.label}</button>)}
     </nav>
     <div className="tactical-planner-layout">
-      <div className={`tactical-board ${activeMap.shape ?? 'rectangle'}`} aria-label={`${encounter.manifest.name} ${activeMap.label} draggable raid plan`} onPointerMove={moveActor} onPointerUp={() => setDragging(null)} onPointerCancel={() => setDragging(null)} onPointerLeave={() => setDragging(null)} style={activeMap.backgroundImage ? { backgroundImage: `linear-gradient(rgba(4, 9, 8, .42), rgba(4, 9, 8, .64)), url(${activeMap.backgroundImage})` } : undefined}>
+      <div className={`tactical-board ${activeMap.shape ?? 'rectangle'}${dragging ? ' dragging' : ''}`} aria-label={`${encounter.manifest.name} ${activeMap.label} draggable raid plan`} onPointerMove={moveActor} onPointerUp={finishDrag} onPointerCancel={() => { dragRef.current = undefined; setDragging(null) }} style={activeMap.backgroundImage ? { backgroundImage: `linear-gradient(rgba(4, 9, 8, .42), rgba(4, 9, 8, .64)), url(${activeMap.backgroundImage})` } : undefined}>
         <strong>{activeMap.label} · {arena?.label ?? encounter.manifest.name}</strong>
         {arena?.regions.map(region => <span className="tactical-region" key={region.id} style={{ left: `${region.x}%`, top: `${region.y}%` }}>{region.label}</span>)}
         {activeMap.actorIds.map(actorId => {
           const actor = actors.get(actorId)
           const point = saved.layouts[activeMap.id]?.[actorId] ?? activeMap.placements[actorId] ?? { x: 50, y: 50 }
           if (!actor) return null
-          return <button type="button" className={`tactical-actor ${actor.kind} ${actor.role ?? ''}`} key={actor.id} style={{ left: `${point.x}%`, top: `${point.y}%`, '--actor-color': actor.color } as CSSProperties} onPointerDown={event => beginDrag(actor.id, event)} aria-label={`Move ${actor.label} in ${activeMap.label}`} title={actor.kind === 'player' ? `${actor.label} · ${actor.role}` : actor.label}>{actor.label}</button>
+          const selected = selectedActorIds.includes(actor.id)
+          return <button type="button" className={`tactical-actor ${actor.kind} ${actor.role ?? ''}${selected ? ' selected' : ''}`} key={actor.id} style={{ left: `${point.x}%`, top: `${point.y}%`, '--actor-color': actor.color } as CSSProperties} onPointerDown={event => beginDrag(actor.id, event)} aria-pressed={actor.kind === 'player' ? selected : undefined} aria-label={`Move ${actor.label} in ${activeMap.label}`} title={actor.kind === 'player' ? `${actor.label} · ${actor.role}` : actor.label}>{actor.label}</button>
         })}
       </div>
       <div className="tactical-fields">
-        <p className="tactical-roster-key"><span>Raid markers</span><small><i className="tank" /> tanks · <i className="healer" /> healers · <i className="melee" /> melee · <i className="ranged" /> ranged</small></p>
-        {encounter.tacticSchema.fields.map(field => { const value = saved.tactic.assignments[field.id] ?? ''; return <label key={field.id}><span>{field.label}{field.required ? ' *' : ''}</span><input value={Array.isArray(value) ? value.join(', ') : value} onChange={event => updateAssignment(field.id, value, event.target.value)} /><small>{field.kind} · comma-separate groups and pairs</small></label> })}
+        <div className="tactical-roster-key"><span>Raid marker selection</span><small>Click a player; Shift, Ctrl, or ⌘-click to build a group. Drag any selected marker to move the group or drop it on an assignment.</small><div>{(['tank', 'healer', 'melee', 'ranged'] as const).map(role => <button type="button" key={role} onClick={() => setSelectedActorIds(activeMap.actorIds.filter(id => actors.get(id)?.role === role))}>{role}s</button>)}<button type="button" onClick={() => setSelectedActorIds([])}>Clear</button></div></div>
+        <div className="tactical-assignment-targets" aria-label="Player assignment drop targets">
+          {encounter.tacticSchema.fields.filter(field => field.kind !== 'region').map(field => {
+            const value = saved.tactic.assignments[field.id]
+            const values = Array.isArray(value) ? value : value ? [value] : []
+            return <section key={field.id} data-assignment-id={field.id} className="tactical-assignment-target">
+              <header><span>{field.label}{field.required ? ' *' : ''}</span><small>{field.kind}</small></header>
+              <p>{values.length ? values.map(item => actors.get(item)?.label ?? item).join(' · ') : 'Drop selected player markers here'}</p>
+              <div><button type="button" disabled={selectedPlayers.length === 0} onClick={() => assignSelection(field)}>Assign selected ({selectedPlayers.length})</button><button type="button" className="secondary" onClick={() => setSaved(current => ({ ...current, tactic: { ...current.tactic, assignments: { ...current.tactic.assignments, [field.id]: [] } } }))}>Clear</button></div>
+            </section>
+          })}
+        </div>
+        <p className="tactical-region-note">Region responsibilities are represented by the players' positions on the arena instead of raw text fields.</p>
       </div>
     </div>
     <p className={errors.length ? 'tactic-message error' : 'tactic-message'} role="status">{errors[0] ?? message}</p>

@@ -82,13 +82,26 @@
 .season2-panel { min-height: 300px; }
 .season2-shell .setup-tabs { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .season2-game-settings { display: grid; gap: 14px; }
-.season2-boss-selector { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; padding: 7px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: rgba(7, 13, 17, .82); }
-.season2-boss-selector button { position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr); grid-template-rows: auto auto; gap: 2px 8px; min-width: 0; min-height: 54px; padding: 7px 8px; align-items: center; text-align: left; background: transparent; }
+.season2-boss-selector { position: relative; display: grid; grid-template-columns: repeat(6, minmax(104px, 1fr)); grid-template-rows: auto repeat(2, minmax(58px, auto)); gap: 8px 18px; overflow-x: auto; padding: 9px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: radial-gradient(circle at 12% 50%, rgba(93, 132, 86, .12), transparent 30%), rgba(7, 13, 17, .88); }
+.season2-boss-path-heading { position: sticky; z-index: 3; left: 0; grid-column: 1 / -1; display: flex; gap: 8px; align-items: baseline; color: var(--s2-color-muted); font: 8px var(--s2-font-mono); letter-spacing: .1em; text-transform: uppercase; }
+.season2-boss-path-heading strong { color: var(--s2-color-accent); font-size: 10px; }
+.season2-boss-selector button { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); grid-template-rows: auto auto; gap: 2px 8px; min-width: 104px; min-height: 58px; padding: 7px 8px; align-items: center; text-align: left; background: rgba(7, 13, 17, .82); }
+.season2-boss-selector button[data-path-stage='opening'] { grid-column: 1; grid-row: 2 / span 2; }
+.season2-boss-selector button[data-path-stage='branch-one-upper'] { grid-column: 2; grid-row: 2; }
+.season2-boss-selector button[data-path-stage='branch-one-lower'] { grid-column: 2; grid-row: 3; }
+.season2-boss-selector button[data-path-stage='branch-two-upper'] { grid-column: 3; grid-row: 2; }
+.season2-boss-selector button[data-path-stage='branch-two-lower'] { grid-column: 3; grid-row: 3; }
+.season2-boss-selector button[data-path-stage='convergence'] { grid-column: 4; grid-row: 2 / span 2; }
+.season2-boss-selector button[data-path-stage='penultimate'] { grid-column: 5; grid-row: 2 / span 2; }
+.season2-boss-selector button[data-path-stage='finale'] { grid-column: 6; grid-row: 2 / span 2; }
+.season2-boss-selector button[data-path-stage='opening'], .season2-boss-selector button[data-path-stage='convergence'], .season2-boss-selector button[data-path-stage='penultimate'], .season2-boss-selector button[data-path-stage='finale'] { align-self: center; min-height: 72px; height: 72px; }
+.season2-boss-selector button::after { content: ''; position: absolute; z-index: -1; left: 100%; top: 50%; width: 20px; border-top: 1px solid color-mix(in srgb, var(--s2-color-accent) 40%, var(--s2-color-border)); pointer-events: none; }
+.season2-boss-selector button[data-path-stage='finale']::after { content: none; }
 .season2-boss-selector button > span:not(.encounter-icon) { position: absolute; top: 4px; right: 5px; color: var(--s2-color-muted); font: 8px var(--s2-font-mono); opacity: .55; }
-.season2-boss-selector .encounter-icon { grid-row: 1 / span 2; width: 34px; height: 34px; font-size: 11px; }
+.season2-boss-selector .encounter-icon { grid-row: 1 / span 2; width: 40px; height: 40px; font-size: 11px; }
 .season2-boss-selector strong { display: -webkit-box; min-width: 0; overflow: hidden; font-size: 11px; line-height: 1.15; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .season2-boss-selector small { color: var(--s2-color-muted); font: 8px var(--s2-font-mono); text-transform: uppercase; }
-.season2-boss-selector button.planned { opacity: .64; }
+.season2-boss-selector button.planned { opacity: .72; }
 .season2-boss-selector button.selected { opacity: 1; border-color: var(--s2-color-accent); background: linear-gradient(135deg, var(--s2-color-accent-soft), rgba(12, 23, 23, .9)); }
 .season2-selected-setup { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 12px; align-items: stretch; }
 .season2-selected-encounter { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, .55fr); gap: 8px 18px; padding: 16px 18px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: radial-gradient(circle at 10% 10%, var(--s2-color-accent-soft), transparent 38%), var(--s2-color-surface); }
@@ -96,8 +109,8 @@
 .season2-selected-encounter > header span { color: var(--s2-color-accent); font: 9px var(--s2-font-mono); text-transform: uppercase; }
 .season2-selected-encounter h3 { margin: 3px 0 0; font-size: 21px; }
 .season2-selected-encounter > p { grid-column: 1; margin: 2px 0 0; color: var(--s2-color-muted); font-size: 12px; line-height: 1.45; }
-.season2-selected-encounter .season2-encounter-actions { grid-column: 2; grid-row: 1 / span 2; align-self: stretch; }
-.season2-selected-encounter .season2-encounter-actions button { min-height: 62px; }
+.season2-selected-encounter .season2-encounter-actions { grid-column: 2; grid-row: 1 / span 2; align-self: center; width: min(210px, 100%); justify-self: end; }
+.season2-selected-encounter .season2-encounter-actions button { min-height: 48px; padding: 7px 5px; }
 .season2-training-difficulty { display: grid; align-self: start; align-content: start; gap: 9px; min-width: 0; min-height: 0; padding: 13px 15px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); background: rgba(8, 15, 20, .72); }
 .season2-training-difficulty legend { padding: 0 6px; color: var(--s2-color-accent); font: 10px var(--s2-font-mono); text-transform: uppercase; }
 .season2-training-difficulty p { margin: 0; color: var(--s2-color-muted); font-size: 12px; }
@@ -115,6 +128,7 @@
 .season2-encounter-card h3 { margin: 0; font-size: 18px; line-height: 1.05; }
 .season2-encounter-card > p, .season2-contract-room-card p, .season2-boundary-note { display: -webkit-box; overflow: hidden; margin: 0; color: var(--s2-color-muted); font-size: 11px; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .encounter-icon { display: grid; flex: 0 0 42px; width: 42px; height: 42px; overflow: hidden; place-items: center; border: 1px solid color-mix(in srgb, var(--s2-color-accent) 55%, var(--s2-color-border)); border-radius: 7px; color: var(--s2-color-accent); background: radial-gradient(circle at 35% 28%, var(--s2-color-accent-soft), transparent 58%), #0a1214; font: 700 14px var(--s2-font-display); letter-spacing: .04em; }
+.encounter-icon.boss-portrait { background-color: #090d0f; background-repeat: no-repeat; filter: saturate(.88) contrast(1.08); box-shadow: inset 0 0 10px rgba(0, 0, 0, .34); }
 .encounter-icon img { width: 100%; height: 100%; object-fit: cover; }
 .season2-encounter-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .season2-encounter-actions button { display: grid; min-width: 0; padding: 8px 5px; place-items: center; font-size: 11px; line-height: 1.05; }
@@ -215,30 +229,40 @@
 .tactical-planner-toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) auto repeat(4, auto); gap: 8px; align-items: end; }
 .tactical-planner-toolbar > label { display: grid; gap: 5px; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
 .tactical-planner-toolbar > span { align-self: center; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); }
+.tactical-toolbar-action { min-width: 70px; min-height: 36px; padding: 8px 12px; font: 10px/1 var(--s2-font-mono); text-align: center; }
+.tactic-file-input { display: none; }
 .tactical-phase-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); background: rgba(7,13,10,.66); }
 .tactical-phase-tabs button { min-width: 120px; padding: 8px 12px; background: transparent; font-size: 11px; }
 .tactical-phase-tabs button.selected { color: #11150d; background: var(--s2-color-accent); }
-.tactic-import { position: relative; display: grid !important; min-height: 36px; padding: 8px 12px; place-items: center; overflow: hidden; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); color: var(--s2-color-text) !important; cursor: pointer; }
-.tactic-import input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .tactical-planner-layout { display: grid; grid-template-columns: minmax(420px, 1.25fr) minmax(300px, .75fr); gap: 12px; }
 .tactical-board { position: relative; min-height: 480px; overflow: hidden; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: repeating-linear-gradient(35deg, rgba(151,173,135,.025) 0 2px, transparent 2px 18px), radial-gradient(circle at 50% 50%, rgba(88,130,80,.2), transparent 42%), #0a100d; background-position: center; background-size: cover; box-shadow: inset 0 0 70px rgba(0,0,0,.6); touch-action: none; }
 .tactical-board > strong { position: absolute; left: 14px; top: 12px; color: var(--s2-color-muted); font: 10px var(--s2-font-mono); text-transform: uppercase; }
 .tactical-region { position: absolute; transform: translate(-50%, -50%); padding: 5px 7px; border: 1px dashed rgba(134,227,111,.3); border-radius: 50%; color: rgba(244,241,230,.48); font: 9px var(--s2-font-mono); }
 .tactical-actor { position: absolute; z-index: 3; display: grid; width: 25px; height: 25px; min-height: 0; transform: translate(-50%, -50%); padding: 0; place-items: center; border: 2px solid rgba(255,255,255,.72); border-radius: 50%; color: #08100e; background: var(--actor-color); box-shadow: 0 0 0 2px rgba(0,0,0,.55), 0 3px 8px rgba(0,0,0,.48); font: 700 8px var(--s2-font-mono); cursor: grab; touch-action: none; }
 .tactical-actor:active { cursor: grabbing; }
+.tactical-actor.selected { z-index: 5; border-color: #fff8bd; box-shadow: 0 0 0 3px #f3d871, 0 0 18px rgba(243,216,113,.72); }
 .tactical-actor.boss, .tactical-actor.add { width: auto; min-width: 54px; height: 29px; padding: 0 8px; border-color: color-mix(in srgb, var(--actor-color) 72%, white); border-radius: 999px; color: #fff; background: color-mix(in srgb, var(--actor-color) 62%, #190e16); font-size: 8px; }
 .tactical-actor.add { min-width: 48px; border-style: dashed; }
-.tactical-fields { max-height: 480px; overflow: auto; display: grid; gap: 8px; padding-right: 5px; }
-.tactical-fields label { display: grid; gap: 4px; padding: 9px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); background: rgba(8,14,10,.68); }
+.tactical-fields { max-height: 480px; overflow: auto; display: grid; align-content: start; gap: 8px; padding-right: 5px; }
 .tactical-fields span { color: var(--s2-color-text); font-size: 11px; }
 .tactical-fields small { color: var(--s2-color-muted); font: 8px var(--s2-font-mono); }
 .tactical-roster-key { display: grid; gap: 5px; margin: 0; padding: 9px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); }
 .tactical-roster-key small { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.tactical-roster-key > div { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.tactical-roster-key button { padding: 5px 7px; font: 8px var(--s2-font-mono); text-transform: capitalize; }
 .tactical-roster-key i { width: 8px; height: 8px; margin-left: 5px; border-radius: 50%; background: var(--key-color); }
 .tactical-roster-key i.tank { --key-color: #78a7ff; }
 .tactical-roster-key i.healer { --key-color: #71dd99; }
 .tactical-roster-key i.melee { --key-color: #f0a46b; }
 .tactical-roster-key i.ranged { --key-color: #b697ef; }
+.tactical-assignment-targets { display: grid; gap: 7px; }
+.tactical-assignment-target { display: grid; gap: 6px; padding: 9px; border: 1px dashed color-mix(in srgb, var(--s2-color-accent) 42%, var(--s2-color-border)); border-radius: var(--s2-radius-control); background: rgba(8,14,10,.68); transition: border-color .15s ease, background .15s ease; }
+.tactical-board.dragging + .tactical-fields .tactical-assignment-target { border-color: var(--s2-color-accent); background: color-mix(in srgb, var(--s2-color-accent) 8%, rgba(8,14,10,.82)); }
+.tactical-assignment-target header { display: flex; max-width: none; justify-content: space-between; gap: 8px; }
+.tactical-assignment-target p { margin: 0; color: var(--s2-color-muted); font: 9px/1.4 var(--s2-font-mono); overflow-wrap: anywhere; }
+.tactical-assignment-target > div { display: grid; grid-template-columns: 1fr auto; gap: 5px; }
+.tactical-assignment-target button { padding: 6px 8px; font-size: 9px; }
+.tactical-region-note { margin: 0; padding: 8px 9px; border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-control); color: var(--s2-color-muted); background: rgba(7,13,17,.58); font: 8px/1.45 var(--s2-font-mono); }
 .tactic-message { margin: 0; color: var(--s2-color-accent); font: 10px var(--s2-font-mono); }
 .tactic-message.error { color: var(--s2-color-danger); }
 .season2-audio-settings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -403,10 +427,18 @@
 .contract-lab-drawer p { margin: 0 0 9px; color: var(--s2-color-muted); font-size: 11px; line-height: 1.5; }
 .contract-lab-drawer p:last-child { margin-bottom: 0; color: var(--s2-color-accent); font: 9px var(--s2-font-mono); }
 .arena-training-hud { position: absolute; z-index: 12; inset: 0; overflow: hidden; pointer-events: none; }
-.learn2d-raidlead-telegraph { position: absolute; z-index: 20; left: 14px; top: 14px; display: grid; width: min(270px, 42%); padding: 9px 11px; border: 2px solid #ffe78a; border-radius: 7px; color: #171208; background: rgba(243, 216, 113, .96); box-shadow: 0 4px 20px rgba(0, 0, 0, .62), 0 0 20px rgba(243, 216, 113, .2); pointer-events: none; }
-.learn2d-raidlead-telegraph small { color: #5d4700; font: 800 8px var(--s2-font-mono); letter-spacing: .14em; text-transform: uppercase; }
+.learn2d-raidlead-telegraph { position: absolute; z-index: 20; left: 14px; top: 14px; display: grid; width: min(270px, 42%); padding: 9px 11px; border: 2px solid #e5cd70; border-radius: 7px; color: #fff4bd; background: rgba(5, 9, 13, .94); box-shadow: 0 4px 20px rgba(0, 0, 0, .72), 0 0 20px rgba(243, 216, 113, .16); pointer-events: none; }
+.learn2d-raidlead-telegraph small { color: #e5cd70; font: 800 8px var(--s2-font-mono); letter-spacing: .14em; text-transform: uppercase; }
 .learn2d-raidlead-telegraph strong { margin-top: 2px; font-size: 12px; line-height: 1.25; }
-.learn2d-raidlead-telegraph span { margin-top: 4px; color: #493700; font: 800 9px var(--s2-font-mono); }
+.learn2d-raidlead-telegraph span { margin-top: 4px; color: #d9c982; font: 800 9px var(--s2-font-mono); }
+.vashnik-effect-legend { position: absolute; z-index: 20; top: 14px; right: 14px; display: grid; width: min(300px, 44%); gap: 5px; padding: 8px 10px; border: 1px solid rgba(216,198,128,.68); border-radius: 7px; color: var(--s2-color-text); background: rgba(5,9,13,.92); box-shadow: 0 4px 20px rgba(0,0,0,.66); pointer-events: none; }
+.vashnik-effect-legend p { display: grid; grid-template-columns: 9px auto 1fr; gap: 6px; align-items: baseline; margin: 0; font: 8px/1.35 var(--s2-font-mono); }
+.vashnik-effect-legend i { width: 8px; height: 8px; border: 2px solid #f07c48; border-radius: 50%; }
+.vashnik-effect-legend i.path { border-color: #c95769; box-shadow: 7px 0 0 -2px #856fd1, 14px 0 0 -2px #ef7b42; }
+.vashnik-effect-legend i.soak { border-color: #8ae86e; background: rgba(138,232,110,.28); }
+.vashnik-effect-legend i.objective { border-color: #efffb3; }
+.vashnik-effect-legend strong { color: #f1dd8d; white-space: nowrap; }
+.vashnik-effect-legend span { color: #bdc7bd; }
 .nekzali-2d-enemy.unavailable { filter: grayscale(.7); opacity: .62; outline: 2px double #9bb4c2; outline-offset: 4px; }
 .arena-training-hud > div { position: absolute; transform: translate(-50%, -50%); color: var(--s2-color-text); background: rgba(5, 9, 14, .9); box-shadow: 0 3px 14px rgba(0, 0, 0, .48); }
 .arena-training-hud > .arena-hud-mechanic { display: grid; justify-items: center; width: min(380px, 44%); padding: 8px 12px; border: 2px solid #f3d871; border-radius: 7px; color: #fff4bd; background: rgba(5, 9, 13, .94); box-shadow: 0 4px 20px rgba(0, 0, 0, .72), 0 0 18px rgba(243, 216, 113, .18); text-align: center; }
@@ -510,10 +542,17 @@
 .sentinels-2d-board .sentinel-energy { position: absolute; top: calc(100% + 12px); width: 62px; height: 4px; overflow: hidden; border-radius: 3px; background: #30270a; }
 .sentinels-2d-board .sentinel-energy b { display: block; height: 100%; background: linear-gradient(90deg, #94700f, #f2d14d); }
 .sentinels-2d-board .toxin-icons { position: absolute; top: -9px; left: 50%; transform: translate(-50%, -100%); }
+.vashnik-viewport { background: radial-gradient(circle at center, rgba(77, 177, 91, .18), transparent 36%), #08120c; }
+.learn2d-arena-frame .vashnik-2d-board { width: min(100cqw, calc(100cqh * 1.777)); height: min(100cqh, calc(100cqw / 1.777)); aspect-ratio: 2008 / 1130; }
+.vashnik-2d-board { background-image: linear-gradient(rgba(5, 13, 7, .16), rgba(5, 13, 7, .3)), var(--vashnik-plan); background-position: center; background-size: 100% 100%; box-shadow: inset 0 0 55px rgba(3, 12, 6, .8); }
+.vashnik-2d-board::before { inset: 3%; border-color: rgba(117, 214, 132, .38); box-shadow: inset 0 0 28px rgba(79, 184, 96, .15); }
+.vashnik-runtime .learn2d-character { width: 38px; height: 38px; }
+.vashnik-runtime .learn2d-controls { justify-content: flex-start; }
+.vashnik-runtime .learn2d-controls button { width: auto; padding: 7px 10px; }
 @media (max-width: 760px) {
   .season2-hero-row { grid-template-columns: 1fr; }
   .season2-shell .setup-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .season2-boss-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .season2-boss-selector { grid-template-columns: repeat(6, 104px); }
   .season2-selected-setup, .season2-selected-encounter { grid-template-columns: 1fr; }
   .season2-selected-encounter .season2-encounter-actions { grid-column: 1; grid-row: auto; }
   .season2-settings-grid, .season2-hud-settings, .training-runtime-layout { grid-template-columns: 1fr; }

@@ -51,12 +51,22 @@ const learn2dMovementActions: Learn2DMovementAction[] = ['forward', 'backward', 
 const train3dMovementActions: MovementAction[] = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight']
 const sharedActions: SharedTrainingAction[] = ['pause', 'mainAbility', 'taunt', 'healthPot', 'shield', 'dispel', 'interrupt']
 type Rebinding = { scope: TrainingBindingScope; action: TrainingAction }
+const bossPathStage: Readonly<Record<string, string>> = {
+  nekzali: 'opening',
+  'entombed-sentinels': 'branch-one-upper',
+  'the-lost-explorers': 'branch-one-lower',
+  vashnik: 'branch-two-upper',
+  sszorak: 'branch-two-lower',
+  'the-twin-fangs': 'convergence',
+  'the-coiled-altar': 'penultimate',
+  ulatek: 'finale',
+}
 
 const panelCopy: Record<SetupTab, { eyebrow: string; title: string; body: string }> = {
   'Game settings': {
     eyebrow: 'TRAINING CONFIGURATION',
     title: 'Choose how you want to learn',
-    body: 'Learn 2D and Train 3D use the same encounter vocabulary, while their simulations and arena geometry remain independent.',
+    body: '2D is the top-down tactical trainer; 3D is the movement-and-camera trainer. They share encounter vocabulary while keeping independent simulations and arena geometry.',
   },
   'Keys & Mouse': {
     eyebrow: 'CONTROLS',
@@ -201,10 +211,11 @@ export default function Season2App() {
         {!catalogue && <article className="season2-encounter-card loading"><p>Discovering encounter packages…</p></article>}
         {catalogueFailed && <article className="season2-encounter-card unavailable"><h3>No conforming encounter package</h3><p>Check development diagnostics before continuing.</p></article>}
         {catalogue && <nav className="season2-boss-selector" aria-label="Boss fight selector">
+          <div className="season2-boss-path-heading"><span>The Venomous Abyss</span><strong>Boss order</strong></div>
           {catalogue.packages.map((candidate, index) => {
             const ready = candidate.learn2d.some(item => item.status === 'ready') || candidate.train3d.some(item => item.status === 'ready')
             const selected = candidate.manifest.id === selectedEncounter?.manifest.id
-            return <button type="button" key={candidate.manifest.id} className={`${selected ? 'selected' : ''} ${ready ? 'ready' : 'planned'}`} aria-pressed={selected} onClick={() => setSelectedEncounterId(candidate.manifest.id)}>
+            return <button type="button" key={candidate.manifest.id} data-path-stage={bossPathStage[candidate.manifest.id]} className={`${selected ? 'selected' : ''} ${ready ? 'ready' : 'planned'}`} aria-pressed={selected} onClick={() => setSelectedEncounterId(candidate.manifest.id)}>
               <span>{index + 1}</span><EncounterIcon name={candidate.manifest.name} /><strong>{candidate.manifest.name}</strong><small>{ready ? 'Playable' : 'Planned'}</small>
             </button>
           })}
@@ -215,7 +226,7 @@ export default function Season2App() {
             <p>{selectedEncounter.manifest.summary}</p>
             <div className="season2-encounter-actions">
               {(['learn2d', 'train3d'] as EncounterMode[]).map(mode => {
-                const modeLabel = mode === 'learn2d' ? 'Learn 2D' : 'Train 3D'
+                const modeLabel = mode === 'learn2d' ? '2D' : '3D'
                 const scenarios = mode === 'learn2d' ? selectedEncounter.learn2d : selectedEncounter.train3d
                 const readyScenario = scenarios.find(candidate => candidate.status === 'ready')
                 const scenario = readyScenario ?? scenarios[0]

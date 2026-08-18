@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import nekzali from '../encounters/nekzali'
-import { validateSavedTactic } from './TacticalPlanner'
+import { assignmentFromSelection, validateSavedTactic } from './TacticalPlanner'
 
 const valid = {
   format: 'midnight-season-2-tactic', version: 2, encounterId: 'nekzali',
@@ -9,6 +9,11 @@ const valid = {
 } as const
 
 describe('versioned tactical plan imports', () => {
+  it('turns direct single and multi-player selections into package assignments', () => {
+    expect(assignmentFromSelection('player', ['tank-1'])).toBe('tank-1')
+    expect(assignmentFromSelection('group', ['tank-1', 'healer-1'])).toEqual(['tank-1', 'healer-1'])
+    expect(assignmentFromSelection('pair', ['melee-1', 'ranged-1'])).toEqual(['melee-1', 'ranged-1'])
+  })
   it('accepts matching assignment and per-phase actor layouts', () => {
     expect(validateSavedTactic(valid, nekzali)).toEqual(valid)
   })

@@ -99,6 +99,10 @@ maps with actual package-declared 20-player raid and boss/add actors instead of
 dragging assignment labels. Phase positions persist independently and V1 plans
 migrate into the checked V2 layout format.
 
+`BUG-228` normalizes the compact Import, Export, Save, and Reset controls.
+`CR-300` adds direct single- and multi-player selection, relative group dragging,
+and assignment drop targets without weakening persistence or migration checks.
+
 ### M4 · Sounds and music — complete
 
 Goal: restore independent, pause-aware audio services after encounter behavior
@@ -120,6 +124,10 @@ separate compact two-by-two trainer-difficulty control.
 The publication-gate theme work is intentionally not duplicated here: it
 provides the minimum coherent public identity, while M5 owns the later
 structural shell refinement.
+
+`CR-299` presents the supplied local Venomous Abyss portraits as a selectable
+ordered boss path with its two progression branches and concise player-facing
+`2D`/`3D` launch labels while retaining the internal runtime contracts.
 
 ### M6 · Results, scoring, achievements, and API
 

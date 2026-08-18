@@ -97,8 +97,7 @@ export default function ContractRoom2D({ keyBindings, actions: actionRegistry, h
     <RuntimeStatusBar meta={`DEVELOPMENT · LEARN 2D LAB · ${gate.role.toUpperCase()}`} title="Top-down reaction lab" status={`Match ${event.tone} · ${view.successes} resolved · event ${view.eventIndex + 1}`} paused={pause.paused} pauseKey={keyBindings.pause} onTogglePause={pause.toggle} onExit={onExit} />
     <section className="training-runtime-layout arena-only">
       <div className="learn2d-stage">
-        <div className="learn2d-arena-frame"><div className="learn2d-board contract-2d-board" aria-label="Top-down contract training arena" data-raid-size={contractRaidRoster.length}>
-          <RaidLeadTelegraph current={`Match the ${event.tone} rune`} nextLabel="Resolve" nextSeconds={Math.max(0, CONTRACT_LANDING_SECONDS - age)} />
+        <div className="learn2d-arena-frame"><RaidLeadTelegraph current={`Match the ${event.tone} rune`} nextLabel="Resolve" nextSeconds={Math.max(0, CONTRACT_LANDING_SECONDS - age)} /><div className="learn2d-board contract-2d-board" aria-label="Top-down contract training arena" data-raid-size={contractRaidRoster.length}>
           <div className="contract-2d-boss" aria-label="Training boss"><span>BOSS</span><i className="actor-health"><b style={{ width: '100%' }} /></i></div>
           <SnapshotEffects effects={combatEffects} actors={combatActors} width={100} depth={60} />
           {event.groundObjects.map(object => {
