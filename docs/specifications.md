@@ -854,3 +854,19 @@ superseded by `SPEC-022`; its approved encounter sequence remains in force.
   validation, and checked JSON import/export cover both assignments and phase
   layouts, reject cross-encounter/schema data, and retain a safe migration from
   the first Season 2 tactic format.
+
+## SPEC-027 · Train 3D vertical movement
+
+- Train 3D exposes one persisted Jump binding, defaulting to Space. Learn 2D
+  retains cardinal planar movement and does not acquire a vertical axis.
+- Elevation, vertical velocity, gravity, grounded state, encounter launches,
+  and landing are deterministic simulation state. The renderer consumes actor
+  elevation and never decides whether a wave or collision was cleared.
+- A held key cannot retrigger while airborne. Pause, countdown, focus loss,
+  retry, and exit clear the jump command with every other movement command.
+- Encounter-authored knockback may combine radial displacement with a vertical
+  launch. It uses the same state as an ordinary jump and remains available to
+  future packages through the platform contract rather than private physics.
+- The contract room proves the base jump lifecycle. The Lost Explorers proves
+  mushroom launch, wave clearance, and Mighty Thud knockback against the same
+  capability.

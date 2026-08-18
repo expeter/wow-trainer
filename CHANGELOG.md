@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+- Added The Lost Explorers as an isolated three-boss full fight in Learn 2D and
+  Train 3D, including the octagonal plan, Iku/Gebbo/Nama fish order,
+  Frostfire cleanse, mushroom/Blast Wave traversal, and three Mighty Thud
+  soaks with authoritative knockback.
+- Added a shared persisted Train 3D Jump binding and deterministic elevation,
+  gravity, landing, and encounter-launch state. The contract room exercises
+  ordinary jumping and Lost Explorers uses the same capability for airborne
+  mechanics; Learn 2D remains planar.
+- Added repeatable compressed bundle budgets and a maintained performance
+  baseline, reduced unnecessary custom-arena decoration, improved reduced-
+  motion behavior and 3D-canvas accessibility, and retained existing runtime
+  frame thresholds.
+- Catalogued the supplied Coiled Altar, Twin Fangs, and Ula’tek raid-plan
+  images as future visual evidence without authorizing those encounter
+  runtimes.
+- Deferred the reusable Death Knight grip action until higher-priority
+  encounter and platform work is complete.
+- Removed the thin decorative connector lines from the boss-order selector and
+  reduced its corner sequence numbers so boss names and portraits remain clear.
 - Replaced the flat boss picker with the supplied Venomous Abyss boss-order
   path, including its two branches and correctly cropped local boss portraits;
   the selected encounter now uses compact `2D`/`3D` launch actions.

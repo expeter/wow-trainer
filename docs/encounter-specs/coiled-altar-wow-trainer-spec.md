@@ -10,6 +10,10 @@
 
 > **Pre-release status:** The Venomous Abyss is not yet live in the EU as of this specification date; Blizzard lists the EU launch for 19 August 2026. Current numbers therefore remain subject to last-minute tuning. This specification deliberately avoids inventing encounter cadences that are not present in reliable game data or logs.
 
+Supplied arena evidence: [`the-coiled-altar.png`](../../inbox/the-coiled-altar.png).
+It establishes the rectangular altar silhouette and central seal only; it does
+not authorize runtime work or establish collision measurements.
+
 ## Design intent
 
 The Coiled Altar is a three-stage encounter with a short intermission:

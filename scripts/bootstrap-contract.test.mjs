@@ -70,7 +70,7 @@ test('records the ordered migration boundary', () => {
   const architecture = read('docs/architecture.md')
   for (const ticket of ['CR-230', 'SPEC-018', 'FR-072', 'FR-073']) assert.match(ledger, new RegExp(ticket))
   assert.match(architecture, /No step changes the inherited leaderboard season/)
-  assert.match(architecture, /Entombed Sentinels as the only encounter package/)
+  assert.match(architecture, /Build Entombed Sentinels as the only encounter package/)
 
   const openTickets = [...ledger.matchAll(
     /\| `((?:FR|CR|BUG|SPEC)-\d+)` \| (?:Planned|In progress|Backlog[^|]*|Deferred) \|/g,

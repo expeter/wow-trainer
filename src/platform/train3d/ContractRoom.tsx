@@ -77,7 +77,7 @@ export default function ContractRoom({ keyBindings, actions: actionRegistry, hud
   }, [gate.phaseRef, gate.selectedSlotId, pause.pausedRef])
 
   useEffect(() => {
-    const actions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight'] as const
+    const actions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight', 'jump'] as const
     const update = (event: KeyboardEvent, active: boolean) => {
       const action = actions.find(candidate => keyBindings[candidate] === event.code)
       if (!action) return
@@ -132,7 +132,7 @@ export default function ContractRoom({ keyBindings, actions: actionRegistry, hud
           <ContractPullOverlay selectedSlotId={gate.selectedSlotId} onSlotChange={chooseSlot} phase={gate.phase} seconds={gate.seconds} onStart={gate.start} mode="Train 3D" />
           <RuntimeFeedback failures={stateRef.current.failures} elapsed={snapshot.time} />
         </div>
-        <p className="train3d-controls">Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · turn {keyLabel(keyBindings.turnLeft)} {keyLabel(keyBindings.turnRight)} · {encounterActionLegend(actionRegistry, gate.role, 'train3d')} · mouse-look, both-buttons-forward, wheel zoom</p>
+        <p className="train3d-controls">Move {keyLabel(keyBindings.forward)} {keyLabel(keyBindings.left)} {keyLabel(keyBindings.backward)} {keyLabel(keyBindings.right)} · turn {keyLabel(keyBindings.turnLeft)} {keyLabel(keyBindings.turnRight)} · jump {keyLabel(keyBindings.jump)} · {encounterActionLegend(actionRegistry, gate.role, 'train3d')} · mouse-look, both-buttons-forward, wheel zoom</p>
       </div>
     </section>
     <details className="contract-lab-drawer"><summary>Lab configuration</summary><div><p><strong>Reaction:</strong> four ground runes appear together; enter only the one matching your attached aura.</p><p><strong>Timing:</strong> projectiles land after {CONTRACT_LANDING_SECONDS.toFixed(1)}s and each reaction expires after {CONTRACT_EVENT_SECONDS}s.</p><p><strong>Visual checks:</strong> four dummy raid markers and continuous class-colored NPC casts are cosmetic only.</p><p><strong>Raid:</strong> two tanks, five healers, five melee, and eight ranged players including you.</p><p>{summary.successes} resolved · {summary.misses} missed · {summary.wrongGrounds} wrong rune</p></div></details>

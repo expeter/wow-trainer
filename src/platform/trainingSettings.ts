@@ -1,7 +1,7 @@
 export const TRAINING_SETTINGS_STORAGE_KEY = 'midnight-s2:training-settings:v1'
 
-export type MovementAction = 'forward' | 'backward' | 'left' | 'right' | 'turnLeft' | 'turnRight'
-export type Learn2DMovementAction = Exclude<MovementAction, 'turnLeft' | 'turnRight'>
+export type MovementAction = 'forward' | 'backward' | 'left' | 'right' | 'turnLeft' | 'turnRight' | 'jump'
+export type Learn2DMovementAction = 'forward' | 'backward' | 'left' | 'right'
 export type CombatAction = 'mainAbility' | 'taunt' | 'healthPot' | 'shield' | 'dispel' | 'interrupt'
 export type SystemAction = 'pause'
 export type TrainingAction = MovementAction | CombatAction | SystemAction
@@ -23,6 +23,7 @@ export interface MovementKeyBindings {
   right: string
   turnLeft: string
   turnRight: string
+  jump: string
   pause: string
   mainAbility: string
   taunt: string
@@ -81,7 +82,7 @@ export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
   difficulty: 'normal',
   keyBindings: {
     learn2d: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD' },
-    train3d: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE' },
+    train3d: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE', jump: 'Space' },
     shared: { pause: 'KeyP', mainAbility: 'KeyF', taunt: 'Numpad1', healthPot: 'NumpadDecimal', shield: 'Numpad7', dispel: 'KeyR', interrupt: 'KeyT' },
   },
   hud: { showPlayer: true, showAuras: true, showActions: true, showBoss: true, scale: 100, layout: DEFAULT_HUD_LAYOUT },
@@ -89,9 +90,9 @@ export const DEFAULT_TRAINING_SETTINGS: TrainingSettings = {
 }
 
 const learn2dMovementActions = ['forward', 'backward', 'left', 'right'] as const
-const train3dMovementActions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight'] as const
+const train3dMovementActions = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight', 'jump'] as const
 const sharedActions = ['pause', 'mainAbility', 'taunt', 'healthPot', 'shield', 'dispel', 'interrupt'] as const
-const fallbackCodes = ['KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyQ', 'KeyE', 'KeyP', 'KeyF', 'Numpad1', 'NumpadDecimal', 'Numpad7', 'KeyR', 'KeyT', 'KeyG', 'KeyH'] as const
+const fallbackCodes = ['KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyQ', 'KeyE', 'Space', 'KeyP', 'KeyF', 'Numpad1', 'NumpadDecimal', 'Numpad7', 'KeyR', 'KeyT', 'KeyG', 'KeyH'] as const
 
 function isBoolean(value: unknown): value is boolean {
   return typeof value === 'boolean'

@@ -16,6 +16,7 @@ export interface PlayerCommandState {
   right: boolean
   turnLeft: boolean
   turnRight: boolean
+  jump: boolean
 }
 
 export type AuraTone = 'beneficial' | 'poison' | 'danger' | 'spectral'
@@ -38,6 +39,8 @@ export interface ActorSnapshot {
   role?: RaidRole
   auras: readonly AuraSnapshot[]
   health?: number
+  /** Simulation-owned height above the arena floor in yards. */
+  elevation?: number
 }
 
 export interface EffectSnapshot {
@@ -85,4 +88,5 @@ export const IDLE_PLAYER_COMMANDS: PlayerCommandState = {
   right: false,
   turnLeft: false,
   turnRight: false,
+  jump: false,
 }

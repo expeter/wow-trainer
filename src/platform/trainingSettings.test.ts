@@ -17,7 +17,7 @@ describe('shared Season 2 training settings', () => {
     expect(normalizeTrainingSettings({ keyBindings: { forward: 'ArrowUp', backward: 'ArrowUp', left: 'KeyZ', right: 'KeyD' } }).keyBindings)
       .toMatchObject({
         learn2d: { forward: 'ArrowUp', backward: 'KeyS', left: 'KeyZ', right: 'KeyD' },
-        train3d: { forward: 'ArrowUp', backward: 'KeyS', left: 'KeyZ', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE' },
+        train3d: { forward: 'ArrowUp', backward: 'KeyS', left: 'KeyZ', right: 'KeyD', turnLeft: 'KeyQ', turnRight: 'KeyE', jump: 'Space' },
       })
   })
 
@@ -46,7 +46,7 @@ describe('shared Season 2 training settings', () => {
   it('uses the reviewed WoW movement defaults', () => {
     expect(DEFAULT_TRAINING_SETTINGS.keyBindings).toMatchObject({
       learn2d: { forward: 'KeyW', backward: 'KeyS', left: 'KeyA', right: 'KeyD' },
-      train3d: { forward: 'KeyW', backward: 'KeyS', turnLeft: 'KeyQ', turnRight: 'KeyE', left: 'KeyA', right: 'KeyD' },
+      train3d: { forward: 'KeyW', backward: 'KeyS', turnLeft: 'KeyQ', turnRight: 'KeyE', left: 'KeyA', right: 'KeyD', jump: 'Space' },
     })
   })
 

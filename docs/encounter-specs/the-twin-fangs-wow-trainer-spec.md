@@ -11,6 +11,10 @@
 
 ## 1. Implementation Goal
 
+Supplied arena evidence: [`the-twin-fangs.png`](../../inbox/the-twin-fangs.png).
+It establishes the triangular ring and central void only; it does not authorize
+runtime work or establish collision measurements.
+
 The Twin Fangs should be implemented as a **two-boss resource-management and spatial-control encounter**.
 
 The encounter's primary state is not boss damage. It is the raid's accumulated **Eternal Venom**. Most execution errors either:

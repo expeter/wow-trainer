@@ -95,9 +95,7 @@
 .season2-boss-selector button[data-path-stage='penultimate'] { grid-column: 5; grid-row: 2 / span 2; }
 .season2-boss-selector button[data-path-stage='finale'] { grid-column: 6; grid-row: 2 / span 2; }
 .season2-boss-selector button[data-path-stage='opening'], .season2-boss-selector button[data-path-stage='convergence'], .season2-boss-selector button[data-path-stage='penultimate'], .season2-boss-selector button[data-path-stage='finale'] { align-self: center; min-height: 72px; height: 72px; }
-.season2-boss-selector button::after { content: ''; position: absolute; z-index: -1; left: 100%; top: 50%; width: 20px; border-top: 1px solid color-mix(in srgb, var(--s2-color-accent) 40%, var(--s2-color-border)); pointer-events: none; }
-.season2-boss-selector button[data-path-stage='finale']::after { content: none; }
-.season2-boss-selector button > span:not(.encounter-icon) { position: absolute; top: 4px; right: 5px; color: var(--s2-color-muted); font: 8px var(--s2-font-mono); opacity: .55; }
+.season2-boss-selector button > span:not(.encounter-icon) { position: absolute; top: 3px; right: 4px; color: var(--s2-color-muted); font: 7px var(--s2-font-mono); opacity: .45; }
 .season2-boss-selector .encounter-icon { grid-row: 1 / span 2; width: 40px; height: 40px; font-size: 11px; }
 .season2-boss-selector strong { display: -webkit-box; min-width: 0; overflow: hidden; font-size: 11px; line-height: 1.15; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .season2-boss-selector small { color: var(--s2-color-muted); font: 8px var(--s2-font-mono); text-transform: uppercase; }
@@ -170,6 +168,7 @@
 .season2-binding-panel h3, .season2-camera-settings h3 { margin: 0; font-size: 15px; }
 .season2-binding-panel > p, .season2-camera-settings > p { margin: 3px 0 10px; color: var(--s2-color-muted); font-size: 11px; }
 .season2-keybind-grid { display: grid; grid-template-columns: repeat(2, minmax(100px, 1fr)); gap: 8px; align-items: end; }
+.season2-train-bindings .season2-keybind-grid { grid-template-columns: repeat(3, minmax(84px, 1fr)); }
 .season2-keybind {
   display: grid;
   grid-template-rows: minmax(29px, auto) 36px;
@@ -327,7 +326,7 @@
   background: linear-gradient(90deg, rgba(40, 132, 79, .26) 0 45%, rgba(8, 13, 21, .94) 45% 55%, rgba(130, 45, 62, .23) 55% 100%);
   overflow: hidden;
 }
-.learn2d-arena-frame { position: relative; container-type: size; flex: 1; min-height: 0; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 50% 48%, rgba(39, 82, 65, .16), transparent 42%), #060a0f; }
+.learn2d-arena-frame { position: relative; container-type: size; contain: layout paint; flex: 1; min-height: 0; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 50% 48%, rgba(39, 82, 65, .16), transparent 42%), #060a0f; }
 .learn2d-arena-frame .learn2d-board { flex: none; width: min(100cqw, calc(100cqh * 5 / 3)); height: min(100cqh, calc(100cqw * 3 / 5)); aspect-ratio: 5 / 3; }
 .learn2d-board::before { content: ''; position: absolute; inset: 12px; border: 1px solid rgba(255, 255, 255, .08); border-radius: 9px; pointer-events: none; }
 .learn2d-side { position: absolute; top: 46%; display: grid; gap: 5px; text-align: center; }
@@ -374,7 +373,7 @@
 .learn2d-stage, .train3d-stage, .train3d-viewport { position: relative; min-height: 0; }
 .learn2d-stage, .train3d-stage { height: 100%; display: flex; flex-direction: column; }
 .train3d-stage { border: 1px solid var(--s2-color-border); border-radius: var(--s2-radius-panel); background: #070b12; overflow: hidden; }
-.train3d-viewport { flex: 1; }
+.train3d-viewport { contain: layout paint; flex: 1; }
 .train3d-stage canvas { display: block; width: 100%; height: 100%; min-height: 0; outline: none; }
 .train3d-stage canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--s2-color-accent); }
 .train3d-controls { margin: 0; padding: 10px 13px; color: var(--s2-color-muted); background: var(--s2-color-surface); font: 10px var(--s2-font-mono); }
@@ -439,6 +438,9 @@
 .vashnik-effect-legend i.objective { border-color: #efffb3; }
 .vashnik-effect-legend strong { color: #f1dd8d; white-space: nowrap; }
 .vashnik-effect-legend span { color: #bdc7bd; }
+.lost-explorers-2d-board { clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); background: linear-gradient(rgba(5, 8, 10, .18), rgba(5, 8, 10, .3)), var(--lost-plan) center / cover no-repeat; }
+.lost-explorers-runtime .learn2d-arena-frame { background: #111410; }
+.lost-explorers-runtime .lost-morzahi { filter: drop-shadow(0 0 8px rgba(156,120,232,.8)); }
 .nekzali-2d-enemy.unavailable { filter: grayscale(.7); opacity: .62; outline: 2px double #9bb4c2; outline-offset: 4px; }
 .arena-training-hud > div { position: absolute; transform: translate(-50%, -50%); color: var(--s2-color-text); background: rgba(5, 9, 14, .9); box-shadow: 0 3px 14px rgba(0, 0, 0, .48); }
 .arena-training-hud > .arena-hud-mechanic { display: grid; justify-items: center; width: min(380px, 44%); padding: 8px 12px; border: 2px solid #f3d871; border-radius: 7px; color: #fff4bd; background: rgba(5, 9, 13, .94); box-shadow: 0 4px 20px rgba(0, 0, 0, .72), 0 0 18px rgba(243, 216, 113, .18); text-align: center; }
@@ -557,6 +559,7 @@
   .season2-selected-encounter .season2-encounter-actions { grid-column: 1; grid-row: auto; }
   .season2-settings-grid, .season2-hud-settings, .training-runtime-layout { grid-template-columns: 1fr; }
   .season2-keybind-grid { grid-template-columns: repeat(2, minmax(100px, 1fr)); }
+  .season2-train-bindings .season2-keybind-grid { grid-template-columns: repeat(2, minmax(100px, 1fr)); }
   .season2-shared-bindings { grid-template-columns: 1fr; }
   .season2-shared-bindings .season2-keybind-grid { grid-template-columns: repeat(2, minmax(100px, 1fr)); }
   .contract-position-plan { grid-template-columns: repeat(5, minmax(0, 1fr)); }

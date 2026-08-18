@@ -91,4 +91,20 @@ describe('maintained project documentation', () => {
     expect(read('README.md')).toContain('wow-midnight-fall-lura-trainer')
     expect(read('src/Season2App.tsx')).not.toContain('https://lura.asgard.website')
   })
+
+  it('catalogues supplied future raid plans without authorizing their runtimes', () => {
+    const evidence = read('docs/raid-plan-evidence.md')
+    for (const asset of ['the-coiled-altar.png', 'the-twin-fangs.png', 'ulatek.png']) {
+      expect(existsSync(resolve(process.cwd(), `inbox/${asset}`))).toBe(true)
+      expect(evidence).toContain(asset)
+    }
+    expect(evidence).toContain('Catalogue only')
+    expect(evidence).toContain('do not establish collision coordinates')
+  })
+
+  it('keeps measured performance budgets and the Lost Explorers contract durable', () => {
+    expect(read('docs/performance-baseline.md')).toContain('npm run measure:build')
+    expect(read('docs/lost-explorers-encounter.md')).toContain('authoritative trainer contract')
+    expect(read('docs/specifications.md')).toContain('SPEC-027 · Train 3D vertical movement')
+  })
 })

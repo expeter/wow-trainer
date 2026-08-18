@@ -22,6 +22,9 @@ export const VASHNIK_FLOOR_OUTLINE = [
   [-17, -46], [17, -46], [21, -34], [22, -23], [38, -15], [38, 12], [34, 25], [23, 46],
   [-23, 46], [-34, 25], [-38, 12], [-38, -15], [-22, -23], [-21, -34],
 ] as const
+export const LOST_EXPLORERS_FLOOR_OUTLINE = [
+  [-18, -44], [18, -44], [44, -18], [44, 18], [18, 44], [-18, 44], [-44, 18], [-44, -18],
+] as const
 
 export function renderedFloorDimensions(arena: Train3DSnapshot['arena']) {
   return { width: arena.width * VISUAL_FLOOR_SCALE, depth: arena.depth * VISUAL_FLOOR_SCALE }
@@ -64,7 +67,8 @@ function arenaFloorDetails(arena: Train3DSnapshot['arena']) {
     const value = Math.sin((index + 1) * 91.733 + seed * 17.17) * 43758.5453
     return value - Math.floor(value)
   }
-  const count = arena.theme.layout === 'three-fountain-plan' ? 0 : arena.shape === 'circle' ? 54 : 76
+  const customFloor = arena.theme.layout === 'three-fountain-plan' || arena.theme.layout === 'octagonal-council'
+  const count = customFloor ? 0 : arena.shape === 'circle' ? 54 : 76
   for (let index = 0; index < count; index += 1) {
     const angle = unit(index * 7) * Math.PI * 2
     const radial = Math.sqrt(unit(index * 7 + 1))
@@ -122,6 +126,19 @@ function arenaFloorDetails(arena: Train3DSnapshot['arena']) {
     cavity.name = 'malignant-cavity-floor'
     cavity.position.y = -.28
     group.add(cavity)
+  }
+  if (arena.theme.layout === 'octagonal-council') {
+    const center = new THREE.Mesh(new THREE.RingGeometry(4.6, 7.2, 8), new THREE.MeshBasicMaterial({ color: arena.theme.center || '#594178', transparent: true, opacity: .7, side: THREE.DoubleSide, depthWrite: false }))
+    center.name = 'morzahi-center-rune'
+    center.rotation.x = -Math.PI / 2
+    center.rotation.z = Math.PI / 8
+    center.position.y = .065
+    group.add(center)
+    const route = new THREE.Mesh(new THREE.RingGeometry(22, 23.2, 64), new THREE.MeshBasicMaterial({ color: arena.theme.accent || '#e0c57b', transparent: true, opacity: .18, side: THREE.DoubleSide, depthWrite: false }))
+    route.name = 'gebbo-council-route'
+    route.rotation.x = -Math.PI / 2
+    route.position.y = .045
+    group.add(route)
   }
   return group
 }
@@ -348,6 +365,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     const canvas = canvasRef.current
     if (!canvas) return
     const renderCanvas: HTMLCanvasElement = canvas
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
     let renderer: THREE.WebGLRenderer
     try {
       renderer = rendererFactory ? rendererFactory(canvas) : new THREE.WebGLRenderer({ canvas, antialias: true })
@@ -380,14 +398,15 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
 
     const visualFloor = renderedFloorDimensions(arena)
     const vashnikShape = new THREE.Shape(VASHNIK_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector2(x, -z)))
+    const lostExplorersShape = new THREE.Shape(LOST_EXPLORERS_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector2(x, -z)))
     const floor = new THREE.Mesh(
-      arena.theme.layout === 'three-fountain-plan' ? new THREE.ShapeGeometry(vashnikShape) : arena.shape === 'circle' ? new THREE.CircleGeometry(arena.width * VISUAL_FLOOR_SCALE / 2, 96) : new THREE.PlaneGeometry(visualFloor.width, visualFloor.depth),
+      arena.theme.layout === 'three-fountain-plan' ? new THREE.ShapeGeometry(vashnikShape) : arena.theme.layout === 'octagonal-council' ? new THREE.ShapeGeometry(lostExplorersShape) : arena.shape === 'circle' ? new THREE.CircleGeometry(arena.width * VISUAL_FLOOR_SCALE / 2, 96) : new THREE.PlaneGeometry(visualFloor.width, visualFloor.depth),
       new THREE.MeshStandardMaterial({ color: floorColor, roughness: .9 }),
     )
     floor.rotation.x = -Math.PI / 2
     scene.add(floor)
     scene.add(arenaFloorDetails(arena))
-    if (arena.shape === 'rectangle') {
+    if (arena.shape === 'rectangle' && arena.theme.layout !== 'octagonal-council') {
       const grid = new THREE.GridHelper(Math.max(visualFloor.width, visualFloor.depth), 64, 0x405d48, 0x243329)
       grid.position.y = .03
       scene.add(grid)
@@ -425,6 +444,8 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
     }
     const boundaryPoints = arena.theme.layout === 'three-fountain-plan'
       ? VASHNIK_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector3(x, .055, z))
+      : arena.theme.layout === 'octagonal-council'
+        ? LOST_EXPLORERS_FLOOR_OUTLINE.map(([x, z]) => new THREE.Vector3(x, .055, z))
       : arena.shape === 'circle'
       ? Array.from({ length: 96 }, (_, index) => { const angle = index * Math.PI * 2 / 96; return new THREE.Vector3(Math.cos(angle) * arena.width / 2, .055, Math.sin(angle) * arena.depth / 2) })
       : [
@@ -569,12 +590,13 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         let object = actors.get(actor.id)
         if (!object) {
           object = actorObject(actor)
-          object.position.set(actor.position.x, 0, actor.position.z)
+          object.position.set(actor.position.x, actor.elevation ?? 0, actor.position.z)
           object.rotation.y = simulationFacingToObjectRotation(actor.facing)
           actors.set(actor.id, object)
           scene.add(object)
         } else {
           object.position.x = snapshotSourceRef.current ? actor.position.x : THREE.MathUtils.lerp(object.position.x, actor.position.x, actorAlpha)
+          object.position.y = snapshotSourceRef.current ? actor.elevation ?? 0 : THREE.MathUtils.lerp(object.position.y, actor.elevation ?? 0, actorAlpha)
           object.position.z = snapshotSourceRef.current ? actor.position.z : THREE.MathUtils.lerp(object.position.z, actor.position.z, actorAlpha)
           const targetRotation = simulationFacingToObjectRotation(actor.facing)
           object.rotation.y = snapshotSourceRef.current ? targetRotation : lerpAngle(object.rotation.y, targetRotation, actorAlpha)
@@ -620,7 +642,7 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
           object.userData.positionReady = true
         }
         if (effect.kind === 'pulse') {
-          const scale = .72 + effect.progress * .35
+          const scale = reduceMotion ? 1 : .72 + effect.progress * .35
           object.scale.setScalar(THREE.MathUtils.lerp(object.scale.x, scale, actorAlpha))
         }
         if (effect.kind === 'projectile-impact') {
@@ -655,8 +677,8 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
         }
         object.position.set(marker.position.x, 0, marker.position.z)
         const wobbleTime = frameTime / 1000 + Number(object.userData.wobblePhase ?? 0)
-        object.rotation.x = Math.sin(wobbleTime * 1.7) * .025
-        object.rotation.z = Math.cos(wobbleTime * 1.35) * .035
+        object.rotation.x = reduceMotion ? 0 : Math.sin(wobbleTime * 1.7) * .025
+        object.rotation.z = reduceMotion ? 0 : Math.cos(wobbleTime * 1.35) * .035
         const symbol = object.children[2]
         if (symbol) symbol.rotation.y = Math.sin(wobbleTime * .9) * .12
       })
@@ -679,6 +701,8 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
           if (renderCanvas.dataset.playerFacing !== facingValue) renderCanvas.dataset.playerFacing = facingValue
           if (renderCanvas.dataset.playerX !== xValue) renderCanvas.dataset.playerX = xValue
           if (renderCanvas.dataset.playerZ !== zValue) renderCanvas.dataset.playerZ = zValue
+          const elevationValue = (player.elevation ?? 0).toFixed(3)
+          if (renderCanvas.dataset.playerElevation !== elevationValue) renderCanvas.dataset.playerElevation = elevationValue
           const cameraTargetX = playerX.toFixed(3)
           const cameraTargetZ = playerZ.toFixed(3)
           if (renderCanvas.dataset.cameraTargetX !== cameraTargetX) renderCanvas.dataset.cameraTargetX = cameraTargetX
@@ -717,5 +741,5 @@ export default function ThreeWorldRenderer({ snapshot, snapshotSource, cameraSet
   if (rendererFailure) return <section className="train3d-renderer-failure" role="alert" aria-label="3D renderer recovery">
     <strong>3D view unavailable</strong><p>{rendererFailure}</p><button type="button" onClick={() => { setRendererFailure(undefined); setRecoveryKey(value => value + 1) }}>Retry renderer</button>
   </section>
-  return <canvas ref={canvasRef} tabIndex={0} aria-label="Third-person 3D training arena" />
+  return <canvas ref={canvasRef} tabIndex={0} role="application" aria-label="Third-person 3D training arena" />
 }

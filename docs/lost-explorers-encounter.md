@@ -1,102 +1,79 @@
-# The Lost Explorers provisional encounter contract
+# The Lost Explorers canonical encounter contract
 
 Ticket: `FR-086`
 
-This is an accepted implementation brief, not yet an authoritative mechanic
-specification. The encounter begins only after the preceding approved Vash'nik
-package is stable. The supplied encounter mechanics remain fixed; Test, Easy,
-Normal, and Hard remain trainer-assistance profiles rather than raid
-difficulties.
+This is the authoritative trainer contract for the current pre-live package.
+Test, Easy, Normal, and Hard are assistance profiles and do not alter the
+mechanics or either projection's schedule.
 
 ## Evidence and confidence
 
-- The supplied arena reference and short note are
+- The contained arena reference is
   [`INBOX-20260815-135414-bba2f7`](../inbox/INBOX-20260815-135414-bba2f7.md).
-- The image shows a large octagonal room, a central focal marking, broad
-  cardinal lanes, and ample outer routing space. It is approved as the
-  contained Learn 2D raid-plan background and as visual evidence for a
-  code-rendered Train 3D interpretation.
-- The rules below come from the user's video review on 2026-08-15. Boss and
-  spell-name spelling, exact counts, ranges, cast cadence, effect ownership,
-  dispel type, and encounter cadence require reconciliation with current
-  authoritative encounter material before implementation.
+  It is the clipped Learn 2D background and visual evidence for the separate
+  code-rendered Train 3D octagon; it is never a 3D floor texture.
+- Names, spell relationships, radii, and mechanic ordering reconcile the
+  user's 2026-08-15 video review with the 2026-08-16 pre-live guide and spell
+  data. Exact recurrence remains medium-confidence and replaceable in
+  `timing/projections.ts` pending live logs.
+- Canonical trainer spelling is Iku, Gebbo, Nama, and Mor’zahi. Older Ikku,
+  Namaa, or Morzahi notes are superseded.
 
 ## Shared three-boss contract
 
-- Simulate three targetable turtle bosses: Ikku, Namaa, and Gebbo. Their health
-  should be brought down together, preferably killing Gebbo last; the exact
-  penalty for uneven or early deaths still requires evidence.
-- Gebbo roams the room. Tanks route Ikku and Namaa so all three bosses never
-  converge at one location and avoid colliding with the roaming boss.
-- The central ghost Morzahi is untargetable, creates small avoidable ground
-  circles, and gains energy. Full energy is a terminal failure.
-- Thrown boxes telegraph a harmful landing circle before becoming collectible.
-  Some contain Fish and grant one encounter extra action. A player may safely
-  collect only one box before a deadly pickup debuff prevents another.
-- Fish is thrown at a targetable boss to stop or reduce Morzahi's energy gain.
-  The same boss cannot receive Fish again immediately, producing a rotating
-  one–two–three target order. The exact lockout and energy effect belong in a
-  replaceable timing profile.
+- Iku and Nama are tanked together while Gebbo roams. United Defense reduces
+  incoming damage by 99% only when all three explorers are within 30 yards.
+- Mor’zahi is untargetable and gains energy. At full energy, Final Ascension's
+  five-second channel is terminal.
+- Throw Junk lands crates in small harmful circles. Exactly one crate per
+  cycle yields a Disgusting Fish. The controlled player's pickup and throw are
+  player-owned.
+- Feed exactly one eligible boss per cycle in the fixed Iku, Gebbo, Nama order.
+  A successful feed starts that boss's Ultimate, resets Mor’zahi, and advances
+  the cycle. The timing profile owns the configurable energy deadline and
+  transition delay.
+- Boss health advances together through the three cycles. The attempt succeeds
+  only after all three Ultimates resolve; an unsupported early-kill rule is not
+  invented.
 
-## Gebbo package
+## Iku Ultimate
 
-- Gebbo throws the boxes and continues roaming independently of the two held
-  bosses.
-- A mushroom appears on a random non-tank player. The target carries it away
-  from the raid, waits for its readable activation window, then uses its upward
-  launch to cross an incoming fire wave.
-- A separate random player carries a bomb/fire-wave placement responsibility
-  away from the raid. While the bomb is airborne, that player returns toward
-  the group; everyone avoids the large landing impact. The resulting wave and
-  mushroom launch form one coordinated traversal sequence.
-- The bomb leaves a harmful lava pool that visibly shrinks over time rather
-  than remaining for the complete encounter.
-- The precise ordering and ownership of bomb targeting, wave origin, mushroom
-  activation, and safe crossing must be confirmed before simulation timing is
-  fixed.
+- The assigned controlled player interrupts four-second Icebound Flames.
+- Frostfire Volley marks Fire players outside and Frost players inside. Each
+  spread creates a matching patch; survivors retain their element and clear it
+  only by entering the opposite patch.
+- NPCs resolve assignments not owned by the controlled player. The trainer
+  never silently covers the controlled interrupt, spread, or cleanse.
 
-## Ikku package
+## Gebbo Ultimate
 
-- Ikku performs a regular interruptible cast throughout the fight. The trainer
-  may assign the controlled player approximately every 45 seconds only as a
-  replaceable provisional cadence. The interrupter receives a follow-up effect
-  that a healer must dispel.
-- A lightning-marked player separates far from the raid so the effect does not
-  connect to or strike the group.
-- A multi-hit tank cast currently observed as approximately seven splinters
-  stacks a debuff on Ikku's active tank. Its swap threshold and interaction
-  with other tank mechanics require authoritative confirmation.
-- Four players receive an Ice effect and four different players receive a Lava
-  effect. Both groups spread so their explosions do not hit other marked or
-  unmarked players. Each survivor then uses one of the resulting ground areas
-  to clear the retained elemental debuff. Which element clears which state and
-  how long the areas persist remain validation gaps.
+- Explosive Surprise assigns a bomb to the opposite edge from a preserved
+  mushroom. Its impact is harmful and leaves a shrinking lava pool.
+- Blast Wave crosses the room after the placement. Contact is safe only while
+  the simulation says the player is airborne.
+- The mushroom applies an encounter-authored vertical launch when reached near
+  the incoming wave. The same shared Train 3D vertical-motion state also
+  accepts the player's Jump binding; the renderer does not infer clearance.
 
-## Namaa package
+## Nama Ultimate
 
-- Namaa briefly launches three turtle-shaped projectiles outward. Players
-  dodge their lanes; contact stuns the controlled player for three seconds.
-- Namaa stacks a tank debuff. At 20 stacks the other tank takes aggro.
-- Namaa marks three players for sequential impacts with enough warning to form
-  three nearby but non-overlapping groups. Each impact requires its target and
-  at least five helpers.
-- A player assigned as a helper enters only their designated impact. A marked
-  player receives their own group while avoiding the other two impact zones.
-- Each resolved impact leaves a harmful ground zone for 30 seconds. Arena
-  routing must reserve enough space for all three residues without changing
-  their authoritative duration merely to simplify the trainer.
+- Shell Spin sends three moving shell lanes through the room; contact stuns.
+- Mighty Thud marks three sequential six-yard split-soak points. The controlled
+  player resolves only their assigned group.
+- Each Thud applies an authoritative radial and vertical knockback and leaves a
+  30-second Aftershock zone. The player must recover without overlapping the
+  remaining soaks or residues.
 
 ## Runtime and validation boundaries
 
-- One shared headless simulation owns boss health, aggro, boss positions,
-  Morzahi energy, box contents/pickup lockout, Fish target lockout, hazards,
-  assignments, stacks, interrupts, dispels, stuns, soaks, and outcomes.
-- Learn 2D and Train 3D consume those events through separate octagonal arena
-  models. The bitmap is not used as a 3D floor texture.
-- NPCs resolve mechanics outside the controlled player's assignment, but the
-  controlled player's assigned Fish, interrupt, dispel, tank swap, movement,
-  elemental clear, or soak remains player-owned and cannot be silently covered.
-- Before implementation, confirm canonical names/spelling, encounter phase
-  structure, simultaneous-kill rule, Fish/Morzahi relationship, box pickup
-  debuff, bomb-wave-mushroom sequence, Ikku cast and cleanse rules, Namaa tank
-  stacks, soak size/count, and every timing currently described as provisional.
+- One headless simulation owns boss health and position, Mor’zahi energy,
+  crates and fish, interrupts, elemental marks/patches, mushroom and bomb
+  placement, airborne state, waves, shell lanes, soaks, knockback, residues,
+  failures, and outcome.
+- Learn 2D and Train 3D declare explicit separate schedules while preserving
+  the same causal order, assignments, mechanic meanings, and outcomes.
+- Learn 2D uses cardinal planar movement only. Train 3D owns elevation, gravity,
+  grounded state, manual jump, and encounter launches through `FR-089`.
+- Source confidence and configurable cadence are visible in package timing and
+  the runtime evidence drawer. New live evidence updates the timing profile and
+  focused regressions; mechanics are never changed merely to satisfy a test.

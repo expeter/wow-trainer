@@ -56,4 +56,10 @@ describe('development contract room simulation', () => {
     const longestRoute = Math.max(...directions.flatMap(from => directions.map(to => distance(contractGroundPosition3D(from), contractGroundPosition3D(to)))))
     expect(longestRoute / WOW_MOVEMENT_PROFILE.runSpeed).toBeLessThan(CONTRACT_EVENT_SECONDS - .5)
   })
+
+  it('exercises shared simulation-owned elevation', () => {
+    const jumped = stepContractRoom(createContractRoomState(), { ...IDLE_PLAYER_COMMANDS, jump: true }, 1 / 60)
+    expect(jumped.vertical.grounded).toBe(false)
+    expect(contractRoomSnapshot(jumped).actors.find(actor => actor.kind === 'player')?.elevation).toBeGreaterThan(0)
+  })
 })

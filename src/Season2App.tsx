@@ -36,6 +36,7 @@ const movementLabels: Record<MovementAction, string> = {
   right: 'Strafe right',
   turnLeft: 'Turn left',
   turnRight: 'Turn right',
+  jump: 'Jump',
 }
 const actionLabels = {
   pause: 'Pause / resume',
@@ -48,7 +49,7 @@ const actionLabels = {
 } as const
 const trainingLabels: Record<TrainingAction, string> = { ...movementLabels, ...actionLabels }
 const learn2dMovementActions: Learn2DMovementAction[] = ['forward', 'backward', 'left', 'right']
-const train3dMovementActions: MovementAction[] = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight']
+const train3dMovementActions: MovementAction[] = ['forward', 'backward', 'left', 'right', 'turnLeft', 'turnRight', 'jump']
 const sharedActions: SharedTrainingAction[] = ['pause', 'mainAbility', 'taunt', 'healthPot', 'shield', 'dispel', 'interrupt']
 type Rebinding = { scope: TrainingBindingScope; action: TrainingAction }
 const bossPathStage: Readonly<Record<string, string>> = {
@@ -253,9 +254,9 @@ export default function Season2App() {
         {([
             ['learn2d', 'Learn 2D movement', learn2dMovementActions],
             ['train3d', 'Train 3D movement', train3dMovementActions],
-          ] as const).map(([scope, label, actions]) => <section className="season2-binding-panel" aria-label={label} key={scope}>
+          ] as const).map(([scope, label, actions]) => <section className={`season2-binding-panel${scope === 'train3d' ? ' season2-train-bindings' : ''}`} aria-label={label} key={scope}>
             <h3>{label}</h3>
-            <p>{scope === 'learn2d' ? 'Top-down movement controls.' : 'Player-relative movement and turning.'}</p>
+            <p>{scope === 'learn2d' ? 'Top-down movement controls.' : 'Player-relative movement, turning, and jumping.'}</p>
             <div className="season2-keybind-grid">{actions.map(action => {
               const bindings = settings.keyBindings[scope] as Partial<Record<TrainingAction, string>>
               const active = rebinding?.scope === scope && rebinding.action === action

@@ -6,6 +6,7 @@ import { cosmeticClassProjectiles } from './cosmeticCombat'
 import type { RuntimeFailure } from '../RuntimeFeedback'
 import { beginEncounterAction, coreEncounterEntities, createEncounterTimeline, type EncounterTimelineState } from '../encounters/timeline'
 import { advanceAmbientNpcTimeline, ambientNpcPosition } from '../encounters/ambientNpc'
+import { GROUNDED_VERTICAL_MOTION, stepVerticalMotion, type VerticalMotionState } from './verticalMovement'
 
 export { CONTRACT_EVENT_SECONDS, CONTRACT_LANDING_SECONDS } from '../contractRoom'
 
@@ -33,6 +34,7 @@ export interface ContractRoomState {
   eventStartedAt: number
   eventIndex: number
   player: { x: number; z: number; facing: number }
+  vertical: VerticalMotionState
   events: readonly ContractEvent[]
   successes: number
   misses: number
@@ -58,14 +60,14 @@ export function contractPlayerStart3D(slotId: string): WorldPoint {
 
 export function prepareContractRoomSlot(state: ContractRoomState, slotId: string): ContractRoomState {
   const timeline = createEncounterTimeline(coreEncounterEntities('controlled-player', contractRaidRoster.filter(member => member.id !== slotId).map(member => member.id), ['spell-dummy'], contractRoomArena.id))
-  return { ...state, timeline: { ...timeline, time: state.time }, player: { ...contractPlayerStart3D(slotId), facing: 0 } }
+  return { ...state, timeline: { ...timeline, time: state.time }, player: { ...contractPlayerStart3D(slotId), facing: 0 }, vertical: { ...GROUNDED_VERTICAL_MOTION } }
 }
 
 export function createContractRoomState(seed = 238): ContractRoomState {
   const controlled = contractSelectedMember(CONTRACT_DEFAULT_PLAYER_SLOT)
   const start = worldPosition(controlled)
   const timeline = createEncounterTimeline(coreEncounterEntities('controlled-player', contractRaidRoster.filter(member => member.id !== controlled.id).map(member => member.id), ['spell-dummy'], contractRoomArena.id))
-  return { time: 0, timeline, eventStartedAt: 0, eventIndex: 0, player: { ...start, facing: 0 }, events: seededEvents(seed), successes: 0, misses: 0, wrongGrounds: 0, failures: [] }
+  return { time: 0, timeline, eventStartedAt: 0, eventIndex: 0, player: { ...start, facing: 0 }, vertical: { ...GROUNDED_VERTICAL_MOTION }, events: seededEvents(seed), successes: 0, misses: 0, wrongGrounds: 0, failures: [] }
 }
 
 export function turnContractRoomPlayer(state: ContractRoomState, yawDelta: number): ContractRoomState {
@@ -78,6 +80,7 @@ export function activeContractEvent(state: ContractRoomState) {
 
 export function stepContractRoom(state: ContractRoomState, commands: PlayerCommandState, seconds: number): ContractRoomState {
   const player = stepPlayerMovement(state.player, commands, seconds, { halfWidth: contractRoomArena.width / 2, halfDepth: contractRoomArena.depth / 2 })
+  const vertical = stepVerticalMotion(state.vertical, commands.jump, seconds)
   const time = state.time + seconds
   let timeline = advanceAmbientNpcTimeline(state.timeline, seconds, 'spell-dummy')
   const age = time - state.eventStartedAt
@@ -85,7 +88,7 @@ export function stepContractRoom(state: ContractRoomState, commands: PlayerComma
     ? activeContractEvent(state).groundObjects.find(object => distance(player, contractGroundSlots[object.direction]) < 3.2)
     : undefined
   const expired = age >= CONTRACT_EVENT_SECONDS
-  if (!contact && !expired) return { ...state, time, timeline, player }
+  if (!contact && !expired) return { ...state, time, timeline, player, vertical }
   const event = activeContractEvent(state)
   const failure = contact?.correct ? undefined : {
     id: `contract-3d-${state.eventIndex}-${time.toFixed(3)}`,
@@ -100,6 +103,7 @@ export function stepContractRoom(state: ContractRoomState, commands: PlayerComma
     time,
     timeline,
     player,
+    vertical,
     eventIndex: state.eventIndex + 1,
     eventStartedAt: time,
     successes: state.successes + Number(Boolean(contact?.correct)),
@@ -139,7 +143,7 @@ export function contractRoomSnapshot(state: ContractRoomState, playerSlotId = CO
     timeline: state.timeline,
     arena: contractRoomArena,
     actors: [
-      { id: 'controlled-player', kind: 'player', role: controlled.role, position: state.player, facing: state.player.facing, color: trainingClassColors[controlled.playerClass], playerClass: controlled.playerClass, auras: [{ id: event.id, tone: event.tone, stacks: 1 }], health: playerHealth },
+      { id: 'controlled-player', kind: 'player', role: controlled.role, position: state.player, elevation: state.vertical.height, facing: state.player.facing, color: trainingClassColors[controlled.playerClass], playerClass: controlled.playerClass, auras: [{ id: event.id, tone: event.tone, stacks: 1 }], health: playerHealth },
       { id: 'spell-dummy', kind: 'boss', position: { x: 0, z: 0 }, facing: 0, color: '#607481', auras: [], health: 100 },
       ...npcActors,
     ],
