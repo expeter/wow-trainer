@@ -4,6 +4,7 @@ import CreatorCard from './platform/CreatorCard'
 import { contractRoomActions } from './platform/contractActions'
 import EncounterIcon from './platform/EncounterIcon'
 import HudLayoutPreview from './platform/HudLayoutPreview'
+import GuildFeedback from './platform/GuildFeedback'
 import TacticalPlanner from './platform/TacticalPlanner'
 import type { EncounterCatalogue } from './platform/encounters/discovery'
 import { bindEncounterActions, loadEncounterCatalogue, type EncounterActionDefinition, type EncounterMode, type EncounterPackageV1, type EncounterRuntimeProps } from './platform/encounters'
@@ -164,16 +165,19 @@ export default function Season2App() {
 
   if (runtime) {
     const Runtime = runtime.Component
-    return <Runtime
-      scenarioId={runtime.scenarioId}
-      trainingDifficulty={settings.difficulty}
-      keyBindings={runtimeKeyBindings(settings, runtime.mode)}
-      actions={bindEncounterActions(runtime.actions, runtimeKeyBindings(settings, runtime.mode))}
-      hudSettings={settings.hud}
-      cameraSettings={settings.camera}
-      onCameraSettingsChange={camera => updateSettings(current => ({ ...current, camera }))}
-      onExit={() => setRuntime(undefined)}
-    />
+    return <>
+      <Runtime
+        scenarioId={runtime.scenarioId}
+        trainingDifficulty={settings.difficulty}
+        keyBindings={runtimeKeyBindings(settings, runtime.mode)}
+        actions={bindEncounterActions(runtime.actions, runtimeKeyBindings(settings, runtime.mode))}
+        hudSettings={settings.hud}
+        cameraSettings={settings.camera}
+        onCameraSettingsChange={camera => updateSettings(current => ({ ...current, camera }))}
+        onExit={() => setRuntime(undefined)}
+      />
+      <GuildFeedback context={{ screen: 'runtime', encounterId: selectedEncounter?.manifest.id, encounter: selectedEncounter?.manifest.name, mode: runtime.mode, scenarioId: runtime.scenarioId, difficulty: settings.difficulty }} />
+    </>
   }
 
   return <><BuildStatus /><main className="shell setup-shell season2-shell" id="setup-top">
@@ -326,5 +330,5 @@ export default function Season2App() {
       <a href="privacy.html">Privacy</a>
       <span>{PRODUCT.shortId} · {PRODUCT.plannedHostname}</span>
     </footer>
-  </main></>
+  </main><GuildFeedback context={{ screen: 'setup', encounterId: selectedEncounter?.manifest.id, encounter: selectedEncounter?.manifest.name, difficulty: settings.difficulty, setupTab: activeTab }} /></>
 }

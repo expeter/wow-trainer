@@ -62,6 +62,12 @@ without changing simulation ownership.
 `FR-097` keeps Ula’tek deferred until mechanic evidence exists; its arena image
 and catalogue metadata alone do not authorize runtime work.
 
+`FR-098` is complete as the guild playtesting intake: a small in-trainer
+text/screenshot reporter, isolated VPS storage, and authenticated maintainer
+download feed the manual ticket triage loop without exposing GitHub or legacy
+API credentials. The VPS service is live; publishing the already-verified
+frontend remains a separate explicit push.
+
 Exit gate:
 
 - Nek’zali and Entombed Sentinels pass the agreed playtesting loop in Learn 2D

@@ -29,6 +29,8 @@ jobs:
         run: npm ci
       - name: Run tests
         run: npm test
+      - name: Run guild feedback service contract
+        run: npm run test:feedback
 
   season-2-shell:
     runs-on: ubuntu-latest

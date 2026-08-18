@@ -26,7 +26,8 @@ keys from `App.tsx`, `GameScene.tsx`, or the L'ura `/v1` client.
 | Learn 2D runtime | Diagrams, explanations, timeline study, 2D planner projection | Train 3D world coordinates or physics |
 | Train 3D runtime | Movement simulation, camera, collision, 3D arena projection | Learn 2D canvas state or diagram layout |
 | Encounter directory | One boss package, its assets, fixtures, runtime adapters, and focused tests | Other bosses or central registration edits |
-| Online platform | Future `/v2` identity, statistics, achievements, and rankings | Inherited L'ura `/v1` calls |
+| Guild feedback intake | `FR-098` text/screenshot submission, shared-code verification, private VPS storage, and read-only maintainer download | Identity, gameplay results, GitHub issue creation, or inherited L'ura `/v1` calls |
+| Online platform | Future `/v2` identity, statistics, achievements, and rankings | Guild feedback storage or inherited L'ura `/v1` calls |
 
 ## Package discovery
 
@@ -78,6 +79,14 @@ production.
    `FR-075`).
 8. Address API `/v2` and public systems only in their later milestone
    (`FR-073`).
+
+`FR-098` is the one narrow pre-`FR-073` exception for the guild playtesting
+loop. The static shell sends only an explicit report, supplied screenshots, and
+diagnostic page/build context after shared-code authorization. A separate
+loopback service owns private storage and read-only maintainer download under
+the `/v2/feedback` namespace. It neither imports nor deploys the inherited
+service, while the reverse proxy continues to route every non-feedback path to
+the unchanged `/v1` owner.
 
 No step changes the inherited leaderboard season or authorizes a public
 deployment.

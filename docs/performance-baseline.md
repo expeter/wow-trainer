@@ -8,9 +8,9 @@ uncompressed artifact listing.
 
 | Boundary | Measured | Budget | Loading contract |
 | --- | ---: | ---: | --- |
-| Initial shell JavaScript | 72.62 KiB gzip | 87.89 KiB | Required by setup |
-| Initial shell CSS | 25.54 KiB gzip | 34.18 KiB | Required by setup |
-| Three.js renderer chunk | 147.36 KiB gzip | 170.90 KiB | Lazy; Train 3D only |
+| Initial shell JavaScript | 74.22 KiB gzip | 87.89 KiB | Required by setup, including the `FR-098` reporter |
+| Initial shell CSS | 26.42 KiB gzip | 34.18 KiB | Required by setup, including the `FR-098` reporter |
+| Three.js renderer chunk | 147.37 KiB gzip | 170.90 KiB | Lazy; Train 3D only |
 | Lost Explorers raid plan | 1.76 MB source | Evidence asset | Painted only in Lost Explorers Learn 2D |
 | Sszorak raid plan | 2.42 MB source | Evidence asset | Painted only in Sszorak Learn 2D |
 | Twin Fangs raid plan | 2.39 MB source | Evidence asset | Painted only in Twin Fangs Learn 2D |
@@ -20,6 +20,10 @@ The measured pass retains encounter packages and both runtimes behind dynamic
 imports. The shell must not eagerly import the Three.js renderer. The renderer
 uses one simulation snapshot source, one device-independent pixel ratio, and
 one shared world implementation across packages.
+
+`FR-098` adds 1.60 KiB gzip to shell JavaScript and 0.88 KiB gzip to shell CSS
+while remaining below both accepted budgets. The feedback server and pull
+script do not ship in the static Pages artifact.
 
 Runtime acceptance remains the existing local threshold of at least 30 FPS and
 p95 below 50 ms in the contract-room browser regression. Hosted software

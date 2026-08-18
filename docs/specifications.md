@@ -625,9 +625,20 @@ in immutable source history.
 - Entombed Sentinels is the first encounter package. No second boss begins
   until the package contract, automatic discovery, both runtime boundaries,
   and focused Sentinels regressions are stable.
-- API `/v2`, public statistics, achievements, and rankings are later
-  milestones. Static publication uses only the dedicated `github-pages`
-  environment and `midnight.asgard.website` CNAME.
+- API `/v2` identity, public statistics, achievements, and rankings are later
+  milestones. `FR-098` is a narrow playtest-intake exception: the reporter is
+  explicit and available from setup and encounter runtimes; accepts 1–4000
+  text characters plus at most four PNG, JPEG, or WebP screenshots of no more
+  than 5 MiB each; and includes build/page/encounter diagnostics. Submission
+  requires a shared guild code that is never bundled into the client.
+- Guild feedback screenshots are retained without transformation for the
+  current testing cycle. The VPS stores reports outside the web root, exposes
+  no public read route, and requires a separate read-only credential for local
+  pull into ignored `.tmp/` evidence. Intake never creates GitHub issues or
+  changes the inherited `/v1` service. Battle.net identity may later replace
+  the shared-code check without changing the report contract.
+- Static publication uses only the dedicated `github-pages` environment and
+  `midnight.asgard.website` CNAME.
 
 ## SPEC-019 · Reviewed-platform extraction parity
 

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added an in-trainer guild feedback form on setup and live encounter screens,
+  accepting a short report plus up to four unchanged screenshots behind a
+  shared access code. A separate hardened VPS service stores submissions
+  privately under `/v2/feedback`, while an authenticated pull command verifies
+  and downloads new evidence into ignored `.tmp/` storage for manual triage.
 - Added the supplied Sszorak and Lost Explorers raid plans to Learn 2D and
   reproduced their surrounding environments in code-rendered Train 3D.
   Sszorak, Twin Fangs, and Coiled Altar now stand above toxic depths; Lost

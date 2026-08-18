@@ -1,0 +1,14 @@
+api.asgard.website {
+	encode zstd gzip
+
+	@midnight_feedback path /v2/feedback /v2/feedback/* /v2/admin/feedback /v2/admin/feedback/*
+	handle @midnight_feedback {
+		reverse_proxy 127.0.0.1:8798 {
+			header_up X-Midnight-Client-IP {remote_host}
+		}
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:8787
+	}
+}

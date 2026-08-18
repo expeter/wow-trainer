@@ -27,6 +27,32 @@ test('boots the standalone Season 2 shell with the first package runtimes ready'
   await expect(page.getByText(/public deployment disabled|platform extraction/i)).toHaveCount(0)
 })
 
+test('Season 2 shell submits private guild feedback from setup and keeps the reporter in a runtime', async ({ page }) => {
+  let payload: Record<string, any> | undefined
+  await page.route('https://api.asgard.website/v2/feedback', async route => {
+    payload = route.request().postDataJSON()
+    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ id: 'FEEDBACK-20260818-120000-abcd1234' }) })
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Report bug' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Report a problem' })
+  await dialog.getByLabel('What happened?').fill('The platform edge looks wrong.')
+  await dialog.getByLabel('Guild access code').fill('guild-code')
+  await dialog.getByLabel('Add screenshots').setInputFiles({ name: 'arena.png', mimeType: 'image/png', buffer: Buffer.from('89504e470d0a1a0a00000000', 'hex') })
+  await expect(dialog.getByText('arena.png')).toBeVisible()
+  await dialog.getByRole('button', { name: 'Send report' }).click()
+  await expect(dialog).toContainText('FEEDBACK-20260818-120000-abcd1234')
+  expect(payload).toMatchObject({ guildCode: 'guild-code', message: 'The platform edge looks wrong.', context: { screen: 'setup', encounterId: 'nekzali', difficulty: 'normal' } })
+  expect(payload?.screenshots).toHaveLength(1)
+  expect(payload?.screenshots[0]).toMatchObject({ name: 'arena.png', type: 'image/png' })
+  await dialog.getByRole('button', { name: 'Close feedback form' }).click()
+
+  await page.getByRole('button', { name: "Launch Nek'zali the Soulcoiler 2D" }).click()
+  await expect(page.getByRole('button', { name: 'Report bug' })).toBeVisible()
+  await page.getByRole('button', { name: 'Report bug' }).click()
+  await expect(page.getByRole('dialog', { name: 'Report a problem' }).getByLabel('Guild access code')).toHaveValue('guild-code')
+})
+
 test('persists a versioned tactic and independent audio channels locally', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Tactical plan' }).click()
